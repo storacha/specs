@@ -1,37 +1,37 @@
-# ⚠️ Disclaimer ⚠️
-
-> Since writing this I have realized that while incermental writing approach described here would work well in centralized system (single writer) it will be problematic in decentralized system where multiple actors may be doing concurrent updates e.g. if  web3 application uses web3.storage service from multiple clients they would fail to transact or will have to coordinate updates (version & index).
->
-> I think we could do better by using grow-only sets when patching the pin object and only coordinate pin update between `Pinned` states. That way `Transient` pins could be updated concurrently without coordination & only coordinate updates on `Pinned` pins. 
 
 # Pins
 
-Following is an IPLD Schema representation of the "pin" objects (or whatever we want to call it) which:
+Following is an [IPLD Schema] representation of the `Pin` objects (or whatever we want to call it), which:
 
-1. Can be in "tranisent" or "pinned" state
-    - To allow incermental updates through series of transactions.
-    - To have `tranisent` representation series of between udates.
-3. Are identified by an [ed25519][] public key. Therefor they can represent
-    - IPNS names
-    - [did:key][] identifiers
-    - Actors in [UCAN][] authorization
+1. Can be in `Tranisent` or `Pinned` state.
+    - Allow incermental `Pinned` state updates.
+    - Allow concurrent `Tranisent` state updates.
+3. Are identified by an [ed25519][] public key, that can represent
+    - [IPNS][] names.
+    - [did:key][] identifiers.
+    - Actors in [UCAN][] authorization.
 
 
 This design would address several problems in .storage services:
 
 ### Large uploads
 
-Large uploads that span multiple CAR files would gain a first class representation. Client application will be able to self issue new "pin" identifier and through incremental transactions amend it's state by uploading DAG shards via CAR files. Each transaction would amend `Pin` object with additional DAG shard head(s) followed by a final trasaction changing `Pin` from `Transient` state to `Pinned` state pointing to
-a desired DAG root cid (that was provided in one of the transaction).
+Large uploads that span multiple CAR files would gain a first class representation via `Pin` objects. Client application wishing to upload large file (or any other DAG) will be able to accomplish that by:
 
-This way would allow .storage service to list not only succesful, but also "in progress" uploads (pins). Additional metadata could also be used to provide domain specific information about the status. E.g. applications built on top of web3.storage could utilize this to provide human readable description along with domain specific status `code`.
 
+1. Self issuing a new `Pin` identifier (and corresponding UCAN) by generating new [ed25519][] keypair.
+1. Submitting concurrent `Patch` transactions (in [CAR][] format). Each transaction will contain DAG shards, subset of blocks that would feet upload quota.
+1. Finalizing upload by submitting `Commit` transaction (in [CAR][] format), setting `Pin` root to a `CID` of the large file.
+
+
+This way would allow .storage service to list "in progress" uploads (keyed by `Pin` id) and complete uploads (keyed by `CID` or/and `Pin` id).
 
 ### IPNS
 
-.storage services could directly map pins to corresponding IPNS names, making it possible to access arbitrary uploads / pins through an IPNS resoultion.
+.storage services could mirror `Pin`s to corresponding [IPNS][] names, making it possible to access arbitrary uploads / pins through an IPNS resoultion.
 
-Pin status could be used to decide when to propagate pin updates through the network e.g. sevice could choose to only announce only pinned states.
+> Pin state (`Transient` or `Pinned`) could be used to decide when to propagate pin changes through the network e.g. sevice could choose to only announce only `Pinned` states.
+
 
 ### did:key
 
@@ -46,9 +46,7 @@ By representing pins as first class objects identified by `did:key` they become 
 
 ## Schema
 
-Following is an IPLD schema definition for the `Pin` object. 
-
-> 💭 One one hand we would like to specify enough structure to be able to make sense of it in applications (be it .storage or it's clients), but on the other hand boxing actual DAG just to give it a "status" info seems awkward.
+Following is an [IPLD schema][] definition for the `Pin` object. 
 
 
 ```ipldsch
@@ -103,9 +101,7 @@ type Pinned struct {
 
 ### Pin Update Protocol
 
-General idea is that clients on the network could submit `Transactions` to perform `Pin` updates. Following is the IPLD schema for the transaction.
-
-> 🤔 Transaction and Pin are structurally almost identical, I wonder if it would make sense to make them actually identically. That way we could have `PUT` / `PATCH` operations where first replaces former value with new one and later patches it. 
+General idea is that clients on the network could submit `Transactions`s to perform `Pin` updates. Following is the [IPLD schema][] for the transaction.
 
 ```ipldsch
 type Transaction union {
@@ -197,13 +193,17 @@ type UCAN = Link
 
 In the .storage setting it is expected that client will:
 
-1. Provide CAR encoded DAG shard(s) + (non empty) set `Transaction` blocks.
+1. Provide DAG shard(s) in [CAR][] format.
+4. Include `Transaction` blocks in the provided [CAR][] and list them in [roots](https://ipld.io/specs/transport/car/carv1/#number-of-roots).
 
 In the .storage setting it is expect that service will:
 
-1. Verify that claimed transaction(s) are warrented by provided provided UCAN.
-3. Perform atomic transaction either succesfully updating ALL `Pins` or failing and updating no pins.
+1. Verify that claimed transaction(s) are warrented by provided provided UCAN (Ensuring that client is allowed to update `Pin`).
+3. Perform atomic transaction either succesfully updating ALL `Pins` (as per transaction) or failing and NOT updating any of the pins. (Rejecting request and provide [CAR][] all together).
 
 [ed25519]:https://ed25519.cr.yp.to/
 [UCAN]:https://whitepaper.fission.codes/access-control/ucan
 [did:key]:https://w3c-ccg.github.io/did-method-key/
+[IPLD Schema]:https://ipld.io/docs/schemas/
+[IPNS]:https://github.com/ipfs/specs/blob/master/IPNS.md
+[CAR]:https://ipld.io/specs/transport/car/carv1/
