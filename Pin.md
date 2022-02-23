@@ -1,11 +1,11 @@
 
-# Pins
+# Revision
 
-Following is an [IPLD Schema] representation of the `Pin` objects (or whatever we want to call it), which:
+Following is an [IPLD Schema] representation of the `Revision` objects (or whatever we want to call it), which:
 
-1. Can be in `Tranisent` or `Pinned` state.
-    - Allow incermental `Pinned` state updates.
-    - Allow concurrent `Tranisent` state updates.
+1. Can be in `Draft` or `Release` state.
+    - Allow _coordinated_ `Release` updates.
+    - Allow _concurrent_ `Draft` updates.
 3. Are identified by an [ed25519][] public key, that can represent
     - [IPNS][] names.
     - [did:key][] identifiers.
@@ -16,21 +16,21 @@ This design would address several problems in .storage services:
 
 ### Large uploads
 
-Large uploads that span multiple CAR files would gain a first class representation via `Pin` objects. Client application wishing to upload large file (or any other DAG) will be able to accomplish that by:
+Large uploads that span multiple CAR files would gain a first class representation via `Revision` objects. Client application wishing to upload large file (or any other DAG) will be able to accomplish that by:
 
 
-1. Self issuing a new `Pin` identifier (and corresponding UCAN) by generating new [ed25519][] keypair.
+1. Self issuing a new `Revision` identifier (and corresponding UCAN) by generating new [ed25519][] keypair.
 1. Submitting concurrent `Patch` transactions (in [CAR][] format). Each transaction will contain DAG shards, subset of blocks that would feet upload quota.
-1. Finalizing upload by submitting `Commit` transaction (in [CAR][] format), setting `Pin` root to a `CID` of the large file.
+1. Finalizing upload by submitting `Commit` transaction (in [CAR][] format), setting `root` of the `Revision` to a `CID` of the large file.
 
 
-This way would allow .storage service to list "in progress" uploads (keyed by `Pin` id) and complete uploads (keyed by `CID` or/and `Pin` id).
+This would allow .storage service to list "in progress" uploads (keyed by `Revision` id) and "finished" uploads (keyed by `CID` or/and `Revision` id).
 
 ### IPNS
 
-.storage services could mirror `Pin`s to corresponding [IPNS][] names, making it possible to access arbitrary uploads / pins through an IPNS resoultion.
+.storage services could mirror `Revisions`s to corresponding [IPNS][] names, making it possible to access arbitrary uploads / pins through an IPNS resoultion.
 
-> Pin state (`Transient` or `Pinned`) could be used to decide when to propagate pin changes through the network e.g. sevice could choose to only announce only `Pinned` states.
+> `Revision` state (`Draft` or `Release`) could be used to decide when to propagate changes through the network e.g. sevice could choose to only announce only `Release` states.
 
 
 ### did:key
@@ -39,38 +39,37 @@ This way would allow .storage service to list "in progress" uploads (keyed by `P
 
 ### UCAN
 
-By representing pins as first class objects identified by `did:key` they become actors in UCANs delegated capabilties system.
+By representing `Revision`s as first class objects identified by `did:key` they become actors in UCANs delegated capabilties system.
 
-.storage user could issue delegated token for specific `Pin` object and excercise that capability to update given `Pin` object or delegate that capability to another actor in the system.
+.storage user could issue delegated token for specific `Revision` object and excercise that capability to update given `Revision` object or delegate that capability to another actor in the system.
 
 
 ## Schema
 
-Following is an [IPLD schema][] definition for the `Pin` object. 
+Following is an [IPLD schema][] definition for the `Revision` object. 
 
 
 ```ipldsch
--- Pin represents (IPNS) named pointer to a DAG that
--- is either in "transient" state that is partially
--- or fully "pinned" state. In both cases it is
--- anotated pointer to DAG head(s).
+-- Revision represents (IPNS) named pointer to a DAG that
+-- is either in "draft" or fully "release" state.
+-- In both cases it is anotated pointer to a DAG.
 type Pin union {
-    Transient "transient"
-    Pinned "pinned"
+    Draft "draft"
+    Release "release"
 } representation inline {
   discriminantKey "status"
 }
 
 -- Represents partially pinned DAG. Think of it as
 -- dirty tree in the git, head points to previous
--- revision.
--- Please note: Even though pin links to a previous
--- revision of the pin there is does not imply it is
--- pinned (you would need to include that link in the
--- index for that)
-type Transient struct {
-  -- Link to a previous pin revision in "pinned" state
-  head &Pinned
+-- `Revision`.
+-- Please note: Even though it links to a previous
+-- revision that does not imply it is pinned (you
+-- would need to include that link in the links
+-- explicitly)
+type Draft struct {
+  -- Link to a previous pin revision in "release" state
+  head &Release
   -- Set of DAG roots that next pinned state will be
   -- comprised of.
   -- Please note that providing blocks under DAG
@@ -83,13 +82,13 @@ type Transient struct {
 -- Please note that fully pinned DAG does not imply
 -- that full DAG is pinned, but rather provided
 -- subdag
-type Pinned struct {
-    -- Root representing current state of the pin.
+type Release struct {
+    -- Root representing current state of the revision.
     root Link
     -- Previous version of this pin (not sure what
     -- would genesis block pint to maybe we need
     -- a special genesis variant of "Pin" union)
-    head &Pinned
+    head &Release
     -- We have links to all the relevant sub-DAGs
     -- because `root` may not be traversable e.g
     -- if it is encrypted. By providing links service
@@ -101,7 +100,7 @@ type Pinned struct {
 
 ### Pin Update Protocol
 
-General idea is that clients on the network could submit `Transactions`s to perform `Pin` updates. Following is the [IPLD schema][] for the transaction.
+General idea is that clients on the network could submit `Transactions`s to perform `Revesion` updates. Following is the [IPLD schema][] for the transaction.
 
 ```ipldsch
 type Transaction union {
@@ -113,66 +112,69 @@ type Transaction union {
 
 -- When "Patch" transaction is received, service 
 -- performs following steps:
--- 1. Verify that current pin head corresponds to
---    provided head (if pin is in transient state it
---    checks it checks against it's head). If provided
+-- 1. Verify that current release head corresponds
+--    to provided head (if pin is in draft state
+--    it checks against it's head). If provided
 --    head points to older revision (heads form the
 --    merkle clock) it should deny transaction. If
 --    provided head is newer revision (than known to
---    service) state of the pin on service is out of
---    date and it still refuses transaction as it is
---    unable to process it yet.
--- 2. If pin is in "pinned" state transitions pin to
---    "transient" state in which `head` & `links` match
---    what was provided.
---    If pin is in "tranisent" state update it's `links`
---    to union of the provided links and pin state
+--    service) state of the revision on service is
+--    out of date and it still refuses transaction
+--    as it is unable to process it yet.
+-- 2. If revision is in "release" state transitions
+--    it to "draft" state in which `head` & `links`
+--    match what was provided.
+--    If pin is in "draft" state update it's `links`
+--    to union of the provided links and local state
 --    links. 
 --
 -- Note that service may or may not publish IPNS
 -- record after processing "Patch" transaction.
 type Patch {
-  -- Pin identifier that is it's public key
-  pin ID
-  -- pointer to the head this pin.
-  head &Pinned
+  -- Revision identifier that is it's public key
+  id ID
+  -- Pointer to the head patch assumes revision is on.
+  head &Release
   -- Set of links to be included in the next
-  -- revision of the pin.
+  -- release of the revision.
   links [Link]
   -- This would link to IPLD representation of
-  -- the UCAN (wich "patch" capability) in which
-  -- outermost audience is service ID this patch was
-  -- send to and innermost issuer is the pin ID.
-  -- This would allow pinning service to publish a
-  -- new IPNS record (assuming we add support for
-  -- UCANs in IPNS).
+  -- the UCAN (with "patch" capability) in which
+  -- invocation audience is service ID this patch
+  -- was send to and root issuer is the revision DID.
+  -- This allows service to publish a new IPNS
+  -- record (assuming we add support for UCANs in
+  -- IPNS).
   -- Note: service needs to generate IPNS record
-  -- update based on it's pin state which may be
-  -- different from the one submitted by a client.
+  -- update based on it's local `revision` state
+  -- which may be different from the one submitted
+  -- by a client. Client is responsible to do
+  -- necessary coordination.
   proof &UCAN
 }
 
 -- When "Commit" transaction is recieved service
--- perform same steps as with "Patch". Main
+-- performs same steps as with "Patch". Main
 -- difference is that after processing this
--- transaction Pin will transition to Pinned
--- state. If pin was in Pinned state new state
+-- transaction Revision will transition to Release
+-- state. If revision was in Release state new state
 -- will contain only provided links, otherwise
--- it will contain union of provided links and links
--- in the current state.
+-- it will contain union of all the links that were
+-- received via patches and links provided via
+-- Commit.
 --
 -- General expectation is that service will update IPNS
 -- record after processing "commit" transaction.
 type Commit {
-  -- Pin identifier that is it's public key
-  pin ID
+  -- Revision identifier that is it's public key
+  id ID
   -- pointer to the head of the pin.
-  head &Pinned
-  -- The root of the DAG for a new revisions
-  -- it is implicitly implied to be in the links.
+  head &Release
+  -- The root of the DAG for a new revisions it is
+  -- implicitly implied to be in the links.
   root Link
   -- Set of links to be included in the next
-  -- revision of the pin.
+  -- release of the revision.
   links [Link]
   -- This would link to the IPLD representation of
   -- the UCAN (with "commit" capability) in which 
@@ -198,8 +200,35 @@ In the .storage setting it is expected that client will:
 
 In the .storage setting it is expect that service will:
 
-1. Verify that claimed transaction(s) are warrented by provided provided UCAN (Ensuring that client is allowed to update `Pin`).
-3. Perform atomic transaction either succesfully updating ALL `Pins` (as per transaction) or failing and NOT updating any of the pins. (Rejecting request and provide [CAR][] all together).
+1. Verify that claimed transaction(s) are warrented by provided provided UCAN (Ensuring that client is allowed to update `Revision`).
+3. Perform atomic transaction either succesfully updating ALL `Revisions` (as per transaction) or failing and NOT updating non of the revisions. (Rejecting request and provided [CAR][] all together).
+
+
+### 🚧 Transaction Serialization 🚧
+
+> Note this requires more consideration, what follows is a just a current thinking on the matter.
+
+`Transaction`s MAY be serialized as CAR files. In this serilaziation format transaction to be executed
+will be referenced as CAR roots and point to the DAG-CBOR encoded `Transaction` object with couple of
+nuances:
+
+1. Transaction `links` may link to CAR CID which is to be intepreted as a set of `links` for all the blocks contained in the corresponding CAR.
+
+   > **Note:** We do not currently have CAR IPLD codec. Idea is to iterate on this and define spec based on lessons learned.
+
+2. If `links` field are omitted from transaction object that implies links to all the blocks of this CAR (except transaction blocks).
+
+> 💔 I do not like "implicit links" as that seems impractical in case of multiple transactions. Even for a single transaction case `Transaction` may want to link a DAG known to be available at the destination e.g. CID of the previous revision.
+>
+> At the same time it would be impractical to list
+> all the CIDs in the car in transaction itself.
+>
+> 💭 I'm starting to think we may want nested CARs, that way actual blocks can be included by encoding them via CAR codec. Which then can be referenced from the transaction in the outer CAR.
+> ```
+> |--------- Header --------||------- Data -------|
+> [ varint | DAG-CBOR block ][Transaction][DAG CAR]
+> ```
+> That would allow breaking blocks into arbitrary sets and refer to them from the multilpe transactions.
 
 [ed25519]:https://ed25519.cr.yp.to/
 [UCAN]:https://whitepaper.fission.codes/access-control/ucan
