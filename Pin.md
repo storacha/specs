@@ -1,5 +1,17 @@
 # Inter Planetary Transactional Memory (IPTM)
 
+## Simple Summary
+
+Protocol for representing and updating arbitrary IPLD DAGs over time.
+
+## Abstract
+
+In web3 **source of truth** is in data itself as opposed to raw in central database in traditional web2 applications. This often leads to a different architectures where databases are mere index. Good litmus test is are you able to drop existing database and recreate exact replica from the data itself.
+
+With above design goal following specification proposes permissionless protocol for representing and updating arbitrary IPLD DAGs over time with no assumbtions about databse / indexes one might use in implementation.
+
+## Specification
+
 Following document describes:
 
 1. Schema for representing DAGs that change over time, which from here on we will refer to as `Document`s.
@@ -21,7 +33,7 @@ Document represents a view of the DAG in time, uniquely identified by [ed25519][
 Documents can also be addressed in "specific state" by [CID][] _(which can be simply derived from CIDs of Shards it consists of, which will cover in more detail later)_ 
 
 
-### Document States
+#### Document States
 
 Document can be in two logical states. Transitional state, here on referred as `Draft`, where it's in the process of transmittion _(e.g. in progress upload)_ where it has no `root`. Published document with a specific `root` is referred as `Edition`.
 
@@ -36,13 +48,15 @@ type Document union {
 }
 
 type Draft {
+  status "draft"
   -- Shards of the DAG this draft is comprised of
-  shards: [&Shard]
+  shards [&Shard]
 }
 
 type Edition {
-  shards: [&Shard]
-  root: Link
+  status "edition"
+  shards [&Shard]
+  root Link
 }
 
 ```
@@ -114,14 +128,14 @@ type ID = Bytes
 type UCAN = Link
 ```
 
-### Append
+#### Append
 
 Append operation is both [commutative][] and [idempotent][idempotence], in other words they can be applied in any order and multiple times yet result in the same document state, that is because result of application is just addition of provided `shards` into document's `shards` set.
 
 > It is worth noting that `Append` tranisions document from `Draft` or a `Edition` state into a `Draft` state, unless it has been already applied in which case it is noop.
 
 
-### Publish
+#### Publish
 
 Publish operation simply assigns root to a specific document `Draft`. Since conflicting publish operations could occur, e.g. when two operations link `root` to a different `CID` we apply both operations in an order of operation CIDs, those operation sorted lowest alphabetically wins.
 
@@ -141,9 +155,9 @@ In order to reconcile concurrent publish operations we define total order (only)
    1. Number of shards in `D2` is greater than in `D1`
    2. Number of shards in `D2` is equal to number of shards in `D1` & `CID` of `D1 < D2`. 
 
-## Appliactions
+### Appliactions
 
-### Large Uploads in dotStorage
+#### Large Uploads in dotStorage
 
 This section we describe practical application of this specification in dotStorage service(s), by walking through a large uploads flow, which would enbale service to list "in progress" and "complete" uploads.
 
@@ -180,7 +194,7 @@ By representing `Documents`s as first class objects identified by `did:key` they
 
 dotStorage user could issue delegated token for specific `Document` object and excercise that capability to update given `Document` object or delegate that capability to another actor in the system.
 -->
-
+<!--
 
 ### Incremental update flow
 
