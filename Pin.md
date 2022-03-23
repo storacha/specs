@@ -6,14 +6,14 @@ Protocol for representing, transporting and updating arbitrary [IPLD][] DAGs ove
 
 ### Abstract
 
-Document describes [IPLD][] DAG replication protocol designed for constrained environments, where peer-to-peer replication is impractical. It aims to provide following functionality:
+In decentralized applications **source of truth** is captured in the data itself, as opposed to a row in some database. This often leads to a less common architectures, where databases is mere index. Good litmus test is are you able to drop existing database and recreate exact replica from the data itself.
+
+With above design goal following specification describes [IPLD][] DAG replication protocol designed for constrained environments, where peer-to-peer replication is impractical. It aims to provide following functionality:
 
 
 1. Allow transfer of large DAGs in shards _(of desired size)_ across multiple network request and/or sessions.
 1. Allow transient DAG representations, that is partially replicated DAGs or revisions of one with a traversable root. 
 1. Allow for an uncoordinated multiplayer DAG creation/transfer with specific convergence properties.
-
-
 
 ### Motivation
 
