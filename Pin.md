@@ -1,325 +1,237 @@
-# Inter Planetary Transactional Memory (IPTM)
-
-## Simple Summary
-
-Protocol for representing and updating arbitrary IPLD DAGs over time.
-
-## Abstract
-
-In web3 **source of truth** is in data itself as opposed to raw in central database in traditional web2 applications. This often leads to a different architectures where databases are mere index. Good litmus test is are you able to drop existing database and recreate exact replica from the data itself.
-
-With above design goal following specification proposes permissionless protocol for representing and updating arbitrary IPLD DAGs over time with no assumbtions about databse / indexes one might use in implementation.
-
-## Specification
-
-Following document describes:
-
-1. Schema for representing DAGs that change over time, which from here on we will refer to as `Document`s.
-1. Content derived addressing scheme for `Document` states.
-1. Transactional update protocol for these `Documents`.
-1. Document publishing protocol and associated concensus algorithm.
 
 
-### Document Model
+# DAG Replication & Publishing Protocol
 
-Document represents a view of the DAG in time, uniquely identified by [ed25519][] public key. It is state derived from set of operations that were authorized via corresponding private key (through [UCAN][]).
+Protocol for representing, transporting and updating arbitrary [IPLD][] DAGs over time.
 
-> Because documents are identified by [ed25519][] public key, that CAN represent
-> - [IPNS][] names.
-> - [did:key][] identifiers.
-> - Actors in [UCAN][] authorization.
+### Abstract
 
-
-Documents can also be addressed in "specific state" by [CID][] _(which can be simply derived from CIDs of Shards it consists of, which will cover in more detail later)_ 
+Document describes [IPLD][] DAG replication protocol designed for constrained environments, where peer-to-peer replication is impractical. It aims to provide following functionality:
 
 
-#### Document States
+1. Allow transfer of large DAGs in shards _(of desired size)_ across multiple network request and/or sessions.
+1. Allow transient DAG representations, that is partially replicated DAGs or revisions of one with a traversable root. 
+1. Allow for an uncoordinated multiplayer DAG creation/transfer with specific convergence properties.
 
-Document can be in two logical states. Transitional state, here on referred as `Draft`, where it's in the process of transmittion _(e.g. in progress upload)_ where it has no `root`. Published document with a specific `root` is referred as `Edition`.
 
-Following is an [IPLD schema][] definition for the `Document` object
+
+### Motivation
+
+All content in [IPFS][] is represented by interlinked [blocks][IPLD Block] which form hash-linked DAGs. _(Every file in [IPFS][] is an [IPLD][] DAG under the hood.)_
+
+Many applications in the ecosystem have adopted [Content Addressable Archives (CAR)][CAR] as a transport format for (Sub)DAGs in settings where peer-to-peer replication is impractical due to network, device or other constraints. This approach proved effective in settings where CAR size limit is not a concern, however there are still many constrained environments (e.g. serverless stacks) where transferring large DAGs in single CAR is impractical or plain impossible.
+
+Here we propose a DAG replication protocol that overcomes above limitations by transporting large DAGs in multiple casually ordered network requests and/or sessions by:
+
+1. Encoding sub-DAGs in desired sized packets - shards.
+3. Wrapping shards in casually ordered operations (which can be transported out of order).
+4. Define casually ordered _publish_ operations that can be used to bind DAGs states to a globally unique identifier.
+
+### Replication Protocol
+
+Our replication protocol is defined in terms of atomic, immutable, content addressed "operations" which are wrapped in a container structure that adds casual ordering through hash-links. _(We define this container structure in the _Replica_ section below)_
+
+#### Replica
+
+Semantically replica represents a state (been replicated) at a specific node. It is defined in terms of an atomic **change** _(describe by enclosed operation)_ to the **prior** state. At the same time it is also a log of operations, execution of which will produce a state they describe.
+
+It is described by a following [IPLD Schema]
 
 ```ipldsch
-type Document union {
-    Draft "draft"
-    Edition "edition"
-} representation inline {
-  discriminantKey "status"
+type Replica = {
+  prior optional &Replica
+  change Change
 }
 
-type Draft {
-  status "draft"
-  -- Shards of the DAG this draft is comprised of
-  shards [&Shard]
-}
-
-type Edition {
-  status "edition"
-  shards [&Shard]
-  root Link
-}
-
+-- Due to lack of generics we define Instruction as Any
+-- In practice there will be Instruction set specific replica
+-- types
+type Change = Any
 ```
 
-#### Draft
+Semantics can more accuratly be captured with a help of generics, for that reason we present typescript definition below
+
+```ts
+type Replica<Change> {
+  prior?: Link<Replica<Change>>
+  change: Change
+}
+```
+
+#### DAG State
+
+Arbitrary DAG can be described as a set of shards _(subset of DAG block)_ it is comprised of.
+
+##### Append
+
+With that insight we represent arbitrary DAG, even transient _(one that is in the middle of been transported across nodes)_ in terms of `Append` operations _(which add more shards to a prior state)_ described by following [IPLD Schema][]:
+
+```ipldsch
+type Append {
+  type "append"
+  -- MUST contain only unique &Shards alphabetically ordered
+  -- by their base32 encoding
+  shards [&Shard]
+}
+```
+
+Protocol imposes additional constraint that `shards` list **MUST** contain only unique CIDs and they must be alphabetically ordered by their base32 string encoding. This constraint gurantees that same append operation will be addressed by the same CID.
+
+##### Examples
+
+###### Empty DAG
+
+According to this definitions empty DAG can be represented by a following replica. _(It has no `prior` field because it is a first operation)_
+
+```js
+{ "change": { "type": "append", "shards": [] } }
+```
+
+Which in [DAG-CBOR][] encoding will be addressed by a following CID
+
+```
+bafyreihaskmlkagl5wmhocs5lhu2cbbdmym5wknaiwywnvnokkswppcmiy
+```
+
+###### Basic DAG
+
+DAG representing [DAG-CBOR][] encoded `{ hello: "world" }` block can be encoded by:
+
+1. Encoding `{ hello: "world" }` in [DAG-CBOR]
+1. Encoding that block into shard in [CAR][] format
+   ```
+   bagbaierauhgb4pxfuejvgufxxczjn2o7foetzrlxvnnvjm5pdas2y27v3cua
+   ```
+1. Encoding replica with above change is in other example
+   ```js
+   Block.encode({
+     value: {
+       change: {
+         type: "append",
+         shards: [
+           CID.parse('bagbaierauhgb4pxfuejvgufxxczjn2o7foetzrlxvnnvjm5pdas2y27v3cua')
+         ]
+       }
+     },
+     codec: CBOR,
+     hasher: sha256
+   })
+   ```
+ 
+   
+
+#### Join
+
+Applications with concurrent `Append`s may result in diverged replicas illustrated by this digram
+
+```
+ a1
+ | 
+ a2---+
+ |    |
+ |    |
+ a3   b3---+
+ |    |    |
+ a4   b4  c4
+```
+
+In order to support uncoordinated `Append`s we will use additional `Join` operation in our state representation. Join represents a `DAG` consisting of shards from all the linked replicas and is defined by a following [IPLD Schema]
+
+```ipldsch
+type Join = {
+  type "join"
+  forks [&Replica]
+}
+```
+
+Protocol imposes following additional constraints
+
+1. List `forks` **MUST** contain only unique CIDs and they must be alphabetically ordered by their base32 string encoding.
+2. `Replica` enclosing `Join` **MUST** have `prior` linked to a `replica` with a CID that comes out top in an alphabetical sort (in base32 encoding) and enclosed `Join` **MUST** omit that CID from `forks`.
 
 
-`Draft` represents in-flight document, usually while it's content is transmitted, which occurs prior to initial publish or between subsequent editions.
+Acconding to this definition all divergent replicas will converge to the same one if synchronized before next append
 
 
-It's `shard` field links to all the `Shard`s it is comprised of, which are [CAR][] encoded set of blocks.
+```
+ a1
+ | 
+ a2---+
+ |    |
+ |    |
+ a3   b3---+
+ |    |    |
+ a4   b4  c4
+ |    |    |
+ j5---+----+
+```
 
-Every possible `Draft` state can be addressed by `CID` which can be computed by encoding it as DAG-CBOR node with `shards` sorted alphabetically (There's relevant prior art of [ZDAG hearder compression][] we colud borrow from)
-
-> 💡 Please note that, while possible, `Draft`s are not meant to be stored. They are primarily a way to reference specific states of a document without having to retransmit a lot of data.
-
-
-#### Edition
-
-`Edition` simply represents a state in which specific `Draft` is assigned a `root` node that MUST be present in one of it's shards.
-
-> `Edition`s can also be uniquely addressed via CID pretty much the same way as `Draft`s, although we currently have no practical need for this.
-
-
-### Document update protocol
-
-Documents in our model are represented via "append only" DAGs and can be updated using two types of transactions:
-
-- `Append` - Appends provided DAG shards to the document state.
-- `Publish` - Publishes a `root` of the DAG for a specified `Draft`.
+> Note: New `j5` replica points to `a4` as it is sorts ahead of `b4` and `c4`, while enclosed `Join` operation links to `b4` and `c4`. Produced `Replica` will have same `CID` regardless of which out of three nodes create it.
 
 
-Following is an [IPLD schema][] definition for the `Transaction` object
+### Shards
+
+We will use term shard to describe set of [IPLD block][]s that are part of some [IPLD][] DAG. Shards may represent connected or disconnected set of blocks. It is defined by a following [IPLD Schema][]
+
+```ipldsch
+type Shard = {
+  blocks [Any]
+  roots optional [&Any]
+}
+```
+
+Protocol implementation MAY choose desired [IPLD codec][](s) for shard encoding. Given the system constraints we are trying to address, we RECOMMEND [CAR] format as a baseline.
+
+Shards according to this definition CAN be content addressed by [CID][], which is what we will exploit later.
+
+> Arbitrary CAR files can be viewed as shards and MAY be addressed by CID with the `0x0202` multicodec code.
+>
+> E.g CID of the empty shard in CAR format comes out as
+> `bagbaierawa335d45pwohko5s4fbut7nlfjavq2kan7z3gbzvm2k3zutifv5q`
+
+
+ 
+
+### Publishing Protocol
+
+Publishing protocol allows representing DAGs over time by allowing authorized peers to change state associated with a unique identifier.
+
+Just like DAG state we represent it's state in terms of casually oredered operations - Replica of `Publish` operations. 
+
+`Publish` operation associates DAG _(as defined by our protocol)_ with a specific "root" with a unique identifier, represented by [ed25519][] public key. It is defined by a following [IPLD Schema][]
 
 
 ```ipldsch
-type Transaction union {
-    Append "append"
-    Publish "publish"
-} representation inline {
-  discriminantKey "type"
-}
-
-type Append {
-  -- Document ID to append provided shards to
-  id ID
-  -- Shards to be appended
-  shards: [&Shard]
-  -- UCAN authorization of this append
-  proof &UCAN
-}
-
 type Publish {
-  -- Document ID to append provided shard to
+  type "publish"
   id ID
-  -- State of the document to publish
-  draft: &Draft
-  -- Root to be published
-  root: Link
-  -- Shard in which root is located
-  shard: &Shard
-  -- UCAN authorization to publish this document
-  proof &UCAN
+  -- Entry of the DAG (Must be contained by origin)
+  link &Any
+  -- DAG representation
+  origin &Replica
+  -- Shard containing root (Must be contained by origin)
+  shard optional &Shard
+  -- UCAN with publish capability to this id
+  -- (Root issuer must be same as id)
+  proof UCAN 
 }
 
 -- Binary representation of the ed25519 public key
 type ID = Bytes
--- TODO: Define actual structure
-type UCAN = Link
 ```
 
-#### Append
+##### Convergence
 
-Append operation is both [commutative][] and [idempotent][idempotence], in other words they can be applied in any order and multiple times yet result in the same document state, that is because result of application is just addition of provided `shards` into document's `shards` set.
+Concurrent publish operations would lead to multilpe forks _(as with `Append`)_ which MUST be reconsiled by establishing total order among `Publish` operations as follows:
 
-> It is worth noting that `Append` tranisions document from `Draft` or a `Edition` state into a `Draft` state, unless it has been already applied in which case it is noop.
-
-
-#### Publish
-
-Publish operation simply assigns root to a specific document `Draft`. Since conflicting publish operations could occur, e.g. when two operations link `root` to a different `CID` we apply both operations in an order of operation CIDs, those operation sorted lowest alphabetically wins.
-
-> In practice we expect this to be really rare and of limited value to an malicious actor since root could only point to the CID within the document shards.
-
-##### Logical clock
-
-Publishing a document may have a side effects (e.g. publishing it on IPNS). That is to say if given document state `D(a, b, c, d)` _(lower case letters signify shards)_ applying concurrent publish operations `P(a, b)` and `P(c, d)` may have visible side-effects despite been out of date.
-
-> Please note that `publish` operations themself MUST be part of the document shards which naturally creates causal relationships new operation implicitly refers older ones. More on this can be found in [Merkle CRDT][] paper.
+1. Given replicas `P1` and `P2`, if all operations of `P1` are included in `P2` we say `P1 <= P2` (`P1` predates `P2`).
+1. Given replicas `P1` and `P2` where neither `P1` nor `P2` includes all changes of the other we say `P1 <= P2` if their CIDs in base32 encoding sort accordingly (`CIDofP1`, `CIDofP2`).
 
 
-In order to reconcile concurrent publish operations we define total order (only) among published drafts as follows:
+Please note that we do not care how operations within `P0...P1` and `P0...P2` order, where `P0` is devergence point as last operation effectively overrides all the other. Only exception to this is when last operation e.g. `P2` can not be performed due to linked DAG not been replicated yet. In such case implementer MAY compare `P1` with replica `prior` of `P2` with the same logic.
 
-1. Given drafts `D1` and `D2`, if all shards of `D1` are included in `D2` we say `D1 <- D2` (`D1` predates `D2`).
-2. Given drafts `D1` and `D2` where neither `D1` nor `D2` includes shards of the other `D1 <- D2` if:
-   1. Number of shards in `D2` is greater than in `D1`
-   2. Number of shards in `D2` is equal to number of shards in `D1` & `CID` of `D1 < D2`. 
+   
 
-### Appliactions
-
-#### Large Uploads in dotStorage
-
-This section we describe practical application of this specification in dotStorage service(s), by walking through a large uploads flow, which would enbale service to list "in progress" and "complete" uploads.
-
-
-
-1. Client generates [ed25519][] keypair.
-2. Client derives `Document` ID and corresponding `Append` / `Publish` UCANs for it from keypair.
-3. Client passes large file to a `@ipld/unixfs` library to get a stream of blocks.
-4. Blocks are read from the stream and packed into CARs of 200MiB in size.
-5. Each CAR is packet is wrapped in the outer CAR, with `Append` operation which links to a nested packet CAR by it's CID in `shards` and sends it of to the dotStorage designated endpoint.
-6. Once all packets `Append`-ed client produces `Publish` operation, by deriving `Draft` CID from all the CAR packet `CID`s it produced and with `root` corresponding to file `root` CID.
-7. Clien sends `Publish` operation and awaits it's completion.
-
-
-> Note that in this use case `Document` is used to represent _upload session_ which is discarded on success.
-> Also note that wrapper cars could `Append` / `Publish` shards into more then one document.
-
-<!-- TODO Reframe these as applications
-
-### IPNS
-
-dotStorage services could mirror `Document`s to corresponding [IPNS][] names, making it possible to access arbitrary uploads / pins through an IPNS resoultion.
-
-> `Document` state (`Draft` or `Release`) could be used to decide when to propagate changes through the network e.g. sevice could choose to announce only `Release` states.
-
-
-### did:key
-
-dotStorage service could also provide interface for accessing content under `did:key` that correspond to a given keys. Basically we can build IPNS like system except with delegated publishing through UCANs before integrating that into IPNS.
-
-### UCAN
-
-By representing `Documents`s as first class objects identified by `did:key` they become actors in UCANs delegated capabilties system.
-
-dotStorage user could issue delegated token for specific `Document` object and excercise that capability to update given `Document` object or delegate that capability to another actor in the system.
--->
-<!--
-
-### Incremental update flow
-
-In this flow submits incremental updates through ordered transactions `p1 <- p2 <- c2`. Note that client does not need to await for `p1` to finish before submitting `p2` since it is aware of `p1` CID at creation it can create `p2` which will only apply after `p1` and only if it succeeds (same with `c2`)
-
-
-```
-    c1()--+   - Commit c1 with no parent
-          |
-       R(c1)  - Init Release with c0 parent 
-          |
-          |
- p1(c0) --+   - Patch with c0 parent
-          |
-       D(p1)  - Transition to Draft with p1 parent
-          |
-          |
-  p2(p1)--+   - Apply Patch p2 with parent p1  
-          |
-        D(p2) - Transition to Draft with p2 parent
-          |
-          |
- c2(p2) --+   - Apply Commit c2 with parent p2
-          |
-        R(c2) - Transition to Release with c2 Parent
-```
-
-```
-    c1()--+   - Commit c1 with no parent
-          |
-       R(c1)  - Init Release with c0 parent 
-          |
-          |
- p1(c0) --+   - Patch with c0 parent
-          |
-       D(p1)  - Transition to Draft with p1 parent
-          |
-          |
-  p2(p1)--+   - Apply Patch p2 with parent p1  
-          |
-        D(p2) - Transition to Draft with p2 parent
-          |
-          |
- c2(p2) --+   - Apply Commit c2 with parent p2
-          |
-        R(c2) - Transition to Release with c2 Parent
-```
-
-<!-- TODO - Rabase this diagrams onto current vision
-
-### Concurrent update flow
-
-In this flow client concurrently submits three `Patch`es each with a shards of the desired DAG followed by a `Commit` which lists all three `Patch`-es as parents.
-
-In this flow client does not need to track concurrent patches as final commit will be applied only after it's `parents` or will be rejected otherwise.
-
-> ⚠️ I am having second thoughts in regards to what commit should specify in `parents`. Original thinking was that it could specify nothing to imply whatever documents heads are now. Or specify `CID`s of transactions it depends on.
->
-> However if we have received `c2(p1 p2)` leaving out `p3` it is not clear if `p3` was omitted as non-essential or if actor was unaware of `p3`, and if so changes from `p3` are probably aren't part of the resulting DAG.
-> 
->   I am starting to think that it may be better to refuse `c2` if it does not include all the parents as actor submitting it is out of sync. I can not think of a case where intentionally omitting `p3` makes sense, nor what to do with contents of `p3`.
-
-```
-         c1()--+     - Commit c1 with no parent
-               |
-             R(c1)   - Init Release with c0 parent 
-               |
-               |
-       p1(c0)--+     - Patch with c0 parent
-               |
-             D(p1)   - Transition to Draft with p1 parent
-               |
-               |
-       p2(c0)--+     - Apply concurrent Patch p2 with parent c0  
-               |
-           D(p1 p2)  - Transition to Draft with p2 parent
-               |
-               |
-        p3(c1)-+     - Apply Patch p3 with parent c1  
-               |
-         D(p1 p2 p3) - Transition to Draft with p2 parent
-               |
-               |
- c2(p1 p2 p3)--+    - Apply Commit c2 with parents p2, p3
-               |
-             R(c2)  - Transition to Release with c2 Parent
-```
-
-## Multiplayer update flow
-
-In this flow multiple clients concurrently submit patches and race commits. One of the commits (determined by heuristics to be specified e.g. order by CID and pick the first) is applied and other is rejected.
-
-> Non deterministic nature of this makes me really upset as there may be concurrent `c4` which would have won the race according to our heuristics yet we may receive it after we accpted c2. 
->
-> This bothers me and makes me wonder if we can define protocol such that all the commits get transactions get applied it's just application order will be be determined by CID order. They would still have same links (given it's union of all links), however it may lead to `root` change which may be a problem.
-> 
-> This feels like [compaction problem in CRDTs](https://github.com/ipfs/notes/issues/407)
-
-```
-         c1()--+            - Commit c1 with no parent
-               |
-             R(c1)          - Init Release with c0 parent 
-               |
-               |
-       p1(c0)--+            - Patch from client p
-               |
-             D(p1)          - Transition to Draft with p1 parent
-               |
-               |            - Concurrent Patch from client b
-               +--b1(c0)
-               |
-           D(p1 b1)         - Transition to Draft with p2 parent
-               |
-               |
-        p2(p1)-+            - Apply second Patch from p client  
-               |
-           D(p2 b1)         - Update p1 parent
-               |
-               |
-               |
-    c3(p2 b1)--x--c2(p1 b1) - Apply c2 and reject c3
-               |
-             R(c2)          - Transition to Release with c2 Parent
-```
--->
 
 [ed25519]:https://ed25519.cr.yp.to/
 [UCAN]:https://whitepaper.fission.codes/access-control/ucan
@@ -333,5 +245,8 @@ In this flow multiple clients concurrently submit patches and race commits. One 
 
 [commutative]:https://en.wikipedia.org/wiki/Commutative_property
 [idempotence]:https://en.wikipedia.org/wiki/Idempotence
-
-
+[DAG-CBOR]:https://ipld.io/specs/codecs/dag-cbor/spec/
+[IPLD]:https://ipld.io/specs/
+[IPFS]:https://ipfs.io/
+[IPLD Block]:https://ipld.io/glossary/#block
+[IPLD codec]:https://ipld.io/specs/codecs/
