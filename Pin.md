@@ -26,7 +26,7 @@ Here we propose a DAG replication protocol that overcomes above limitations by t
 1. Encoding sub-DAGs in desired sized packets - shards.
 3. Wrapping shards in casually ordered operations (which can be transported out of order).
 4. Define casually ordered _publish_ operations that can be used to bind DAGs states to a globally unique identifier.
-
+ 
 ### Replication Protocol
 
 Our replication protocol is defined in terms of atomic, immutable, content addressed "operations" which are wrapped in a container structure that adds casual ordering through hash-links. _(We define this container structure in the _Replica_ section below)_
@@ -224,13 +224,111 @@ type ID = Bytes
 
 Concurrent publish operations would lead to multilpe forks _(as with `Append`)_ which MUST be reconsiled by establishing total order among `Publish` operations as follows:
 
-1. Given replicas `P1` and `P2`, if all operations of `P1` are included in `P2` we say `P1 <= P2` (`P1` predates `P2`).
-1. Given replicas `P1` and `P2` where neither `P1` nor `P2` includes all changes of the other we say `P1 <= P2` if their CIDs in base32 encoding sort accordingly (`CIDofP1`, `CIDofP2`).
+1. Given replicas `Pn` and `Pm`, if all operations of `Pn` are included in `Pm` we say `Pn <= Pm` (`Pn` predates `Pm`).
+1. Given replicas `Pn` and `Pm` where neither `Pn` nor `Pm` includes all operations of the other we establish total order by:
+   1. Finding divergence point, common replica `Po`.
+   2. Compare CID _(in base32 string encoding)_ of each `Px` `Po...Pn` with `Py` from `Po...Pm`. If `Px < Py` then `Px < Py` and we compare `Px+1` with `Py` otherwise `Py < Px` and we compare `Py+1` with `Px` etc.
 
 
-Please note that we do not care how operations within `P0...P1` and `P0...P2` order, where `P0` is devergence point as last operation effectively overrides all the other. Only exception to this is when last operation e.g. `P2` can not be performed due to linked DAG not been replicated yet. In such case implementer MAY compare `P1` with replica `prior` of `P2` with the same logic.
+##### Illustrations
+
+Below we have peer `A` associating `a1`, `a2` and then `a3` records. Peer `B` publishes conflicting record `e1` concurrently with `k3`.
 
    
+```
+ A   B 
+ .   .
+g1.........1
+ |   .
+g2---+.....2
+ |   |
+g3   k1....3
+```
+
+According to our convergence algoritm order of operations can be interpolated as follows _(because `CIDof(g3) < CIDof(k1)`)_
+
+```
+A   B 
+ .   .
+g1.........1
+ |   .    
+g2---+.....2
+ |   |
+g3...|.....3
+     |
+     k1....4
+```
+
+That also implies that if `A` has become aware of `k1` it's next record `g4` will link to `k1` and not `g3`.
+
+```
+A    B 
+ .   .
+g1........1
+ |   .
+g2---+....2
+ |   |
+g3...|....3
+     |
++----k1...4
+|
+g4........5
+     
+```
+
+If `B` has published next record instead, event after becoming aware of `g3` it would still link to `k1` (as it sorts lower.
+
+```
+A    B 
+ .   .
+g1........1
+ |   .
+g2---+....2
+ |   |
+g3...|....3
+     |
+    k1....4
+     |
+    k2....5
+
+```
+
+In scenario where operation chains diverge further things are more complicated
+
+
+```
+ A      B
+ .      .
+ g1-----+
+ |      |
+ g2     e1
+ |      |
+ g3     k2
+ |      |
+ g4     e3
+```
+
+Inferred order projects as follows
+
+```
+ A      B
+ .      .
+ g1-----+......1 
+ |      |
+ |      e1.....2   (g2 > e1)
+ |      |
+ g2............3   (g2 < k2)
+ |      |
+ g3.....|......4   (g3 < k2)
+ |      |
+ g4.....|......5   (g4 < k2)
+        |
+        k2.....6
+        |
+        e3.....7
+```
+
+It is worth noting that while `g4` and `e3` were concurrent and `g4 > e3` we still end up with `e3` after `g4`. That is to stress that comparing just last updates alone is not enough for establishing an order because at `k2` order would have been `g3 < k2` while at `e3` it would have been `g3 > e3`. By comparing all the concurrent operations we can establish deterministic order.
 
 
 [ed25519]:https://ed25519.cr.yp.to/
