@@ -21,7 +21,7 @@ All content in [IPFS][] is represented by interlinked [blocks][IPLD Block] which
 
 Many applications in the ecosystem have adopted [Content Addressable Archives (CAR)][CAR] as a transport format for (Sub)DAGs in settings where peer-to-peer replication is impractical due to network, device or other constraints. This approach proved effective in settings where CAR size limit is not a concern, however there are still many constrained environments (e.g. serverless stacks) where transferring large DAGs in single CAR is impractical or plain impossible.
 
-Here we propose a DAG replication protocol that overcomes above limitations by transporting large DAGs in multiple casually ordered network requests and/or sessions by:
+Here we propose a DAG replication protocol that overcomes above limitations by transporting large DAGs in multiple causally ordered network requests and/or sessions by:
 
 1. Encoding sub-DAGs in desired sized packets - shards.
 3. Wrapping shards in casually ordered operations (which can be transported out of order).
