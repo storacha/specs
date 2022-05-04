@@ -196,7 +196,7 @@ Shards according to this definition CAN be content addressed by [CID][], which i
 
 Publishing protocol allows representing DAGs over time by allowing authorized peers to change state associated with a unique identifier.
 
-Just like DAG state we represent it's state in terms of casually oredered operations - Replica of `Publish` operations. 
+Just like DAG state we represent it's state in terms of casually ordered operations - Replica of `Publish` operations. 
 
 `Publish` operation associates DAG _(as defined by our protocol)_ with a specific "root" with a unique identifier, represented by [ed25519][] public key. It is defined by a following [IPLD Schema][]
 
@@ -209,7 +209,7 @@ type Publish {
   link &Any
   -- DAG representation
   origin &Replica
-  -- Shard containing root (Must be contained by origin)
+  -- Shard containing root block (Must be contained by origin)
   shard optional &Shard
   -- UCAN with publish capability to this id
   -- (Root issuer must be same as id)
@@ -222,7 +222,7 @@ type ID = Bytes
 
 ##### Convergence
 
-Concurrent publish operations would lead to multilpe forks _(as with `Append`)_ which MUST be reconsiled by establishing total order among `Publish` operations as follows:
+Concurrent publish operations would lead to multiple forks _(as with `Append`)_ which MUST be reconciled by establishing total order among `Publish` operations as follows:
 
 1. Given replicas `Pn` and `Pm`, if all operations of `Pn` are included in `Pm` we say `Pn <= Pm` (`Pn` predates `Pm`).
 1. Given replicas `Pn` and `Pm` where neither `Pn` nor `Pm` includes all operations of the other we establish total order by:
