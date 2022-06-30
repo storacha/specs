@@ -3,13 +3,13 @@
 
 ### Problem statement
 
-Building services that use [UCAN][]s for authorization require that each service manage own keypair so it can interact with other service(s). Runnig many microservices implies having _many keypairs that need to be kept safe and secret_.
+Building services that use [UCAN][]s for authorization require that each service manage own keypair so it can interact with other service(s). Running many microservices implies having _many keypairs that need to be kept safe and secret_.
 
 Additionally cross service interaction e.g. service `did:key:zUpload` invoking `access/resolve` capability on service `did:key:zAccess` implies that:
 
 1. `did:key:zAccess` needs to issue UCAN that delagets "access/resolve" to `did:key:zUpload`.
-2. `did:key:zUpload` need to keep delegated UCAN around in order to invoke `access/reslove`.
-3. When `did:key:zAccess` rotates keys it's DID change needs to propagate thorugh dependencies and all the capabilities need to be re-issued.
+2. `did:key:zUpload` need to keep delegated UCAN around in order to invoke `access/resolve`.
+3. When `did:key:zAccess` rotates keys it's DID change needs to propagate through dependencies and all the capabilities need to be re-issued.
 
 
 It is easy to imagine this becoming a logistical nightmare with many interdependent services.
@@ -41,7 +41,7 @@ It is however important to consider tradeoffs:
 2. Troubles in key custody service would have direct effect on our service operations.
 3. All of our cross service interactions become observale by a key custody service (even when encrypted if they manage our keys).
 
-#### Migitaion: Secure supreme key
+#### Mitigation: Secure supreme key
 
 Instead of services delegating capabilties to each other we could model our system differently in which we have a "supreme authority" that owns all the capabilities and delegates subset to a specific services that execute them.
 
