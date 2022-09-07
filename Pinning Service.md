@@ -1,5 +1,7 @@
 # Web3 Pinning Service
 
+![](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
+
 We reimagine IPFS [pinning service][] as web3 service, where:
 
 - Users delegate neccessary capabilities to the pinning service as opposed to getting [access token][]s from the service which must be kept secret.
