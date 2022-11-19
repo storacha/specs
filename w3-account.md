@@ -1,361 +1,400 @@
-# w3-accounts
+# Platform protocol
 
 ![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
 [![hackmd-github-sync-badge](https://hackmd.io/Zb7gjpLsQn2w3a3JUvnFcw/badge)](https://hackmd.io/Zb7gjpLsQn2w3a3JUvnFcw)
 
 ## Abstract
 
-Thinking about accounts in web2 terms introduces unfortunate limitations and seem to be a poor fit for User Controlled Authorization Network ([UCAN][]).
+Thinking about users in web2 terms introduces unfortunate limitations and seem to be a poor fit for User Controlled Authorization Network ([UCAN][]).
 
-#### Access
+#### Capabilities
 
-In web2 **account** directly correlate to a **user** (which may be an individual or an organization). In this model user logs into their account using credentials or server issued (secret) token to read/write data.
+In web2 user _(which could be an individual or an organization)_ directly correlates to a (name) space _(usually behind a walled garden)_ they're given access to. In this model user signs into their space using credentials or a server issued (secret) token to gain an access to set of capabilities with-in bound (name) space.
 
-With [UCAN][] based authorization model things are different. User delegates specific **account capabilities** to their **agent** (DID), that represents them in some software installation _(e.g. w3up CLI, web3.storage website, etc...)_. Agent can excercise delegated capabilities to write/read data to/from user account.
+> If there is notion of sharing capabilities it's usually limited & very domain specific. Sharing across applications is extremely rare and usually invoves large cross-organisational efforts.
 
-[UCAN][]s also enable delegating **account capabilities** from one user to _another user_ agent, so they can excercise them. This powerful feature enables wide range of possibilities that are difficult to impossible in web2 model. At the same time `1:1` mapping between `account:user` no longer holds instead we end up with `n:m` mapping, where a user may have access to several accounts & and serveral users may have access to the same account.
+With [UCAN][] based authorization model things are different. User creates a (name)space _(addressed by [did:key][] URI)_ locally and can delegates any set of capabilities to the user agent _(also addressed by [did:key][] URI)_ which acts on their behalf. This allows an agent to invoke any of the delegated capabilities or to delegate them to _another_ user agent, so they could invoke them. This model enables wide range of possibilities that are difficult to impossible in web2 model. Capabilities are the protocol and there for sharing and interop at every layer is the baseline. Inevitably this brakes 1 to 1 correlation between users and spaces. Instead user may have access to multitude of spaces (that they either own or were delegated capabilities to) and multitude of users may have access to the same space.
+
+> Implications of this are tremendous, we are no longer building an apps behind walled gardens, but rather tap into the rich network of information with self describing protocols
+
+#### Providers
+
+As we have above established users create, own and manage access to their space through the capabilities that can be delegated. However owning a `store/add` capability to some `did:key:zAlice` space does not magically let me store data in that space. Something needs to provide `store/add` capability. User can contract "storage provider" and add it to their (or anyone elses space) in turn making it possible for a anyone with `store/add` capability for a space with a store provider to store some data.
+
+Providers are like plugable services that you add a space so they can handle capabilities they provide when they are invoked.
 
 #### Funding
 
-In web2 direct correlation between account and user leads to the system in which users fund their accounts.
+Direct correlation between user and a space in Web 2 model leads to a system in which users fund their space (by money or their privacy).
 
-However decoupling users from the accounts _(as described in previous section)_ we can enable kinds of account funding strategies.  To do so we take inspiration from [solana accounts][] _(or many other blockchains)_ and define `Account` as a "data storage" with a "cash balance" to fund it's operation. This framing implies that:
-
-1. Accounts can be crowdfunded _(any one can donate/send funds)_ to increase it's balance.
-2. Account may be owned by a different entity from one funding it.
-3. Accounts may be used for shared datasets, creating convinient ways to share things without introducing data hierarchies or [ACL][]s.
+Decoupling users from spaces enables all kinds of funding strategies. I can hire storage provider and add it to my space, but I also can hire a provider and add it to some common goods space I would like to financially support. Just like every capability can be shared, just the same every space can be crowd funded, because we decoupled space from the capability providers.
 
 
 ## Specification
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
-### Representation
+### Space
 
-Any valid [did:key][] identifier SHOULD represent a valid w3 account. Unknown accounts MAY be treated as an account with `0` balance/capacity and MAY be denied service.
+#### Representation
 
-:::info
-All actors in w3 are also identified by [did:key][], but most [did:key]s will not correspond to accounts _(even if according to definition they technically are)_. Differnece between agent and account DIDs is purely in semantics and while same [did:key][] could be used for both, we enourage not to as two have to deal with very different threat models.
+Any valid [did:key][] identifier SHOULD represent a valid space. Unknown space that has no capability providers and therefor system will deny service. Attempt to store data into such space MAY fail because space has no storage provider.
+
+
+#### Ownership
+
+Space is a resource that MUST be addressed by the [did:key][] URI. It is owned by the (corresponding) private key holder.
+
+Any [UCAN][] capabilty for the space resource MUST be issued by the owner _([UCAN][] `iss` MUST be equal to `with` of the capability)_ or it's delegate _([UCAN][] MUST have a proof chain leading to delegation from owner)_.
+
+This implies that [UCAN][] invocations on a space resource CAN be validated by verifying:
+
+1. Signatures, time bounds and principal aligment of the delegation chain.
+2. Root `issuer` is the same DID as a resource (`with` field) of  the invoked capability.
+
+
+#### Creation
+
+User (agent) CAN create a new space by generating a [keypair][public key cryptography] and deriving a valid [did:key][] identifier from it.
+
+:::warning
+It is RECOMMENDED that user facing applications create a _space_ for a new user with [ED25519][] keypair & delegate capabilties to it to a local agent whos DID is derived from another [non-extractable keypair](https://developer.mozilla.org/en-US/docs/Web/API/CryptoKey#cryptokey.extractable).
+
+This grants agent access to a space without reusing it's key or a risks of it been compromised.
 :::
-
-### Ownership
-
-Account MUST represents a resource identified by the [did:key][] and is _provably_ owned by the corresponding private key holder.
-
-Any [UCAN][] capabilty for the account resource MUST be issued by an account owner _(UCAN `iss` MUST be equal to `with` of the capability)_ or it's delegate.
-
-This implies that [UCAN][] invocations on account resource CAN be validated by verifying:
-
-1. Signatures & time bounds in the delegation chain.
-2. That root `issuer` DID is same as `with` DID of the invoked capability.
-
-
-### Creation
-
-User _agent_ CAN create a new account by generating a [keypair][public key cryptography] and deriving a valid [did:key][] identifier from it.
-
-
-It is RECOMMENDED that user facing applications create an _account_ for a new user & then delegate all of it's capabilties to a local agent _(which derived from another [non-extractable key](https://developer.mozilla.org/en-US/docs/Web/API/CryptoKey#cryptokey.extractable)pair)_, allowing agent to do anything that account itself can.
 
 
 ```ts
+// illurstartion of the space to agent delegation
 {
-  iss: "did:key:zAccount",
+  iss: "did:key:zSpace",
   aud: "did:key:zAgent",
   exp: null, // delegation never expires
-  // allows did:key:zAgent to do anything did:key:zAcount can
+  // allows did:key:zAgent to do anything with did:key:zSpace
   att: [{
-    with: "did:key:zAccount",
+    with: "did:key:zSpace",
     can: "*"
   }]
 }
 ```
 
 
-:::warning
-It is also RECOMMENDED that user facing applications also provide a way for a user to grant agent an account access e.g. from another agent or via some account recovery scheme.
-:::
+It is also RECOMMENDED that user facing applications provide a way for a user to grant agent an access to their space if they already have one.
 
-
-### Enrollment
-
-Users MAY unlock service features through various vouchers. Here we will describe hypothetical `free-tier` voucher, redeeming which enables a _free tier_ funding on the account.
-
-### Voucher protocol
-
-The `free-tier` voucher example describes a general framework for describing various service features in terms of vouchers that can be acquired by users and then independently enrolled on desired accounts.
-
-It is RECOMMENDED to follow outlined voucher [claiming][`voucher/claim`] / [redeeming][`voucher/redeem`] protocol even if additional or completely different [constraints](#Voucher-redeeming-constraints) are imposed for claiming / redeeming them.
-
-
-#### Invoking `voucher/claim`
-
-Users agent MAY claim `free-tier` voucher for a _verifiable identity_ from a [certified verifier][] using self-issued [`voucher/claim`][] capability invocation
-
-
-
-```ts!
-{
-  iss: "did:key:zAgent",
-  aud: "did:key:zVerifier",
-  att: [{
-    can: "voucher/claim",
-    with: "did:key:zAgent",
-    nb: {
-      // voucher identifier
-      id: "free-tier"
-      // who is claiming voucher
-      by: "mailto:alice@web.mail",
-      
-      // Specific who's voucher is been claimed
-      at: "did:key:zService",
-    }
-  }]
-}
-```
-
-##### Claimed voucher `with`
-
-The agent MAY issue claim `with` own DID or a DID it is delegate of. If `with` is different from `iss` agent implies that it claims voucher for the account matching `with` field. If `with` is same as `iss` agent implies to claim voucher for any account.
-
-:::warning
-Please note that [certified verifier][] delegates [`voucher/redeem`][] capability to the `iss` of the corresponding [`voucher/claim`][], `with` is only used to restrict account voucher maybe redeemed on.
-:::
-
-
-
-##### Claimed voucher `id`
-
-The agent MUST provide `nb.id` caveat with a string value corresponding to the voucher been claimed.
-
-##### Claimed voucher `by`
-
-The agent MUST provide `nb.by` caveat with a `mailto:` URL that corresponds to the _verifiable identity_ submitting a claim.
-
-:::info
-Please note that URLs are used so that other types of verifiable identities could be used e.g. tweet attesting that DID in `with` field has access to a specific twitter handle.
-:::
-
-##### Claimed voucher `at`
-
-The agent MAY provide OPTIONAL `nb.at` caveat, specifing a DID of the service they wish to redeem voucher `with`.
-
-The agent MAY omit `nb.at` either because the value is implied (e.g. by `nb.id`) or because agent wishes to claim matching vouchers for all the services.
-
-
-##### Certified verifier
-
-Certified verifier is a service that had been delegated capabilities to redeem vouchers to verified identities.
-
-In the example below `did:key:zService` delegates `voucher/redeem` capability for a `free-tier` to `did:key:zVerifier` so it MAY redelegate it to agents with a verified `mailto:` identities. 
-
-
-
-```ts!
-{
-  iss: "did:key:zService",
-  aud: "did:key:zVerifier",
-  att: [{
-    with: "did:key:zService",
-    can: "voucher/redeem",
-    nb: {
-      id: "free-tier",
-      by: "mailto:*"
-    }
-  }]
-}
-```
-
-#### Delegating `voucher/redeem`
-
-Verifier MUST provide [`voucher/claim`][] capability and it MUST verify an identity it was claimed `by`. If identity is verified it MUST delegate corresponding [`voucher/redeem`][] capability.
-
-In case of email verification verifier CAN simply send [`voucher/redeem`][] delegation to the email claim was submitted `by`.
-
-:::info
-Sending delegation is not to be taken literary. In practice user facing application may await on secure channel for delegation to be transmitted once user clicks a link embedded in emal.
-:::
-
-
-
-```ts!
-{
-  iss: "did:key:zVerifier",
-  aud: "did:key:zAgent",
-  att: [{
-    can: "voucher/redeem",
-    with: "did:key:zService",
-    nb: {
-      id: "free-tier",
-      by: "mailto:alice@web.mail"
-    }
-  }],
-  // provides delegation certifying verifier
-  prf: [{
-    iss: "did:key:zService",
-    aud: "did:key:zVerifier",
-    att: [{
-      with: "did:key:zService",
-      can: "voucher/redeem",
-      nb: {
-        id: "free-tier",
-        by: "mailto:*"
-      }
-    }]
-  }]
-}
-```
-
-##### Redeem voucher `aud`
-
-The verifier MUST delegate [`voucher/redeem`][] capability to the `aud` that is the same as `iss` of the corresponding [`voucher/claim`][] capability.
-
-##### Redeem voucher `by`
-
-Verifier MUST delegate [`voucher/redeem`][] capabity where `nb.by` is the same as `nb.by` of the corresponding [`voucher/claim`][].
-
-##### Redeem voucher `id`
-
-Verifier MUST delegate [`voucher/redeem`][] capabity where `nb.id` is the same as `nb.id` of the corresponding [`voucher/claim`][].
-
-If verifier does not posses matching [`voucher/redeem`][] capability it MUST deny service.
-
-Verifier MAY delegate additional [`voucher/redeem`][] capabilities e.g. if `nb.id` is interpreted as a selector.
-
-
-##### Redeem voucher `with`
-
-Verifier MUST delegate [`voucher/redeem`][] capability where `with` matches `nb.at` of the corresponding [`voucher/claim`][].
-
-Verifier MAY selector interpretation of `nb.at` as long as:
-
-1. Omitting `nb.at` implies match all.
-2. Value `*` implies match all.
-3. Valid DID implies match extact DID.
-
-
-##### Redeem voucher `on`
-
-Verifier MUST delegate [`voucher/redeem`][] capability where `nb.on` is the same as `with` of the corresponding [`voucher/claim`][] as long as it is different from it's `iss`.
-
-Verifier MUST delegate [`voucher/redeem`][] capability omitting `nb.on` if the corresponding [`voucher/claim`][] has same `iss` and `with`.
-
-
-#### Invoking `voucher/redeem`
-
-Agent may invoke [`voucher/redeem`][] capability `on` an account to enable corresponding feature(s).
-
-When voucher is succesfully redeemed on the account, feature described by `nb.id` MUST be enabled.
-
-
-```ts!
-{
-  iss: "did:key:zAgent",
-  aud: "did:key:zService",
-  // validator provides delegates capabality to redeem
-  // `free-tier` voucher with `did:key:zService`
-  att: [{
-    can: "voucher/redeem",
-    with: "did:key:zService",
-    nb: {
-      id: "free-tier",
-      by: "mailto:alice@web.mail"
-      on: "did:key:zAccount"
-    }
-  }],
-  // provides a proof of voucher from verifer
-  prf: [{
-    iss: "did:key:zVerifier",
-    aud: "did:key:zAgent",
-    att: [{
-      can: "voucher/redeem",
-      with: "did:key:zService",
-      nb: {
-        id: "free-tier",
-        by: "mailto:alice@web.mail"
-      }
-    }],
-    // delegate voucher to the verifier
-    prf: [{
-      iss: "did:key:zService",
-      aud: "did:key:zVerifier",
-      att: [{
-        with: "did:key:zService",
-        can: "voucher/redeem",
-        nb: {
-          id: "free-tier",
-          by: "mailto:*"
-        }
-      }]
-    }]
-  }]
-}
-```
-
-##### Voucher redeeming constraints
-
-Various voucher specific constraints MAY be imposed by a service, which would vary on case to case bases.
-
-In our example redeeming `free-tier` voucher on an account SHOULD enable _free tier_ funding of that account. However following constraints are imposed to prevent gaming system
-
-
-###### voucher enables feature
-
-If account has already redeemed `free-tier` voucher it has corresponding feature enabled. Redeeming any other `free-tier` voucher SHOULD NOT have any effect as feature is already enabled.
-
-###### voucher can be used once
-
-Voucher is issued per verifiable identity. In our example `free-tier` voucher is associated with an email address. If voucher with the that email address was already all other `free-tier` vouchers associated with that email address are considered same and attempt to redeem them MUST fail.
-
-
-#### `voucher/redeem` without delegation
-
-In typical flow user agent claims voucher from the verifier and than excercises it with a service
-
-```sequence
-zAgent-->zVerifier: voucher/claim
-zVerifier-->zAgent: voucher/redeem
-zAgent-->zService: voucher/redeem
-```
-
-However since arbitrary agent MAY redeem a voucher on an arbitrary account, that implies verifier CAN redeem claimed voucher on agents behalf removing the need for a roundtip.
-
-```sequence
-zAgent-->zVerifier: voucher/claim
-zVerifier-->zService: voucher/redeem
-```
-
-Verifier MAY embed `voucher/redeem` invocation link in the verification email so that clicking it automatically enrolls desired account into _free tier_ funding.
-
-:::warning
-Verifier SHOULD NOT invoke `voucher/redeem` _(or embed such a link)_ if `iss` is the same as `with` of the corresponding [`voucher/claim`][] capability because `iss` is likely to be an agent DID as opposed to account DID
-:::
-
-
-### Payment protocol
 
 #### Setup
 
-Service MAY allow user to set up a [payment method][] for purchasing products & subscribtions through vouchers.
+As we have established space creater is an owner and has a full authority to delegate whatever capabilities to others. However unless space has an active provider of the capabilities no invocation of them could succeed.
+
+To make capabilities usable on needs to obtain a provider and add it to desired space. For example user could obtain "free" provider from web3.storage which provides `storage/*` capabilities allowing up to 5GiB of storage.
+
+
+
+```graphviz
+digraph {
+  node [fontname=Menlo, shape=oval, margin="0.2 0", arrowhead=diamond]
+  
+  subgraph space {
+    "did:key:zAliceSpace"-> {
+    
+      node [shape=invhouse, margin="0.4, 0"]
+      "store/*",
+      "name/*",
+      "upload/*"
+
+
+    }
+    
+  }
+  
+  
+  
+  subgraph providers {
+    node [shape=box3d, margin="0.8, 0", style=filled, color="lightgrey"]
+  
+    {"store/*", "name/*", "upload/*"}->"did:dns:free.web3.storage"
+  
+    {"store/*", "upload/*"}->"did:dns:nft.storage"
+  
+    label = "process #2"
+  }
+  
+} 
+```
+
+
+#### Provider protocol
+
+The "free" provider setup describes a more general framework for unlocking various capabilities.
+
+It is RECOMMENDED to follow outlined `provider/*` protocol even though some domain specific details may  vary.
+
+
+##### `provider/get`
+
+Users agent MAY get a "free" storage provider by invoking self-issued `provider/get` capability
+
 
 ```ts!
 {
   iss: "did:key:zAgent",
-  aud: "did:key:zService",
+  aud: "did:dns:web3.storage",
   att: [{
-    can: "account/setup-payment",
-    with: "did:key:zAccount",
+    can: "provider/get",
+    with: "did:key:zAgent",
     nb: {
-      /* symmetric key encrypted with a public
-         key of the `aud` so only private key
-         holder is able to decrypt */
-      cypher,
+      // did of the provider
+      provider: "did:dns:free.web3.storage"
+      // Getting certain providers may require
+      // additional input. In case of "free" provider
+      // only additional information is verifiable
+      // identity of the user
+      credential: "mailto:alice@web.mail",
+    }
+  }]
+}
+```
+
+
+###### get `with`
+
+Getting a some providers MAY only be possible with a resource that meets certain requirements. Payed providers would require that invocation resource has a payment provider for billing. Free providers on the other hand MAY allow invocation with arbitrary resource.
+
+
+###### get `nb.provider`
+
+The agent MUST provide `nb.provider` field with a DID of the provider it wants to get.
+
+
+###### get `nb.consumer`
+
+The agent MAY specify `nb.consumer` field with a DID of the space provider is requested for.
+
+:::warning
+If `nb.consumer` is omitted it implies request for a provider that can be added arbitrary number of consumers. Some providers MAY be denied when `nb.consumer` is omitted because service may limit number of providers per user.
+:::
+
+```ts!
+{
+  iss: "did:key:zAgent",
+  aud: "did:dns:web3.storage",
+  att: [{
+    can: "provider/get",
+    with: "did:key:zAgent",
+    nb: {
+      // did of the provider
+      provider: "did:dns:free.web3.storage"
+      // did of the space
+      consumer: "did:key:zSpace"
+      // Signup process may require require contract
+      // specific input. In case of "free" provider
+      // service just asks for verifable identity
+      // in the `nb.credential` field
+      credential: "mailto:alice@web.mail",
+    }
+  }]
+}
+```
+
+###### get `nb...`
+
+Getting certain providers MAY require additional `nb` fields.
+
+###### get `nb.credential`
+
+To get a "free" provider invocation MUST set `nb.credential` field to a _verifiable credential_ of the user. It MUST be a valid `mailto:` URI where user can receive an email with terms of service.
+
+:::info
+Please note that URIs are used so that other types of verifiable credentials could be supported in the future
+:::
+
+
+##### `consumer/add`
+
+Agent MAY be delegated `consumer/add` capability, allowing it to add consumer space by invoking it.
+
+```ts!
+{
+  iss: "did:dns:web3.storage",
+  aud: "did:key:zAgent",
+  att:[
+    {
+      can: "consumer/add",
+      with: "did:dns:free.web3.storage",
+      nb: {
+        // link to "provider/get" invocation
+        request: { "/": "bafy...signup" },
+        credential: "mailto:alice@web.mail",
+      }
+    }
+  ],
+  prf: [
+    {
+      iss: "did:dns:free.web3.storage",
+      aud: "did:dns:web3.storage",
+      att: [
+        {
+          can: "consumer/add",
+          with: "did:dns:free.web3.storage",
+          nb: {
+            credential: "mailto:*"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+
+
+
+###### add `aud`
+
+Capability MUST be delegated back to the `iss` of the [`provider/get`][] request.
+
+###### add `with`
+
+Capability resource MUST be DID that is same as [`nb.provider`](#get-nbprovider) of the corresponding [`provider/get`][] invocation.
+
+###### add `nb.consumer`
+
+If `nb.consumer` is set, it MUST match [`nb.consumer`](#get-consumer) of the [`provider/get`][] request. If request omitted it, delegation MUST omit field as well. If request did specify `nb.consumer` delegation still MAY omit it if it wishes to allow adding multiple consumers to the delegated provider.
+
+:::danger
+Omiting `nb.consumer` would allow delegate to add arbitrary number of consumers to the provider
+:::
+
+
+###### add `nb.request`
+
+Issuer MUST set `nb.request` field to the corresponding link (CID) of the [`provider/get`][] invocation.
+
+###### add `nb...`
+
+Providers MAY impose various other constraints using `nb` filds of the `consumer/add` capability, usually they would mirror [`nb`](#get_nb) fields of the corresponding [`provider/get`][] request.
+
+
+###### add `nb.credential`
+
+Issuer MAY set `nb.credential` field to to resrict 
+type of _verifiable credentials_ that may be used, for example `mailto:` URIs.
+
+
+##### `consumer/add` invocation
+
+Delegate MAY invoke [`consumer/add`] capability to add a consumer space to the provider. It automatically adds provider to the consumer space, making provider provided capabilities invokable by authorized agents.
+
+:::info
+Please not that while providers may add consumers without their consent, that will not affect consumers in any way since unless provider is used it has no effect on space. 
+:::
+
+```ts!
+{
+  iss: "did:key:zAgent",
+  aud: "did:dns:web3.storage",
+  att: [
+    {
+      can: "consumer/add",
+      with: "did:dns:free.web3.storage",
+      nb: {
+        target: "did:key:zSpace"
+        // link to "provider/signup" invocation
+        request: { "/": "bafy...signup" },
+        credential: "mailto:alice@web.mail",
+      }
+    }
+  ],
+  prf: [
+    {
+      iss: "did:dns:web3.storage",
+      aud: "did:key:zAgent",
+      att:[
+        {
+          can: "consumer/add",
+          with: "did:dns:free.web3.storage",
+          nb: {
+            // link to "provider/signup" invocation
+            signup: { "/": "bafy...signup" },
+            credential: "mailto:alice@web.mail",
+          }
+        }
+      ],
+      prf: [
+        {
+          iss: "did:dns:free.web3.storage",
+          aud: "did:dns:web3.storage",
+          att: [
+            {
+              can: "consumer/add",
+              with: "did:dns:free.web3.storage",
+              nb: {
+                credential: "mailto:*"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+##### `provider/publish`
+
+In the future we plan to define set of `provider` capabilities that will allow author to specify capabilities it provides, terms of service and various other details.
+
+
+In the meantime publishing providers in not supported, however existing providers do impose specific terms and limitations. For example following terms are imposed by `did:dns:free.web3.storage` provider:
+
+1. Provided `store/*` capabilities are limited to 5GiB of storage.
+2. Agent MUST specify `nb.consumer` in [`provider/get`] invocation to enforce single consumer space per user limitation.
+
+
+##### `provider/add`
+
+In typical flow user agent requests [`provider/get`] to get [`consumer/add`][] capability delegated which it then invokes to add a desired [`nb.consumer`] space.
+
+```sequence
+"did:key:zAgent"->"did:dns:provider.store": provider/get
+
+"did:dns:provider.store"->"did:key:zAgent": consumer/add
+"did:key:zAgent"->"did:dns:web3.storage": consumer/add
+```
+
+More simplified flow exists when provider is needed for specific space consumer through `provider/add` capability which is exact equivalent of [`provider/get`] except [`nb.consumer`][] is required. On succesful invocation handler takes care of invoking [`consumer/add`] instead of delegating it back to agent removivg need for extra roundtrip
+
+```sequence
+"did:key:zAgent"->"did:dns:provider.store": provider/add
+"did:dns:provider.store"->"did:dns:web3.storage": consumer/add
+```
+
+Handler MAY embed [`provider/add`](#provideradd-invocation) invocation link in the verification email so that clicking it will automatically add consumer space to the provider.
+
+
+
+#### Payment protocol
+
+##### Add payment provider
+
+User agent MAY add a payment provider using a credit card information.
+
+```ts!
+{
+  iss: "did:key:zAgent",
+  aud: "did:dns:web3.storage",
+  att: [{
+    can: "provider/add",
+    with: "did:key:zAgent",
+    nb: {
+      provider: "did:dns:pay.web3.storage",
+      consumer: "did:key:zSpace",
       /* data is the linked CBOR block that has
          been encrypted with a symmetric key
          inside the `cypher`. We inline here for
          simplicity
       */
-      data: {
+      credential: {
         type: 'card',
         card: {
           number: '4242424242424242',
@@ -364,700 +403,62 @@ Service MAY allow user to set up a [payment method][] for purchasing products & 
           cvc: '314',
         }
       }
+      /* symmetric key encrypted with a public
+         key of the `aud` so only private key
+         holder is able to decrypt */
+      cypher: ".....",
     }
   }],
-  prf: [{
-    iss: "did:key:zAccount",
-    aud: "did:key:zAgent",
-    att: [{
-      can: "*",
-      with: "did:key:zAccount"
-    }]
-  }]
 }
 ```
 
-If payment method is setup succesfully, service will attach a "payment method" to an account (DID in the `with`) allowing account owner or their delegate to perform purchases with it.
+On success payment provider is added to the consumer space allowing an owner or a delegate to invoke and delegate `payment/*` capabilities.
 
 :::warning
-Service MAY instead or additionally create out of bound payment method setup flow to avoid capturing sensitive data like card info. 
+Service MAY instead, or in addition to, create out of bound payment method setup flow to avoid capturing sensitive data like card info.
 :::
 
-#### Listing payment methods
 
+##### Add payed provider
 
-Account owner (or it's delegate) can use self-issued `account/payment-methods` capability to [list payment methods](https://stripe.com/docs/api/payment_methods/customer_list) attached to their account:
+When space has a payment provider it's owner or delegate can invoke [`provider/add`] and [`provider/get`] capabilities to add providers that require payments. 
+
+> Example below illustrates Alice adding a "Lite plan" to Bob's space on her expense.
 
 ```ts!
 {
-  iss: "did:key:zService",
-  aud: "did:key:zAgent",
+  iss: "did:key:zAgent",
+  aud: "did:dns:web3.storage",
   att: [{
-    can: "account/payment-methods",
-    with: "did:key:zAccount",
+    can: "provider/add",
+    with: "did:key:zAlice",
+    nb: {
+      // 30GiB storage plan
+      provider: "did:dns:lite.web3.storage"
+      // Space to add storage provider to
+      consumer: "did:key:zBob"
+    }
   }]
   prf: [{
-    iss: "did:key:zAccount",
+    iss: "did:key:zAlice",
     aud: "did:key:zAgent",
     att: [{
       can: "*",
-      with: "did:key:zAccount"
+      with: "did:key:zAlice"
     }]
   }]
 }
 ```
 
-Service will respond with a list of setup payment methods
-
-```ts!
-[
-  {
-    id: "pm_1LiGEZ2eZvKYlo2CJABZtqVR",
-    type: "card",
-    name: "",
-    default: true
-  }
-]
-```
-
-#### Purchasing
-
-
-Account owner (or it's delegate) can excercise self-issued `account/buy` capability to purchase products & subscribtions in form of vouchers.
-
-```ts!
-{
-  iss: "did:key:zAgent",
-  aud: "did:key:zService",
-  att: [{
-    can: "account/buy",
-    with: "did:key:zAgent",
-    nb: {
-      // voucher identifier
-      id: "free-tier"
-      // who is claiming voucher
-      by: "mailto:alice@web.mail",
-    }
-  }]
-  prf: [{
-    iss: "did:key:zAccount",
-    aud: "did:key:zAgent",
-    att: [{
-      can: "*",
-      with: "did:key:zAccount"
-    }]
-  }]
-}
-```
-
-In the example above account is buying `free-tier` subscribtion. Structure is exactly the same as [`voucher/claim`][]. Succesful purchases delegate [`voucher/redeem`] capability back to the agent (DID in `iss` field) allowing it to enable corresponding feature on desired account.
-
-
-
-<!--
-
-#### `account/register`
-
-
-It SHOULD be possible to activate an account by proving:
-
-1. Intention from the account owner (or it's delagate).
-2. Proof of email address ownership by the account owner (or it's delegate).
-
-Therefor `account/activate` is a rights amilpification derived that CAN be derived from `account/register` and `email/verify` capabilities when following conditions are true:
-
-1. `with` field of derived `account/activate` MUST be equal to `nb.as` field in provided `account/register` proof.
-2. `nb.as` field of derived `account/activate` MUST be equal to `with` field in provided `account/register` proof.
-3. `with` field of derived `account/activate` MUST be equal to `with` field in provided `email/verify`  proof.
-
-
-:::info
-Abose conditions ensure that account holder (or it's delagete) wishes to register account with a claimed email address & that they have been verified to have an access to the claimed email address. 
-:::
-
-Below example illustrates UCAN delegation chain in which arbitrary `did:key:zActor` activates `did:key:zAccount` with `alice@web.mail` email address.
-
-```
-{
-  aud: "did:key:zHugo",
-  att: [{
-     with: "did:key:gozala",
-     can: "proof/account"
-  }]
-}
-```
-
-account/activate  account/activate-request
-
-
-
-
-
-```ts
-{
-  iss: "did:key:zActor",
-  aud: "did:key:zW3",
-  att:[{
-    can: "account/register",
-    with: "mailto:alice@web.mail",
-    nb: { as: "did:key:zAccount" }
-  }],
-  prf: [
-    // Proof that agent issuer registration request. 
-    {
-      iss: "did:key:zAgent",
-      aud: "did:key:zActor",
-      att: [{
-        can: "account/register-request",
-        with: "did:key:zAccount",
-        nb: { as: "mailto:alice@web.mail" }
-      }]
-      // Proof that agent can issue registration request
-      prf: [{
-        iss: "did:key:zAccount",
-        aud: "did:key:zAgent",
-        att: [{
-          can: "*", // includes `account/register-request`
-          with: "did:key:zAccount",
-        }]
-      }]
-    },
-    // proof of claimed email verification
-    {
-      iss: "did:key:zValidator",
-      aud: "did:zActor",
-      att: [{
-        can: "proof/",
-        with: "mailto:alice@web.mail",
-      }]
-      // proof that validator had been granted capability
-      // to perform email verification
-      prf: [{
-        iss: "did:key:zW3",
-        aud: "did:key:zValidator",
-        att: [{
-          can: "email/proof",
-          with: "mailto:*"
-        }]
-      }]
-    }
-  ]
-}
-```
-
-_Agent_ sends UCAN invocation to the _Validator_ to obtain a proof that it can access stated email
-
-
-```ts!
-{
-  iss: "did:key:zAgent"
-  aud: "did:key:zValidator",
-  att: [
-      {
-        can: "email/validate"
-        with: "did:key:zAgent"
-        nb: { email: "alice@web.mail" }
-      }
-  ],
-  prf: [
-      {
-        iss: "did:key:zAgent",
-        aud: "did:key:zValidator",
-        att: [{
-          can: "account/regsiter"
-        }]
-      }
-  ]
-}
-```
-
-_Validator_ sends a mail to the specified _email_ address with a UCAN delagation that grants _Agent_ ability to register that email: 
-
-```ts
-{
-  iss: "did:key:zValidator",
-  aud: "did:key:zAgent",
-  att: [{
-    can: "email/register",
-    with: "mailto:alice@web.mail"
-  }]
-  // proof that validator had been granted capability
-  // to perform email verification
-  prf: [{
-    iss: "did:key:zW3",
-    aud: "did:key:zValidator",
-    att: [{
-      can: "email/register",
-      with: "mailto:*"
-    }]
-  }]
-}
-```
-
-Agent than can invoke account activation request to the w3 service:
-
-
-```ts
-{
-  iss: "did:key:zAgent",
-  aud: "did:key:zW3",
-  /**
-   * You can derive valid registeration from
-   * `account/register` for an account and
-   * `email/register` for an email.
-   *
-   * ```js
-   * {
-   *   can: 'account/register',
-   *   with: `did+mailto:${account}+${email}`
-   * }
-   * ```
-   */
-  att:[{
-    can: "account/register",
-    with: "did+mailto:did:key:zAlice+alice@web.mail",
-  }],
-  prf: [
-    // Proof that agent can register account. 
-    {
-      iss: "did:key:zAccount",
-      aud: "did:key:zAgent",
-      /**
-       * Which implies
-       * ```js
-       * { 
-       *   can: 'account/register',
-       *   with: 'did:key:zAccount'
-       * }
-       * ```
-       */
-      att: [{
-        can: "*",
-        with: "did:key:zAccount",
-      }]
-    },
-    // Proof that agent can register email
-    {
-      iss: "did:key:zValidator",
-      aud: "did:zActor",
-      att: [{
-        can: "email/register",
-        with: "mailto:alice@web.mail",
-      }]
-      // proof that validator had been granted capability
-      // to perform email verification
-      prf: [{
-        iss: "did:key:zW3",
-        aud: "did:key:zValidator",
-        att: [{
-          can: "email/register",
-          with: "mailto:*"
-        }]
-      }]
-    }
-  ]
-}
-```
-
------------
-## Delegate registration to validator
-
-Agent delegates `account/register` to the validator which can either:
-
-1. Complete registration on agent's behalf.
-2. Delegate email registration capability back to agent so it can complete registration.
-
-```ts!
-{
-  iss: "did:key:zAgent"
-  aud: "did:key:zValidator",
-  att: [{
-    can: "account/register"
-    with: "did:key:zAccount"
-    nb: { as: "mailto:alice@web.mail" }
-  }],
-  // proof that agent can act on accounts behalf
-  prf: [{
-    iss: "did:key:zAgent",
-    aud: "did:key:zAccount",
-    att: [{
-      can: "*",
-      with: "did:key:zAccount"
-    }]
-  }]
-}
-```
-
-Validator creates an invocation to the service to complete registration:
-
-```ts!
-{
-  iss: "did:key:zValidator"
-  aud: "did:key:zW3",
-  att: [{
-    can: "account/register"
-    with: "did+mailto:did:key:zAccount+alice@web.mail"
-  }]
-  prf: [
-    // account/register delegated from agent to validator
-    {
-      iss: "did:key:zAgent"
-      aud: "did:key:zValidator",
-      att: [{
-        can: "account/register"
-        with: "did:key:zAccount"
-        nb: { as: "mailto:alice@web.mail" }
-      }]
-      prf: [{
-        iss: "did:key:zAccount",
-        aud: "did:key:zAgent",
-        att: [{
-          can: "*",
-          with: "did:key:zAccount"
-        }]
-      }]
-    }
-    // email/register delegated from service to validator
-    {
-        iss: "did:key:zW3",
-        aud: "did:key:zValidator",
-        att: [{
-          can: "email/register",
-          with: "mailto:*",
-        }]
-    }
-  ]
-}
-```
-
-:::danger
-Only problem with delegating `account/register` to the validator is that it can use it to register with arbitrary service not just with `did:key:zW3` as user intended.
-:::
-
-Following capability definition will take care of all the necessary validations.
-
-```ts!
-const AccountRegister = capability({
-  can: "account/register",
-  with: URI.match({ protocol: "did:" }),
-  derives: (claim, from) =>
-    // Can not derive if accounts don't match
-   claim.with !== from.with
-     ? new Failure(`Can not derive ${claim.with} from ${from.with}`)
-     // Can derive if no email caveat is *
-     : from.caveats.as === "*"
-     ? true
-     // Can derive if no email caveat is omitted
-     : from.caveats.as == null
-     ? true
-     // can derive if emails match
-     :claim.caveats.as === from.caveats.as
-     : true
-     // Otherwise can not derive as emails don't match 
-     : new Failure(`Can not derive ${claim.caveats.as} from ${from.caveats.as}`)
-})
-
-const EmailRegister = capability({
-  can: "email/register",
-  with: URI.match({ protocol: "mailto:" })
-  derives: (claim, from) =>
-     from.with === "mailto:*" 
-     ? true
-     : claim.with !== from.with
-     ? new Failure(`Can not derive ${claim.with} from ${from.with}`)
-     : true
-})
-
-
-const Register = AccountRegister.and(EmailRegister).derive({
-  to: capability({
-    can: "account/register",
-    with: URI.match({ protocol: "did+mailto:" })
-    derives: (claim, from) => true,
-  }),
-  derives: (register, [account, email]) => {
-      const [did, mailto] = register
-                              .with
-                              .slice('did+mailto:'.length)
-                              .split('+')
-                              
-     if (account.with !== did) {
-       return new Failure(`Can not derive ${register.with} from ${did}`)
-     }
-     
-     if (email.with !== mailto) {
-       return new Failure(`Can not derive ${register.with} from ${mailto}`)
-     }
-     
-     if (register.caveats.as !== mailto) {
-       return new Failure(`Can not register ${mailto}, because account/register uses as: ${register.caveats.as} `)
-     }
-     
-     return true
-      
-    }
-})
-```
-
-
------------
-
-
-_Validator_ is RECOMMENDED to also embed link in the email, clicking which would invoke `account/register` capability:
-
-```ts
-{
-  iss: "did:key:zValidator",
-  aud: "did:key:zW3",
-  att:[{
-    can: "w3/register",
-    with: "did:key:zW3",
-    nb: {
-      email: "alice@web.mail",
-      account: "did:key:zAccount"
-    }
-  }],
-  prf: [
-    // Proof that agent issuer registration request. 
-    {
-      iss: "did:key:zAgent",
-      aud: "did:key:zValidator",
-      att: [{
-        can: "account/register",
-        with: "did:key:zAccount",
-        nb: {
-          email: "alice@web.mail",
-          at: "did:key:zW3"
-        }
-      }]
-      // Proof that agent can issue registration request
-      prf: [{
-        iss: "did:key:zAccount",
-        aud: "did:key:zAgent",
-        att: [{
-          can: "*", // includes `account/register-request`
-          with: "did:key:zAccount"
-        }]
-      }]
-    },
-    // proof of claimed email verification
-    {
-        iss: "did:key:zW3",
-        aud: "did:key:zValidator",
-        att: [{
-          can: "email/proof",
-          with: "did:key:zW3",
-          nb: {
-            email: "*" // includes alice@web.mail
-          }
-        }]
-    }
-  ]
-}
-```
-
-In most cases account activation flow has following steps:
-
-1. User specifies email address to activate account.
-2. User agent invokes `account/register` capability with supported email validator service.
-3. Email validator sends delegated `email/verify` capability to the agent on the given email.
-4. Email validator embeds link with `account/activate` invocation in the email.
-
-
-Note that validator is able to:
-
-1. Complete activation on user behalf because it has been delegated `account/register` capability for the account.
-2. Delegate `email/verify` capability to the user agent so it could complete registation.
-
-
-
-#### `account/subsidize`
-
-Account owner (or an authorized delegate) could subsidize 
-
-#### `account/upgrade-tear`
-
-```
-```
-
-#### `account/fund`
-
-Inspiration
-
-```
-PUT /user/payment will support
-
-{
-  // this is implemented
-  "paymentMethod": { "type": "creditCard": , id": "pm_..." },
-  // this ben is about to implement
-  "subscription": {
-    "storage": { "price": "price_id_..." }
-  }
-}
-```
-
-```ts!
-{
-  iss: "did:key:zAgent",
-  aud: "did:key:zW3",
-  att: [{
-      with: "did:key:zAlice",
-      can: "account/autopay",
-      nb: {
-          paymentMethod: {
-            "type": "creditCard": ,
-            "id": "pm_..." // string
-          },
-          product: "tier1"
-      }
-  }]
-  prf: [{
-      iss: "did:key:zAlice",
-      adu: "did:key:zAgent",
-      att: [{ can: "*", with: "did:key:zAlice"}]
-  }]
-}
-```
-
-```ts
-interface Account {
-     paymentMethods: PaymentMethod[]
-    subscribtions: Subscription[]
-}
-
-account/autopay 
-
-interface Subscription {
-    payment: PaymentMethod
-    product: string
-}
-```
-
-
-w3 service allows you to setup an out of bound "payment method" which can be used to purchase products & subscribtions. 
-
-
-```ts
-{
-  iss: "did:key:zW3",
-  aud: "did:key:zAgent",
-  att: [{
-    can: "credit/buy"
-    // URI corresponding to payment method
-    with: "stripe://payment/creditCard/pm..."
-  }]
-}
-```
-
-This capability can be excercised for purchasing  w3 products and subscribtions. E.g. you could could 2TB storage subscribtion with it:
-
-```ts
-{
-  iss: "did:key:zAgent",
-  aud: "did:key:zW3",
-  att: [{
-      can: "credit/buy",
-      with: "stripe://payment/creditCard/pm...",
-      nb: {
-          account: "did:key:zAlice",
-          product: "2TB Subscribption"
-      }
-  }],
-  prf:[{
-      iss: "did:key:zW3",
-      aud: "did:key:zAgent",
-      att: [{
-        can: "credit/buy"
-        // URI corresponding to payment method
-        with: "stripe://payment/creditCard/pm..."
-      }]
-    }]
-}
-```
--->
-
-
-<!--
-
-We could allow donating some funds to an account to increase it's balance:
-
-    ```ts
-    {
-      iss: "did:key:zAlice",
-      aud: "did:key:zWebStorage",
-      att: [
-        {
-          can: "account/donate"
-          with: "did:key:zAlice",
-          to: "did:key:zDataStore"
-          card: encrypt({
-            publicKey: "did:key:zWebStorage",
-            payload: JSON.stringify(cardInfo)
-          })
-          amount: 10 // 10USD
-        }
-      ]
-    }
-    ```
-    
-2. We could allow setting up an autopay for an account:
-
-   ```ts
-   {
-      iss: "did:key:zAlice",
-      aud: "did:key:zWebStorage",
-      att: [
-        {
-          can: "account/autopay"
-          with: "did:key:zAlice",
-          card: encrypt({
-            publicKey: "did:key:zWebStorage",
-            payload: JSON.stringify(cardInfo)
-          })
-          amount: 10 // 10USD
-        }
-      ]
-    }
-   ```
-   
- 3. We could allow sponsoring one account from any other:
-
-
-  ```ts
-  {
-      iss: "did:key:zAlice",
-      aud: "did:key:zWebStorage",
-      att: [
-        {
-          can: "account/sponsor"
-          with: "did:key:zAlice",
-          to: "did:key:zSponsored"
-        }
-      ]
-    }
-  ```
-
-
-
-
-If we rethink things in this terms we untangle several things:
-
-1. Any [did:key][] is an "account" it's just new ones (to our service) have `0` balance and can not store any data.
-2. "Account registration" turns into account funding by email validation. In other words service just sponsors provided DID with some balance when you click verification email.
-3. Users and apps no longer need to associate various app specific [did:key][]s with some accounts. Instead they could just fund them to store specific data. 
-4. We could in the future tie DAOs and other interesting mechanisms for fundnig accounts.
-5. Our accounting becomes a lot more simpler as we no longer care about users we simply care about the balance.
-
--->
-[solana accounts]:https://docs.solana.com/developing/programming-model/accounts
 
 [did:key]:https://w3c-ccg.github.io/did-method-key/
 [UCAN]:https://github.com/ucan-wg/spec/#57-revocation
 [ACL]:https://en.wikipedia.org/wiki/Access-control_list
 [public key cryptography]:https://en.wikipedia.org/wiki/Public-key_cryptography
 
-[`voucher/redeem`]:#Delegating-voucherredeem
-[`voucher/claim`]:#Invoking-voucherclaim
-[certified verifier]:#certified-verifier
+[`provider/get`]:#providerget
+[`consumer/add`]:#consumeradd
+[`provider/add`]:#provideradd-delegation
+[`nb.consumer`]:#add-consumer
 [payment method]:https://stripe.com/docs/api/payment_methods/object
+[Ed25519]:https://en.wikipedia.org/wiki/EdDSA#Ed25519
