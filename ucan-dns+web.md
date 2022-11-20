@@ -1,5 +1,9 @@
 # UCAN did:web did:dns delegation spec
 
+![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
+[![hackmd-github-sync-badge](https://hackmd.io/PmNipF1ERBKJKa7FyWBvUQ/badge)](https://hackmd.io/PmNipF1ERBKJKa7FyWBvUQ)
+
+
 ## Editors
 
 - [Irakli Gozalishvili](https://github.com/Gozala), [DAG House](https://dag.house/)
