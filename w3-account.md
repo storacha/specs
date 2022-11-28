@@ -200,9 +200,9 @@ Authorized agents MAY issue UCANs using account [`did:mailto`][] identifier, sig
 
 # Limitations
 
-Using delegation from specific authority as an authorization proof limits it to the contexts where it is trusted. It is reasonable complomise when issued UCAN receipent is the same authority, but problematic in wider contexts.
+Using delegation from specific authority as an authorization proof limits it to the contexts where it is trusted. It is reasonable compromise when issued UCAN receipent is the same authority, but problematic in wider contexts.
 
-Long term we would like to upgrade this specification to [UCAN mailto][] so that authorazation may be verifiable and not require trusting third-party that performed [verification][].
+Long term we would like to upgrade this specification to [UCAN mailto][] so that authorization may be verifiable and not require trusting third-party that performed [verification][].
 
 # Related Notes
 
