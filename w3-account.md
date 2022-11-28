@@ -115,7 +115,7 @@ Account MUST be a [`did:mailto`][] principal. It is an account that user wishes 
 
 ## Verification
 
-Service MUST perform out of bound user verification e.g. send a link to the mailbox of the account by clicking which user would authorize agent to represent the account.
+Service MUST perform out of bound user verification. For example, the service could email a link to the mailbox of the account. Clicking the link in the email would authorize the agent to represent the account.
 
 On succesful verification service MUST delegate corresponding `ucan/sign` capability to the [`did:key`][] it was requested [`with`][issue `with`].
 
