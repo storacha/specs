@@ -28,7 +28,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 In web3.storage users MAY create number of user spaces simply by generating asymmetric key pairs. User MAY also receive capability delegations from other user spaces. Managing these delegations and keypairs across multiple spaces, agents and devices can get complicated.
 
-To address this we propose a concept of an account, which is a [principal][] that can be delegated all relevant capabilities across various user spaces.
+To address this we propose a concept of an account, which is a [principal][] that can be delegated all relevant capabilities across various user spaces. In this specification we require use of [`did:mailto`][] identifiers for an account, however it could be generalized to other DID methods.
 
 We also propose account authorization flow that would allowing allow authorized agent to act on behalf of the account [principal][].
 
@@ -39,9 +39,7 @@ We also propose account authorization flow that would allowing allow authorized 
 
 User account is a [principal][] identified by [`did:mailto`][] identifier.
 
-:::info
-It MUST be a DID identifier as opposed to `mailto:` URI to be a valid prinicipal in the UCAN protocol.
-:::
+> It MUST be a DID identifier as opposed to `mailto:` URI to be a valid prinicipal in the UCAN protocol.
 
 
 
@@ -49,9 +47,7 @@ It MUST be a DID identifier as opposed to `mailto:` URI to be a valid prinicipal
 
 User MAY authorize an agent to represent their account by delegating capabilities to it. However since right now we have no way of creating or resolving [`did:mailto`][] documents, there is no supported way to issue such a delegation.
 
-:::info
-In the future we intend to address this by implementing support for [ucan mailto][] specification.
-:::
+> In the future we intend to address this by implementing support for [ucan mailto][] specification.
 
 To address this limitation service MUST provide `ucan/issue` capability, that user agent MAY invoke
 to get an authorization to act on behalf of the account.
@@ -194,9 +190,7 @@ Agent MAY account delegation to a serivce so that it is persisted and can be ret
 }
 ```
 
-:::warning
-[Recipient validation][] requires wrapping actual delegation(s) in a `access/delegate` invocation. In the future we may hope to remove wrapping requirement.
-:::
+> [Recipient validation][] requires wrapping actual delegation(s) in a `access/delegate` invocation. In the future we may hope to remove wrapping requirement.
 
 
 #### delegate `with`
@@ -213,7 +207,7 @@ When user is [authorizing][authorization] new agent, service MAY include all the
 
 However user may also add new delegations on one device and expect to have access to them on another device without having having to go through another email [authorization][] flow. To address this service MUST provide `access/claim` capability, which agent MAY invoke to collect (new) delegations for the account
 
-```ts!
+```ts
 {
  iss: "did:mailto:alice@web.mail",
  aud: "did:dns:web3.storage",
