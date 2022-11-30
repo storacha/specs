@@ -1,3 +1,5 @@
+
+
 # User Accounts
 
 ![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
@@ -124,14 +126,20 @@ MUST be a [`did:key`][] of the principal which MAY sign [UCAN][]s issued by an a
 Below sequence diagram illustrates complete authorization flow as described above.
 
 
-```sequence
-"👩‍💻 did:key:zAgent" -> "🌐 did:dns:web3.storage": "\n🎟\n{                              \n  with: did:key:zAgent         \n  can: ucan/issue              \n  as: did:mailto:alice@web.mail\n}                              \n\n\n "
-"🌐 did:dns:web3.storage" -> "✉️ alice@web.mail": ✉️ Verification email
-"✉️ alice@web.mail" -> "🌐 did:dns:web3.storage": 🔗 Verify
-"🌐 did:dns:web3.storage" -> "👩‍💻 did:key:zAgent": "\n🎫\n{                             \n  with: did:dns:web3.storage\n  can: ucan/sign            \nas: did:key:zAgent       \n}                            \n\n "
+
+```mermaid
+sequenceDiagram
+  participant Agent as 👩‍💻<br/><br/>did:key:zAgent
+  participant W3 as 🌐<br/><br/>did:dns:web3.storage #32;
+  participant Email as 📬<br/><br/>alice@web.mail
+  
+  Agent ->> W3: ucan/issue
+  Note right of Agent:🎟<br/>with: did:key:zAgent<br/>as: did:mailto:alice@web.mail
+  W3 ->> Email: ✉️ Verification email
+  Email ->> W3: 🔗 Approve
+  W3 -->> Agent: ucan/sign
+    Note right of Agent:🎫<br/>with: did:dns:web3.storage<br/>as: did:key:zAgent
 ```
-
-
 
 ## Delegate Access
 
