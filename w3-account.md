@@ -218,7 +218,7 @@ However user may also add new delegations on one device and expect to have acces
  iss: "did:mailto:alice@web.mail",
  aud: "did:dns:web3.storage",
  att: [{
-   with: "did:mailto:web.mail",
+   with: "did:mailto:alice@web.mail",
    can: "access/claim"
  }],
  prf: [
