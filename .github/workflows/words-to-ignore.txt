@@ -34,9 +34,15 @@ keypairs
 mailto
 web2
 Web2
+ED25519
+URIs
+interop
 
 # actually correct
 reimagine
+invocable
+roundtrip
+
 
 
 # wut
@@ -45,4 +51,4 @@ UCANNoZero
 UCANYesOneMapping
 HeaderTypeDescriptionRequiredCardinalityEntry
 OperationCapabilities
-
+5GiB

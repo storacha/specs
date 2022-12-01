@@ -19,7 +19,7 @@ With a [UCAN][] based authorization model, things are different. User creates a 
 
 #### Providers
 
-As we have above established, users create, own, and manage access to their space through the capabilities that can be delegated. However, owning a `store/add` capability to some `did:key:zAlice` space does not magically let me store data in that space. Something needs to provide a `store/add` capability. A user can contract a "storage provider" and add it to their (or anyone else's) space, in turn making it possible for a anyone with `store/add` capability for a space with a store provider to store some data.
+As we have above established, users create, own, and manage access to their space through the capabilities that can be delegated. However, owning a `store/add` capability to some `did:key:zAlice` space does not magically let me store data in that space. Something needs to provide a `store/add` capability. A user can contract a "storage provider" and add it to their (or anyone elses) space, in turn making it possible for a anyone with `store/add` capability for a space with a store provider to store some data.
 
 Providers are like services that you add to a space so they can handle capabilities they provide when they are invoked.
 
