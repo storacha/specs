@@ -11,7 +11,7 @@ Thinking about users in web2 terms introduces unfortunate limitations and seems 
 
 In web2, a user _(which could be an individual or an organization)_ directly correlates to a (name) space _(usually behind a walled garden)_ they're given access to. In this model, a user signs into their space using credentials or a server issued (secret) token to gain an access to set of capabilities with-in a bound (name) space.
 
-> If there is a notion of sharing capabilities it's usually limited & very domain specific. Sharing across applications is extremely rare and usually invoves large cross-organisational efforts.
+> If there is a notion of sharing capabilities it's usually limited & very domain specific. Sharing across applications is extremely rare and usually involves large cross-organizational efforts.
 
 With a [UCAN][] based authorization model, things are different. User creates a (name)space _(addressed by [did:key][] URI)_ locally and can delegate any set of capabilities to the user agent _(also addressed by [did:key][] URI)_ which acts on their behalf. This allows an agent to invoke any of the delegated capabilities or to delegate them to _another_ user agent, so they could invoke them. This model enables a wide range of possibilities that are difficult to impossible in the web2 model. Capabilities are the protocol and there for sharing, and interop at every layer is the baseline. Inevitably this breaks 1 to 1 correlation between users and spaces. Instead each user may have access to a multitude of spaces (that they either own or were delegated capabilities to) and a multitude of users may have access to the same space.
 
@@ -21,7 +21,7 @@ With a [UCAN][] based authorization model, things are different. User creates a 
 
 As we have above established, users create, own, and manage access to their space through the capabilities that can be delegated. However, owning a `store/add` capability to some `did:key:zAlice` space does not magically let me store data in that space. Something needs to provide a `store/add` capability. A user can contract a "storage provider" and add it to their (or anyone else's) space, in turn making it possible for a anyone with `store/add` capability for a space with a store provider to store some data.
 
-Providers are like pluggable services that you add to a space so they can handle capabilities they provide when they are invoked.
+Providers are like services that you add to a space so they can handle capabilities they provide when they are invoked.
 
 #### Funding
 
@@ -43,11 +43,11 @@ Any valid [did:key][] identifier SHOULD represent a valid space— an unknown sp
 
 Space is a resource that MUST be addressed by the [did:key][] URI. It is owned by the (corresponding) private key holder.
 
-Any [UCAN][] capabilty for the space resource MUST be issued by the owner _([UCAN][] `iss` MUST be equal to `with` of the capability)_ or its delegate _([UCAN][] MUST have a proof chain leading to delegation from owner)_.
+Any [UCAN][] capability for the space resource MUST be issued by the owner _([UCAN][] `iss` MUST be equal to `with` of the capability)_ or its delegate _([UCAN][] MUST have a proof chain leading to delegation from owner)_.
 
 This implies that [UCAN][] invocations on a space resource CAN be validated by verifying:
 
-1. Signatures, time bounds and principal aligment of the delegation chain.
+1. Signatures, time bounds and principal alignment of the delegation chain.
 2. Root `issuer` is the same DID as a resource (`with` field) of the invoked capability.
 
 #### Creation
@@ -55,7 +55,7 @@ This implies that [UCAN][] invocations on a space resource CAN be validated by v
 User (agent) CAN create a new space by generating a [keypair][public key cryptography] and deriving a valid [did:key][] identifier from it.
 
 :::warning
-It is RECOMMENDED that user facing applications create a _space_ for a new user with a [ED25519][] keypair & delegate capabilties to it to a local agent whose DID is derived from another [non-extractable keypair](https://developer.mozilla.org/en-US/docs/Web/API/CryptoKey#cryptokey.extractable).
+It is RECOMMENDED that user facing applications create a _space_ for a new user with a [ED25519][] keypair & delegate capabilities to it to a local agent whose DID is derived from another [non-extractable keypair](https://developer.mozilla.org/en-US/docs/Web/API/CryptoKey#cryptokey.extractable).
 
 This grants an agent access to a space without reusing its key or a risk of it been compromised.
 :::
@@ -174,7 +174,7 @@ If `nb.consumer` is omitted, it implies a request for a provider that can be add
       consumer: "did:key:zSpace"
       // Signup process may require require contract
       // specific input. In case of "free" provider
-      // service just asks for verifable identity
+      // service just asks for verifiable identity
       // in the `nb.credential` field
       credential: "mailto:alice@web.mail",
     }
@@ -244,7 +244,7 @@ Capability resource MUST be DID that is same as [`nb.provider`](#get-nbprovider)
 If `nb.consumer` is set, it MUST match [`nb.consumer`](#get-consumer) of the [`provider/get`][] request. If the request omitted it, the delegation MUST omit the field as well. If the request did specify `nb.consumer`, the delegation still MAY omit it if it wishes to allow adding multiple consumers to the delegated provider.
 
 :::danger
-Omiting `nb.consumer` would allow delegate to add arbitrary number of consumers to the provider
+Omitting `nb.consumer` would allow delegate to add arbitrary number of consumers to the provider
 :::
 
 ###### add `nb.request`
@@ -257,12 +257,12 @@ Providers MAY impose various other constraints using `nb` fields of the `consume
 
 ###### add `nb.credential`
 
-Issuers MAY set `nb.credential` field to resrict
+Issuers MAY set `nb.credential` field to restrict
 the type of _verifiable credentials_ that may be used, for example `mailto:` URIs.
 
 ##### `consumer/add` invocation
 
-Delegates MAY invoke [`consumer/add`] capability to add a consumer space to the provider. It automatically adds the provider to the consumer space, making provider provided capabilities invokable by authorized agents.
+Delegates MAY invoke [`consumer/add`] capability to add a consumer space to the provider. It automatically adds the provider to the consumer space, making provider provided capabilities invocable by authorized agents.
 
 :::info
 Please note that while providers may add consumers without their consent, that will not affect consumers in any way, since unless a provider is used it has no effect on space.

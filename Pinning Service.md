@@ -4,7 +4,7 @@
 
 We reimagine IPFS [pinning service][] as web3 service, where:
 
-- Users delegate neccessary capabilities to the pinning service as opposed to getting [access token][]s from the service which must be kept secret.
+- Users delegate necessary capabilities to the pinning service as opposed to getting [access token][]s from the service which must be kept secret.
 - As an API layer on top of core upload v2 protocol.
 
 Below table maps [IPFS pinning service API][pinning service] operations to capabilities necessary to execute them
@@ -30,7 +30,7 @@ It is worth calling out that just like typical [access token][]s these do not ne
 This offers following advantages to typical bearer tokens:
 
 1. Users are able to delegate access to [pinning service] to others.
-2. Users could tokens with subset of capabilities and consequently restrining access to desired operations.
+2. Users could tokens with subset of capabilities and consequently restricting access to desired operations.
 3. Users could revoke and rotate tokens as they wish.
 
 :::info
