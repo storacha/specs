@@ -30,6 +30,10 @@ IPLD
 CBOR
 URI
 keypair
+keypairs
+mailto
+web2
+Web2
 
 # actually correct
 reimagine

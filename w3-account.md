@@ -46,7 +46,7 @@ User MAY authorize an agent to represent their account by delegating capabilitie
 To address this limitation service MUST provide `ucan/issue` capability, that user agent MAY invoke
 to get an authorization to act on behalf of the account.
 
-> Exmaple illustrates authorization request to represent `alice@web.mail` with `did:key:zAgent` agent from `web3.storage`
+> Example illustrates authorization request to represent `alice@web.mail` with `did:key:zAgent` agent from `web3.storage`
 
 ```ts
 {
@@ -70,11 +70,11 @@ Field MUST be a an account agent wishes to represent via [`did:key`][] in the [`
 
 ### Email validation
 
-Service MUST perform an out of bound email verification to ensure that user requesting authorization has access to the requestd email address.
+Service MUST perform an out of bound email verification to ensure that user requesting authorization has access to the requested email address.
 
 > For example, the service could send an email email with a link asking user to authorize an agent When link is clicked, agent will be delegated UCAN with requested authorization.
 
-On succesful verification service MUST delegate `ucan/sign` capability to the [`did:key`][]it was requested [`with`][issue `with`].
+On successful verification service MUST delegate `ucan/sign` capability to the [`did:key`][]it was requested [`with`][issue `with`].
 
 Delegation represents authorization to issue [UCAN][]s with [`did:mailto`] account principal, which MAY be signed with [`did:key`] of the agent.
 
@@ -140,7 +140,7 @@ When user agent creates a new space, it MAY delegate full or subset of the capab
 }
 ```
 
-Agent MAY account delegation to a serivce so that it is persisted and can be retrieved later with a different agent.
+Agent MAY account delegation to a service so that it is persisted and can be retrieved later with a different agent.
 
 > Invokes `access/delegate` asking web3.storage to record delegation from `did:key:zAlice` space to the `alice@web.mail` account.
 
@@ -228,7 +228,7 @@ However user may also add new delegations on one device and expect to have acces
 
 Using delegation from specific authority as an authorization proof limits it to the contexts in which signing authority is trusted. It is reasonable compromise when receiver of the proof and issuer is the same authority (as is the case for web3.storage).
 
-However we wish above described account system to be useable in global context, whech we plan to accomplish by upgrading [authorization][] to use [UCAN mailto][] specification, so that email ownership could be verifiable without [email verification][] step.
+However we wish above described account system to be usable in global context, which we plan to accomplish by upgrading [authorization][] to use [UCAN mailto][] specification, so that email ownership could be verifiable without [email verification][] step.
 
 # Related Notes
 
