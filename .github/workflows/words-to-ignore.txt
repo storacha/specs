@@ -23,9 +23,18 @@ trustless
 v0
 validator
 gozala
+Web3
+IPFS
+CBOR
+
+# actually correct
+reimagine
+
 
 # wut
 HeaderTypeDescriptionRequiredCardinalityEntrypoint
 UCANNoZero
 UCANYesOneMapping
 HeaderTypeDescriptionRequiredCardinalityEntry
+OperationCapabilities
+
