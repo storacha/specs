@@ -76,7 +76,7 @@ This design frees [pinning service][] from doing any kind of access control or t
 3. Verify that UCAN is valid (has right signature, has not expired etc)
 4. Create UCAN invocation (corresponding to received request) and embed UCAN (from [access token][]) as a proof.
 
-While UCAN validation is not strictly necessary (as they get verified downstream anyway) it might be a good idea to avoid unecessary work downstream.
+While UCAN validation is not strictly necessary (as they get verified downstream anyway) it might be a good idea to avoid unnecessary work downstream.
 
 [string literal pattern]: https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html
 [pinning service]: https://ipfs.github.io/pinning-services-api-spec/

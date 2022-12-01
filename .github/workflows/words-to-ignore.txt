@@ -24,8 +24,12 @@ v0
 validator
 gozala
 Web3
+web3
 IPFS
+IPLD
 CBOR
+URI
+keypair
 
 # actually correct
 reimagine
