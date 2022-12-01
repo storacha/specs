@@ -2,7 +2,7 @@
 
 > This repository contains the specs for the .storage Protocol and associated subsystems.
 
-## Understanding the meaning of the spec badges and their lifecycle
+## Understanding the meaning of the spec badges and their life cycle
 
 We use the following label system to identify the state of each spec:
 

@@ -1,5 +1,3 @@
-
-
 # User Accounts
 
 ![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
@@ -13,16 +11,13 @@
 
 - [Irakli Gozalishvili](https://github.com/Gozala), [DAG House](https://dag.house/)
 
-
 # Abstract
-
 
 In web3.storage we describe concept of an account as convenience for aggregating and managing capabilities across various user spaces under same identity, simplifying recovery and authorization flows.
 
 ## Language
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC2119](https://datatracker.ietf.org/doc/html/rfc2119).
-
 
 # Introduction
 
@@ -34,28 +29,24 @@ To address this we propose a concept of an account, which is a [principal][] tha
 
 We also propose account authorization flow that would allowing allow authorized agent to act on behalf of the account [principal][].
 
-
 # Terminology
 
 ## Account
 
 User account is a [principal][] identified by [`did:mailto`][] identifier.
 
-> It MUST be a DID identifier as opposed to `mailto:` URI to be a valid prinicipal in the UCAN protocol.
-
-
+> It MUST be a DID identifier as opposed to `mailto:` URI to be a valid principal in the UCAN protocol.
 
 ## Authorization
 
 User MAY authorize an agent to represent their account by delegating capabilities to it. However since right now we have no way of creating or resolving [`did:mailto`][] documents, there is no supported way to issue such a delegation.
 
-> In the future we intend to address this by implementing support for [ucan mailto][] specification.
+> In the future we intend to address this by implementing support for [UCAN mailto][] specification.
 
 To address this limitation service MUST provide `ucan/issue` capability, that user agent MAY invoke
 to get an authorization to act on behalf of the account.
 
-
-> Exmaple illustrates authorization request to represent `alice@web.mail` with `did:key:zAgent` agent from `web3.storage`
+> Example illustrates authorization request to represent `alice@web.mail` with `did:key:zAgent` agent from `web3.storage`
 
 ```ts
 {
@@ -69,8 +60,6 @@ to get an authorization to act on behalf of the account.
 }
 ```
 
-
-
 #### issue `with`
 
 Resource MUST be a [`did:key`][] URI. It represents a public key that user wishes to use for signing UCANs issued by DID in the [`nb.as`][issue `as`] field. It SHOULD represent user agent DID.
@@ -79,17 +68,15 @@ Resource MUST be a [`did:key`][] URI. It represents a public key that user wishe
 
 Field MUST be a an account agent wishes to represent via [`did:key`][] in the [`with`][issue `with`] field . It MUST be a valid [`did:mailto`][] identifier
 
-
 ### Email validation
 
-Service MUST perform an out of bound email verification to ensure that user requesting authorization has access to the requestd email address.
+Service MUST perform an out of bound email verification to ensure that user requesting authorization has access to the requested email address.
 
 > For example, the service could send an email email with a link asking user to authorize an agent When link is clicked, agent will be delegated UCAN with requested authorization.
 
-On succesful verification service MUST delegate `ucan/sign` capability to the [`did:key`][]it was requested [`with`][issue `with`].
+On successful verification service MUST delegate `ucan/sign` capability to the [`did:key`][]it was requested [`with`][issue `with`].
 
-Delegation represents authorization to issue [UCAN][]s with [`did:mailto`] account prinicipal, which MAY be signed with [`did:key`] of the agent.
-
+Delegation represents authorization to issue [UCAN][]s with [`did:mailto`] account principal, which MAY be signed with [`did:key`] of the agent.
 
 ```ts
 {
@@ -111,11 +98,9 @@ Authorization context, implying that this authorization MUST be considered valid
 
 Other recipients MAY also recognize authorizations issued by trusted principals.
 
-
 #### sign `aud`
 
 Audience of the [UCAN][] MUST be [`did:mailto`][] identifier of the account principal. This ensures that [principal alignment] requirement can be met when authorization is used as proof by an account.
-
 
 #### sign `as`
 
@@ -125,14 +110,12 @@ MUST be a [`did:key`][] of the principal which MAY sign [UCAN][]s issued by an a
 
 Below sequence diagram illustrates complete authorization flow as described above.
 
-
-
 ```mermaid
 sequenceDiagram
   participant Agent as 👩‍💻<br/><br/>did:key:zAgent
   participant W3 as 🌐<br/><br/>did:dns:web3.storage #32;
   participant Email as 📬<br/><br/>alice@web.mail
-  
+
   Agent ->> W3: ucan/issue
   Note right of Agent:🎟<br/>with: did:key:zAgent<br/>as: did:mailto:alice@web.mail
   W3 ->> Email: ✉️ Verification email
@@ -145,7 +128,7 @@ sequenceDiagram
 
 When user agent creates a new space, it MAY delegate full or subset of the capabilities to desired account. This would allow user in different agent to reclaim delegated capabilities there.
 
-> Example below illustrates delegation of capabilities to `did:key:zAliceSpace` space to the user account `alice@web.mail` 
+> Example below illustrates delegation of capabilities to `did:key:zAliceSpace` space to the user account `alice@web.mail`
 
 ```ts!
 {
@@ -157,49 +140,48 @@ When user agent creates a new space, it MAY delegate full or subset of the capab
 }
 ```
 
-Agent MAY account delegation to a serivce so that it is persisted and can be retrieved later with a different agent.
+Agent MAY account delegation to a service so that it is persisted and can be retrieved later with a different agent.
 
 > Invokes `access/delegate` asking web3.storage to record delegation from `did:key:zAlice` space to the `alice@web.mail` account.
 
- ```ts
+```ts
 {
-  iss: "did:mailto:alice@web.mail",
-  aud: "did:dns:web3.storage",
-  att: [{
-    with: "did:mailto:web.mail",
-    can: "access/delegate",
-    nb: { ["bafy...prf1"]: {"/": "bafy...prf1"} }
-  }],
-  prf: [
-    // proof that did:key:zAgent may represent
-    // did:mailto:alice@web.mail
-    {
-      iss: "did:dns:web3.storage",
-      aud: "did:mailto:alice@web.mail",
-      att: [{
-        with: "did:dns:web3.storage",
-        can: "ucan/sign",
-        nb: { as: "did:key:zAgent" }
-      }],
-      exp: null
-      sig: "..."
-    },
-    // bafy...prf1 referenced in the delegation allowing
-    // account to access space
-    {
-      iss: "did:key:zAliceSpace",
-      aud: "did:mailto:alice@web.mail",
-      att: [{ with: "did:key:zAliceSpace", can: "*" }],
-      exp: null,
-      sig: "..."
-    }
-  ],
-  sig: "..."
+ iss: "did:mailto:alice@web.mail",
+ aud: "did:dns:web3.storage",
+ att: [{
+   with: "did:mailto:web.mail",
+   can: "access/delegate",
+   nb: { ["bafy...prf1"]: {"/": "bafy...prf1"} }
+ }],
+ prf: [
+   // proof that did:key:zAgent may represent
+   // did:mailto:alice@web.mail
+   {
+     iss: "did:dns:web3.storage",
+     aud: "did:mailto:alice@web.mail",
+     att: [{
+       with: "did:dns:web3.storage",
+       can: "ucan/sign",
+       nb: { as: "did:key:zAgent" }
+     }],
+     exp: null
+     sig: "..."
+   },
+   // bafy...prf1 referenced in the delegation allowing
+   // account to access space
+   {
+     iss: "did:key:zAliceSpace",
+     aud: "did:mailto:alice@web.mail",
+     att: [{ with: "did:key:zAliceSpace", can: "*" }],
+     exp: null,
+     sig: "..."
+   }
+ ],
+ sig: "..."
 }
 ```
 
 > [Recipient validation][] requires wrapping actual delegation(s) in a `access/delegate` invocation. In the future we may hope to remove wrapping requirement.
-
 
 #### delegate `with`
 
@@ -242,12 +224,11 @@ However user may also add new delegations on one device and expect to have acces
 }
 ```
 
-
 # Limitations
 
 Using delegation from specific authority as an authorization proof limits it to the contexts in which signing authority is trusted. It is reasonable compromise when receiver of the proof and issuer is the same authority (as is the case for web3.storage).
 
-However we wish above described account system to be useable in global context, whech we plan to accomplish by upgrading [authorization][] to use [UCAN mailto][] specification, so that email ownership could be verifiable without [email verification][] step.
+However we wish above described account system to be usable in global context, which we plan to accomplish by upgrading [authorization][] to use [UCAN mailto][] specification, so that email ownership could be verifiable without [email verification][] step.
 
 # Related Notes
 
@@ -257,15 +238,15 @@ web3.storage offers one "free provider" per account. It will be denied if `consu
 
 Note that adding "free provider" to the space is more than once has no effect _(even when obtained through different accounts)_, because space has set of providers, and "free provider" is either in that set or it is not.
 
-[UCAN mailto]:https://github.com/ucan-wg/ucan-mailto/
-[`did:mailto`]:https://github.com/ucan-wg/did-mailto/
-[principal]:https://github.com/ucan-wg/spec/blob/main/README.md#321-principals
-[recipient validation]:https://github.com/ucan-wg/spec/blob/main/README.md#621-recipient-validation
-[`did:key`]:https://w3c-ccg.github.io/did-method-key/
-[issue `as`]:#issue-as
-[issue `with`]:#issue-with
-[UCAN]:https://github.com/ucan-wg/spec/
-[principal alignment]:https://github.com/ucan-wg/spec/blob/main/README.md#62-principal-alignment
-[email verification]:#Email-Verification
-[authorization]:#Authorization
-[access delegation]:#Delegate-Access
+[ucan mailto]: https://github.com/ucan-wg/ucan-mailto/
+[`did:mailto`]: https://github.com/ucan-wg/did-mailto/
+[principal]: https://github.com/ucan-wg/spec/blob/main/README.md#321-principals
+[recipient validation]: https://github.com/ucan-wg/spec/blob/main/README.md#621-recipient-validation
+[`did:key`]: https://w3c-ccg.github.io/did-method-key/
+[issue `as`]: #issue-as
+[issue `with`]: #issue-with
+[ucan]: https://github.com/ucan-wg/spec/
+[principal alignment]: https://github.com/ucan-wg/spec/blob/main/README.md#62-principal-alignment
+[email verification]: #Email-Verification
+[authorization]: #Authorization
+[access delegation]: #Delegate-Access
