@@ -59,7 +59,7 @@ A user MAY authorize an agent to represent their account by delegating capabilit
 
 However, there is currently no way to resolve key(s) for the [`did:mailto`][] documents, making delegations from [`did:mailto`] impossible to verify.
 
-> We may implement the [UCAN mailto][] specification in the future.
+> We plan to define [`did:mailto`][] key resolution algorithm in [UCAN mailto][] specification to make delegations from [`did:mailto`][] to [`did:key`][] verifiable.
 
 To address this limitation, the service MUST provide the `ucan/issue` capability that an agent MAY invoke to get an authorization to act on behalf of the account.
 
