@@ -37,6 +37,7 @@ Web2
 ED25519
 URIs
 interop
+permissionless
 
 # actually correct
 reimagine
