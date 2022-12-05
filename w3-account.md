@@ -252,7 +252,7 @@ We will remove this limitation in the future the account system by upgrading [au
 
 ## Free provider
 
-web3.storage offers one "free provider" per account. It will be denied if a `consumer` space is not specified or has already been applied.
+web3.storage offers one "free provider" per account. It will be denied if a `consumer` space is not specified or if account has already claimed it with a different `consumer` space.
 
 Note that adding the "free provider" to a space more than once has no effect _(even when obtained through different accounts)_, because a space has _set_ of providers, and "free provider" is either in that set or not.
 
