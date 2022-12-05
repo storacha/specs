@@ -29,6 +29,22 @@ To address this we propose a concept of an **account**; a [principal][] to which
 
 We also propose an account authorization flow that would allow an authorized agent to act on behalf of the account [principal][].
 
+The sequence diagram below gives an overview of a complete authorization flow as described in this document.
+
+```mermaid
+sequenceDiagram
+  participant Agent as 👩‍💻<br/><br/>did:key:zAgent
+  participant W3 as 🌐<br/><br/>did:dns:web3.storage #32;
+  participant Email as 📬<br/><br/>alice@web.mail
+
+  Agent ->> W3: ucan/issue
+  Note right of Agent:🎟<br/>with: did:key:zAgent<br/>as: did:mailto:alice@web.mail
+  W3 ->> Email: ✉️ Verification email
+  Email ->> W3: 🔗 Approve
+  W3 -->> Agent: ucan/sign
+    Note right of Agent:🎫<br/>with: did:dns:web3.storage<br/>as: did:key:zAgent
+```
+
 # Terminology
 
 ## Account
@@ -45,12 +61,13 @@ However, there is currently no way to issue such a delegation, until a mechanism
 
 > We may implement the [UCAN mailto][] specification in the future.
 
-To address this limitation, the service MUST provide the `ucan/issue` capability that an agent MAY invoke
-to get an authorization to act on behalf of the account.
+To address this limitation, the service MUST provide the `ucan/issue` capability that an agent MAY invoke to get an authorization to act on behalf of the account.
 
-### Example
+### `ucan/issue`
 
-> an authorization request to represent `alice@web.mail` with `did:key:zAgent` agent from `web3.storage`_
+Issued from agent to service to assert that the issuer wants to sign invocations on behalf of the account identified in the `att[0].nb.as`.
+
+> Example: An authorization request to represent `alice@web.mail` with `did:key:zAgent` agent from `web3.storage`
 
 ```ts
 {
@@ -63,6 +80,8 @@ to get an authorization to act on behalf of the account.
   }]
 }
 ```
+
+Authority over the account MUST be verified by the `service` as described in the [Email Validation](#email-validation) section.
 
 #### issue `with`
 
@@ -82,7 +101,9 @@ On successful verification, the service MUST delegate `ucan/sign` capability to 
 
 Delegation represents authorization to issue [UCAN][]s with [`did:mailto`] account principal, which MAY be signed with [`did:key`] of the agent.
 
-### Example
+### `ucan/sign`
+
+Issued from service to the account (`aud`) to assert that the agent identified in the `att[0].nb.as` is allowed to sign on behalf of the account.
 
 ```ts
 {
@@ -112,23 +133,6 @@ Audience of the [UCAN][] MUST be [`did:mailto`][] identifier of the account prin
 
 MUST be a [`did:key`][] of the principal which MAY sign [UCAN][]s issued by an account principal in [`aud`](#sign-aud).
 
-### Authorization flow
-
-Below sequence diagram illustrates complete authorization flow as described above.
-
-```mermaid
-sequenceDiagram
-  participant Agent as 👩‍💻<br/><br/>did:key:zAgent
-  participant W3 as 🌐<br/><br/>did:dns:web3.storage #32;
-  participant Email as 📬<br/><br/>alice@web.mail
-
-  Agent ->> W3: ucan/issue
-  Note right of Agent:🎟<br/>with: did:key:zAgent<br/>as: did:mailto:alice@web.mail
-  W3 ->> Email: ✉️ Verification email
-  Email ->> W3: 🔗 Approve
-  W3 -->> Agent: ucan/sign
-    Note right of Agent:🎫<br/>with: did:dns:web3.storage<br/>as: did:key:zAgent
-```
 
 ## Delegate Access
 
