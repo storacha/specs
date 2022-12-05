@@ -138,7 +138,7 @@ MUST be a [`did:key`][] of the principal which MAY sign [UCAN][]s issued by an a
 
 When an agent creates a new space, it MAY delegate all capabilities or a subset, to a desired account. This would allow a user to reclaim the delegated capabilities via a different agent.
 
-> a delegation of capabilities to `did:key:zAliceSpace` space to the user account `alice@web.mail`
+> A delegation of capabilities to `did:key:zAliceSpace` space to the user account `alice@web.mail`
 
 ```ts!
 {
