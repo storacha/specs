@@ -1,4 +1,4 @@
-# Platform protocol
+# Space protocol
 
 ![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
 [![hackmd-github-sync-badge](https://hackmd.io/Zb7gjpLsQn2w3a3JUvnFcw/badge)](https://hackmd.io/Zb7gjpLsQn2w3a3JUvnFcw)
@@ -80,36 +80,28 @@ As we have established, space creator is an owner and has a full authority to de
 
 To make capabilities usable, one needs to obtain a provider and add it to the desired space. For example, a user could obtain the "free" provider from web3.storage, which provides `storage/*` capabilities allowing up to 5GiB of storage.
 
-```graphviz
-digraph {
-  node [fontname=Menlo, shape=oval, margin="0.2 0", arrowhead=diamond]
-
-  subgraph space {
-    "did:key:zAliceSpace"-> {
-
-      node [shape=invhouse, margin="0.4, 0"]
-      "store/*",
-      "name/*",
-      "upload/*"
-
-
-    }
-
-  }
+```mermaid
+flowchart TB
+  Space((did:key:zAliceSpace))
+  W3{{did:web:free.web3.storage}}
+  NFT{{did:web:nft.storage}}
+  
+  Name([name/*])
+  Upload([upload/*])
+  Store([store/*])
+  
+  style W3 fill:grey,color:black,stroke:grey
+  style NFT fill:grey,color:black,stroke:grey
 
 
-
-  subgraph providers {
-    node [shape=box3d, margin="0.8, 0", style=filled, color="lightgrey"]
-
-    {"store/*", "name/*", "upload/*"}->"did:dns:free.web3.storage"
-
-    {"store/*", "upload/*"}->"did:dns:nft.storage"
-
-    label = "process #2"
-  }
-
-}
+  Space-->Store
+  Store-->W3
+  Store-->NFT
+  Space-->Upload
+  Upload-->W3
+  Upload-->NFT
+  Space-->Name
+  Name-->W3
 ```
 
 #### Provider protocol
