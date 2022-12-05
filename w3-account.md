@@ -154,7 +154,7 @@ Agent MAY send the account delegation to a service so that it is persisted and c
 
 ### `access/delegate`
 
-Issued by an agent on behalf of an account to the service, with proof that the account has been delegated capabilities on a resource and that the agent has been granted the capabilty `ucan/sign` to sign on behalf of the account.
+Issued by an agent on behalf of an account to the service, with proof that the account has been delegated capabilities on a resource and that the agent has been granted the capability `ucan/sign` to sign on behalf of the account.
 
 > Invoke `access/delegate` asking web3.storage to record delegation from `did:key:zAlice` space to the `alice@web.mail` account.
 
