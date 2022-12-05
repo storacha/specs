@@ -57,7 +57,7 @@ An account is a [principal][] identified by [`did:mailto`][] identifier.
 
 A user MAY authorize an agent to represent their account by delegating capabilities to it. 
 
-However, there is currently no way to issue such a delegation, until a mechanism for creating and resolving [`did:mailto`][] documents is specified.
+However, there is currently no way to resolve key(s) for the [`did:mailto`][] documents, making delegations from [`did:mailto`] impossible to verify.
 
 > We may implement the [UCAN mailto][] specification in the future.
 
