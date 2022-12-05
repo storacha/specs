@@ -54,11 +54,9 @@ This implies that [UCAN][] invocations on a space resource CAN be validated by v
 
 User (agent) CAN create a new space by generating a [keypair][public key cryptography] and deriving a valid [did:key][] identifier from it.
 
-:::warning
-It is RECOMMENDED that user facing applications create a _space_ for a new user with a [ED25519][] keypair & delegate capabilities to it to a local agent whose DID is derived from another [non-extractable keypair](https://developer.mozilla.org/en-US/docs/Web/API/CryptoKey#cryptokey.extractable).
-
-This grants an agent access to a space without reusing its key or a risk of it been compromised.
-:::
+> It is RECOMMENDED that user facing applications create a _space_ for a new user with a [ED25519][] keypair & delegate capabilities to it to a local agent whose DID is derived from another [non-extractable keypair](https://developer.mozilla.org/en-US/docs/Web/API/CryptoKey#cryptokey.extractable).
+>
+> This grants an agent access to a space without reusing its key or a risk of it been compromised.
 
 ```ts
 // illustration of the space to agent delegation
@@ -124,7 +122,7 @@ It is RECOMMENDED to follow the outlined `provider/*` protocol even though some 
 
 A user agent MAY get a "free" storage provider by invoking a self-issued `provider/get` capability.
 
-```ts!
+```ts
 {
   iss: "did:key:zAgent",
   aud: "did:dns:web3.storage",
@@ -156,11 +154,10 @@ The agent MUST provide `nb.provider` field with a DID of the provider it wants t
 
 The agent MAY specify `nb.consumer` field with a DID of the space that a provider is requested for.
 
-:::warning
-If `nb.consumer` is omitted, it implies a request for a provider that can be added to an arbitrary number of consumers. Some providers MAY be denied when `nb.consumer` is omitted because a service may limit the number of providers per user.
-:::
+> ⚠️ If `nb.consumer` is omitted, it implies a request for a provider that can be added to an arbitrary number of consumers. Some providers MAY be denied when `nb.consumer` is omitted because a service may limit the number of providers per user.
 
-```ts!
+
+```ts
 {
   iss: "did:key:zAgent",
   aud: "did:dns:web3.storage",
@@ -190,15 +187,13 @@ Getting certain providers MAY require additional `nb` fields.
 
 To get a "free" provider, an invocation MUST set `nb.credential` field to a _verifiable credential_ of the user. It MUST be a valid `mailto:` URI where a user can receive an email with terms of service.
 
-:::info
-Please note that URIs are used so that other types of verifiable credentials could be supported in the future
-:::
+> Please note that URIs are used so that other types of verifiable credentials could be supported in the future
 
 ##### `consumer/add`
 
 An agent MAY be delegated `consumer/add` capability, allowing it to add a consumer to a space by invoking it.
 
-```ts!
+```ts
 {
   iss: "did:dns:web3.storage",
   aud: "did:key:zAgent",
@@ -243,9 +238,8 @@ Capability resource MUST be DID that is same as [`nb.provider`](#get-nbprovider)
 
 If `nb.consumer` is set, it MUST match [`nb.consumer`](#get-consumer) of the [`provider/get`][] request. If the request omitted it, the delegation MUST omit the field as well. If the request did specify `nb.consumer`, the delegation still MAY omit it if it wishes to allow adding multiple consumers to the delegated provider.
 
-:::danger
-Omitting `nb.consumer` would allow delegate to add arbitrary number of consumers to the provider
-:::
+
+> ⚠️ Omitting `nb.consumer` would allow delegate to add arbitrary number of consumers to the provider
 
 ###### add `nb.request`
 
@@ -264,11 +258,9 @@ the type of _verifiable credentials_ that may be used, for example `mailto:` URI
 
 Delegates MAY invoke [`consumer/add`] capability to add a consumer space to the provider. It automatically adds the provider to the consumer space, making provider provided capabilities invocable by authorized agents.
 
-:::info
-Please note that while providers may add consumers without their consent, that will not affect consumers in any way, since unless a provider is used it has no effect on space.
-:::
+> Please note that while providers may add consumers without their consent, that will not affect consumers in any way, since unless a provider is used it has no effect on space.
 
-```ts!
+```ts
 {
   iss: "did:key:zAgent",
   aud: "did:dns:web3.storage",
@@ -354,7 +346,7 @@ A handler MAY embed a [`provider/add`](#provideradd-invocation) invocation link 
 
 A user agent MAY add a payment provider using credit card information.
 
-```ts!
+```ts
 {
   iss: "did:key:zAgent",
   aud: "did:dns:web3.storage",
@@ -389,9 +381,7 @@ A user agent MAY add a payment provider using credit card information.
 
 On success, the payment provider is added to the consumer space, allowing an owner or a delegate to invoke and delegate `payment/*` capabilities.
 
-:::warning
-A service MAY instead, or in addition to, create an out of bound payment method setup flow to avoid capturing sensitive data like card info.
-:::
+> A service MAY instead, or in addition to, create an out of bound payment method setup flow to avoid capturing sensitive data like card info.
 
 ##### Add paid provider
 
@@ -399,7 +389,7 @@ When a space has a payment provider, its owner or delegate can invoke [`provider
 
 > Example below illustrates Alice adding a "Lite plan" to Bob's space on her expense.
 
-```ts!
+```ts
 {
   iss: "did:key:zAgent",
   aud: "did:dns:web3.storage",
