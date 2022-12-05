@@ -55,7 +55,7 @@ An account is a [principal][] identified by [`did:mailto`][] identifier.
 
 ## Authorization
 
-A User MAY authorize an agent to represent their account by delegating capabilities to it. 
+A user MAY authorize an agent to represent their account by delegating capabilities to it. 
 
 However, there is currently no way to issue such a delegation, until a mechanism for creating and resolving [`did:mailto`][] documents is specified.
 
