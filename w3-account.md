@@ -152,9 +152,11 @@ When an agent creates a new space, it MAY delegate all capabilities or a subset,
 
 Agent MAY send the account delegation to a service so that it is persisted and can be retrieved later with a different agent.
 
-### Example
+### `access/delegate`
 
-> Invokes `access/delegate` asking web3.storage to record delegation from `did:key:zAlice` space to the `alice@web.mail` account.
+Issued by an agent on behalf of an account to the service, with proof that the account has been delegated capabilities on a resource and that the agent has been granted the capabilty `ucan/sign` to sign on behalf of the account.
+
+> Invoke `access/delegate` asking web3.storage to record delegation from `did:key:zAlice` space to the `alice@web.mail` account.
 
 ```ts
 {
@@ -208,6 +210,10 @@ Field is a set of delegation links encoded as JSON where keys are CID strings of
 When user is [authorizing][authorization] a new agent, the service MAY include all the valid, _(not yet expired or revoked)_ delegations with an authorization proof, that grant the agent access to all capabilities across all of the spaces.
 
 However a user may also add new delegations on one device and expect to have access to them on another device without having having to go through another email [authorization][] flow. To address this service MUST provide `access/claim` capability, which an agent MAY invoke to collect (new) delegations for the account
+
+### `access/claim`
+
+Issued by an agent on behalf of an account to the service as a request for all valid delegations to the account previously stored with the service via `access/delegate`.
 
 ```ts
 {
