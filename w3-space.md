@@ -106,11 +106,13 @@ flowchart TB
 
 The "free" provider setup describes a more general framework for unlocking various capabilities.
 
-It is RECOMMENDED to follow the outlined `provider/*` protocol even though some domain specific details may vary.
+It is RECOMMENDED to follow the outlined `provider/*` protocol even if some domain specific details may vary.
 
 ##### `provider/get`
 
-A user agent MAY get a "free" storage provider by invoking a self-issued `provider/get` capability from an [account][] principal. 
+A user MAY get a "free" storage provider (from web3.storage) by invoking a self-issued `provider/get` capability.
+
+> Free provider requires that resource of invocation MUST be an [account][] principal and that `consumer` is provided in order to uphold 1 free provider per account limitation.
 
 ```ts
 {
@@ -139,86 +141,77 @@ A user agent MAY get a "free" storage provider by invoking a self-issued `provid
     }]
     
   }]
-  
 }
 ```
 
 ###### get `with`
 
-Providers MAY impose certain requirements that resource (`with`) must meet. For example "free storage provider" requires that resource must be an [account][] identifier because they are limited to one per account. Paid providers additionally will require that the invocation resource has a payment provider for billing.
+Providers MAY impose certain requirements that resource (`with`) must meet.
+
+> Free provider (from web3.storage) requires that resource MUST be an [account][] identifier. Lite and Expert providers (from web3.storage) additionally require that the invocation resource have a payment provider (for billing purposes).
 
 ###### get `nb.provider`
 
-Capability MUST have `nb.provider` field with a DID of the provider it wants to get.
+Capability MUST have `nb.provider` field specifying a DID of the provider requested.
 
 ###### get `nb.consumer`
 
-Capability MAY specify `nb.consumer` field with a DID of the (consumer) space provider is requested for.
+Capability MUST specify `nb.consumer` field with a DID of the (consumer) space provider is requested for.
 
-> ⚠️ If `nb.consumer` is omitted, it implies that request is for a provider that can be added to an arbitrary number of consumers. Some providers MAY deny requests that do not specify `nb.consumer`, because they may limit the number of providers per user.
-
+When provider for arbitrary (number of) consumer(s) is requested MUST specify `"did:*"` in `nb.consumer`.
 
 ```ts
 {
-  iss: "did:key:zAgent",
-  aud: "did:dns:web3.storage",
-  att: [{
-    can: "provider/get",
-    with: "did:key:zAgent",
-    nb: {
-      // did of the provider
-      provider: "did:dns:free.web3.storage"
-      // did of the space
-      consumer: "did:key:zSpace"
-      // Signup process may require require contract
-      // specific input. In case of "free" provider
-      // service just asks for verifiable identity
-      // in the `nb.credential` field
-      credential: "mailto:alice@web.mail",
-    }
-  }]
+  can: "provider/get",
+  with: "did:mailto:alice@web.mail",
+  nb: {
+    // did of the provider,
+    provider: "did:web:lite.web3.storage"
+    consumer: "did:*"
+  }
 }
 ```
 
+> ⚠️ Some providers (e.g. Free provider from web3.storage) MAY deny request when `nb.consumer` is a `did:*` pattern, because they limit number of providers issued per user account.
+
+
 ###### get `nb...`
 
-Getting certain providers MAY require additional `nb` fields.
-
-###### get `nb.credential`
-
-To get a "free" provider, an invocation MUST set `nb.credential` field to a _verifiable credential_ of the user. It MUST be a valid `mailto:` URI where a user can receive an email with terms of service.
-
-> Please note that URIs are used so that other types of verifiable credentials could be supported in the future
+Some providers MAY specificy additional `nb` fields.
 
 ##### `consumer/add`
 
-An agent MAY be delegated `consumer/add` capability, allowing it to add a consumer to a space by invoking it.
+An agent MUST be delegated `consumer/add` capability, on successful [`provider/get`][] invocation.
+
+> Please note that provider MAY also delegate `consumer/add` capability for no reason at all e.g. as free giveaway campain.
+
 
 ```ts
 {
-  iss: "did:dns:web3.storage",
+  iss: "did:web:web3.storage",
   aud: "did:key:zAgent",
   att:[
     {
       can: "consumer/add",
-      with: "did:dns:free.web3.storage",
+      with: "did:web:free.web3.storage",
       nb: {
-        // link to "provider/get" invocation
-        request: { "/": "bafy...signup" },
-        credential: "mailto:alice@web.mail",
+        // link to a "provider/get" invocation
+        request: { "/": "bafy...get" },
+        // did of the consumer space
+        consumer: "did:key:zSpace"
       }
     }
   ],
   prf: [
     {
-      iss: "did:dns:free.web3.storage",
-      aud: "did:dns:web3.storage",
+      iss: "did:web:free.web3.storage",
+      aud: "did:web:web3.storage",
       att: [
         {
           can: "consumer/add",
-          with: "did:dns:free.web3.storage",
+          with: "did:web:free.web3.storage",
           nb: {
-            credential: "mailto:*"
+            consumer: "did:*"
           }
         }
       ]
@@ -231,77 +224,87 @@ An agent MAY be delegated `consumer/add` capability, allowing it to add a consum
 
 Capability MUST be delegated back to the `iss` of the [`provider/get`][] request.
 
+> This allows an [account][] to delegate `provider/get` capability to an agent or another user, which can then complete the loop using [`consumer/add`][]. If capability was delegated back to `with` identifier instead only account or delegate (with `consumer/add` capability) would be able to complete the loop.
+
 ###### add `with`
 
-Capability resource MUST be DID that is same as [`nb.provider`](#get-nbprovider) of the corresponding [`provider/get`][] invocation.
+Capability resource MUST be a provider DID. It MUST be the same as [`nb.provider`](#get-nbprovider) of the corresponding [`provider/get`][] invocation.
 
 ###### add `nb.consumer`
 
-If `nb.consumer` is set, it MUST match [`nb.consumer`](#get-consumer) of the [`provider/get`][] request. If the request omitted it, the delegation MUST omit the field as well. If the request did specify `nb.consumer`, the delegation still MAY omit it if it wishes to allow adding multiple consumers to the delegated provider.
+The `nb.consumer` MUST be set to the same DID as [`nb.consumer`](#get-consumer) of the [`provider/get`][] request.
 
-
-> ⚠️ Omitting `nb.consumer` would allow delegate to add arbitrary number of consumers to the provider
+> ⚠️ Omitting `nb.consumer` is equivalent of `did:*` and allows delegate to add arbitrary number of consumers to the provider
 
 ###### add `nb.request`
 
 Issuers MUST set the `nb.request` field to the corresponding link (CID) of the [`provider/get`][] invocation.
 
+> This also represents a signed proof that user agreed to the terms and conditions of the service.
+
 ###### add `nb...`
 
 Providers MAY impose various other constraints using `nb` fields of the `consumer/add` capability. Usually they would mirror [`nb`](#get_nb) fields of the corresponding [`provider/get`][] request.
 
-###### add `nb.credential`
-
-Issuers MAY set `nb.credential` field to restrict
-the type of _verifiable credentials_ that may be used, for example `mailto:` URIs.
 
 ##### `consumer/add` invocation
 
-Delegates MAY invoke [`consumer/add`] capability to add a consumer space to the provider. It automatically adds the provider to the consumer space, making provider provided capabilities invocable by authorized agents.
+Invoking delegated [`consumer/add`][] capability adds a consumer (space) to the provider. It also automatically adds the provider to the consumer space, making provided capabilities invocable by authorized agents.
 
-> Please note that while providers may add consumers without their consent, that will not affect consumers in any way, since unless a provider is used it has no effect on space.
+> Please note that while providers may add consumers without their consent, that will not affect consumers in any way. Unless a provider is used it has no effect on space. Consumer is also not who gets billed for the service it is an account that submitted a request, which is to say that unsolicited providers are sponsored by a third party.
 
 ```ts
 {
-  iss: "did:key:zAgent",
-  aud: "did:dns:web3.storage",
+  iss: "did:mailto:alice@web.mail",
+  aud: "did:web:web3.storage",
   att: [
     {
+      with: "did:web:free.web3.storage",
       can: "consumer/add",
-      with: "did:dns:free.web3.storage",
       nb: {
-        target: "did:key:zSpace"
-        // link to "provider/signup" invocation
-        request: { "/": "bafy...signup" },
-        credential: "mailto:alice@web.mail",
+        // link to a "provider/get" invocation
+        request: { "/": "bafy...get" },
+        consumer: "did:key:zSpace"
       }
     }
   ],
   prf: [
+    // proof that agent is authorized to represent account 
     {
-      iss: "did:dns:web3.storage",
-      aud: "did:key:zAgent",
-      att:[
+      iss: "did:web:web3.storage",
+      aud: "did:mailto:alice@web.mail",
+      att: [{
+        can: "./update",
+        with: "did:web:web3.storage",
+        nb: {
+          key: "did:key:zAgent"
+        }
+      }]
+    },
+    {
+      iss: "did:web:web3.storage",
+      aud: "did:mailto:alice@web.mail",
+      att: [
         {
           can: "consumer/add",
-          with: "did:dns:free.web3.storage",
+          with: "did:web:free.web3.storage",
           nb: {
             // link to "provider/signup" invocation
-            signup: { "/": "bafy...signup" },
-            credential: "mailto:alice@web.mail",
+            request: { "/": "bafy...get" },
+            consumer: "did:key:zSpace"
           }
         }
       ],
       prf: [
         {
-          iss: "did:dns:free.web3.storage",
-          aud: "did:dns:web3.storage",
+          iss: "did:web:free.web3.storage",
+          aud: "did:web:web3.storage",
           att: [
             {
               can: "consumer/add",
-              with: "did:dns:free.web3.storage",
+              with: "did:web:free.web3.storage",
               nb: {
-                credential: "mailto:*"
+                consumer: "did:*"
               }
             }
           ]
@@ -316,14 +319,15 @@ Delegates MAY invoke [`consumer/add`] capability to add a consumer space to the 
 
 In the future we plan to define a set of `provider` capabilities that will allow an author to specify the capabilities it provides, terms of service and various other details.
 
-In the meantime, publishing providers is not supported. However, existing providers do impose specific terms and limitations. For example, the following terms are imposed by `did:dns:free.web3.storage` provider:
+In the meantime, publishing providers is not supported. However, existing providers do impose specific terms and limitations. For example, the following terms are imposed by `did:web:free.web3.storage` provider:
 
 1. Provided `store/*` capabilities are limited to 5GiB of storage.
 2. Agent MUST specify `nb.consumer` in [`provider/get`] invocation to enforce single consumer space per user limitation.
+3. Invocation MUST be issued by an [account][] identifier
 
 ##### `provider/add`
 
-In a typical flow, a user agent requests [`provider/get`] to get [`consumer/add`][] capability delegated, which it then invokes to add a desired [`nb.consumer`] space.
+In a typical flow, a user requests [`provider/get`] to get [`consumer/add`] capability delegated, which it then invokes to add a desired [`nb.consumer`] (space).
 
 ```mermaid
 sequenceDiagram
@@ -339,7 +343,7 @@ sequenceDiagram
   Agent->>W3: consumer/add
 ```
 
-A more simplified flow exists when a provider is needed for a specific space consumer through a `provider/add` capability, which is an exact equivalent of [`provider/get`], except [`nb.consumer`][] is required. On successful invocation, the handler takes care of invoking [`consumer/add`] instead of delegating it back to agent, removing the need for an extra roundtrip.
+A more simplified flow exists for cases when provider is needed for a specific (space) consumer. In those cases a `provider/add` capability can be invoked, which is equivalent of [`provider/get`], except [`nb.consumer`][] MUST be a concrete DID. On successful invocation, the provider takes care of invoking [`consumer/add`] instead of delegating it back to an agent, which removes the need for an extra roundtrip.
 
 ```mermaid
 sequenceDiagram
@@ -351,8 +355,6 @@ sequenceDiagram
   Provider ->> W3: consumer/add
 ```
 
-A handler MAY embed a [`provider/add`](#provideradd-invocation) invocation link in the verification email so that clicking it will automatically add consumer space to the provider.
-
 #### Payment protocol
 
 ##### Add payment provider
@@ -361,14 +363,14 @@ A user agent MAY add a payment provider using credit card information.
 
 ```ts
 {
-  iss: "did:key:zAgent",
-  aud: "did:dns:web3.storage",
+  iss: "did:mailto:alice@web.mail",
+  aud: "did:web:web3.storage",
   att: [{
     can: "provider/add",
-    with: "did:key:zAgent",
+    with: "did:mailto:alice@web.mail",
     nb: {
-      provider: "did:dns:pay.web3.storage",
-      consumer: "did:key:zSpace",
+      provider: "did:web:pay.web3.storage",
+      consumer: "did:mailto:alice@web.mail",
       /* data is the linked CBOR block that has
          been encrypted with a symmetric key
          inside the `cypher`. We inline here for
@@ -389,12 +391,31 @@ A user agent MAY add a payment provider using credit card information.
       cypher: ".....",
     }
   }],
+  // proof that agent is authorized to represent account 
+  prf: [{
+    iss: "did:web:web3.storage",
+    aud: "did:mailto:alice@web.mail",
+    att: [{
+      can: "./update",
+      with: "did:web:web3.storage",
+      nb: {
+        key: "did:key:zAgent"
+      }
+    }]
+    
+  }]
 }
 ```
 
-On success, the payment provider is added to the consumer space, allowing an owner or a delegate to invoke and delegate `payment/*` capabilities.
+On success, the payment provider is added to the consumer [account], allowing an owner or a delegate to invoke and delegate `payment/*` capabilities.
 
 > A service MAY instead, or in addition to, create an out of bound payment method setup flow to avoid capturing sensitive data like card info.
+
+##### Get payment provider
+
+Just like with other providers user can invoke [`provider/get`] capability which may incur out-of-band interaction e.g. user may be directed to type in credit card information before response is completed.
+
+Also note that [`provider/get`] / [`provider/add`] capabilities let user start a provider acquisition process, however services MAY also define alternative ways to issue `consumer/add` capabilities the users.
 
 ##### Add paid provider
 
@@ -404,28 +425,34 @@ When a space has a payment provider, its owner or delegate can invoke [`provider
 
 ```ts
 {
-  iss: "did:key:zAgent",
-  aud: "did:dns:web3.storage",
+  iss: "did:mailto:alice@web.mail",
+  aud: "did:web:web3.storage",
   att: [{
     can: "provider/add",
-    with: "did:key:zAlice",
+    with: "did:mailto:alice@web.mail",
     nb: {
       // 30GiB storage plan
-      provider: "did:dns:lite.web3.storage"
+      provider: "did:web:lite.web3.storage"
       // Space to add storage provider to
       consumer: "did:key:zBob"
     }
   }]
+  // proof that agent is authorized to represent account 
   prf: [{
-    iss: "did:key:zAlice",
-    aud: "did:key:zAgent",
+    iss: "did:web:web3.storage",
+    aud: "did:mailto:alice@web.mail",
     att: [{
-      can: "*",
-      with: "did:key:zAlice"
+      can: "./update",
+      with: "did:web:web3.storage",
+      nb: {
+        key: "did:key:zAgent"
+      }
     }]
   }]
 }
 ```
+
+
 
 [did:key]: https://w3c-ccg.github.io/did-method-key/
 [ucan]: https://github.com/ucan-wg/spec/#57-revocation
