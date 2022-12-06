@@ -55,7 +55,7 @@ An account is a [principal][] identified by [`did:mailto`][] identifier. User MA
 
 ## Authorization
 
-User interacts with a system through an agent that they authorized to represent their account. However, there is currently no way to resolve account key(s) from the [`did:mailto`][] documents, which makes it impossible to verify that [UCAN][] issued by [`did:mailto`] principal is signed by authorized agent. We address this limitation through notarization process: Agent sends authorization request to a trusted intermidiery (notary), which arranges out-of-bound authorization by sending an email to a user with a link to authorize agent. If user clicks the link notary sends signed delegation, which agent can use as a prove of authorization on undersigners authority.
+User interacts with a system through an agent that they authorized to represent their account. However, there is currently no way to resolve account key(s) from the [`did:mailto`][] documents, which makes it impossible to verify that [UCAN][] issued by [`did:mailto`] principal is signed by authorized agent. We address this limitation through notarization process: Agent sends authorization request to a trusted intermediary (notary), which arranges out-of-bound authorization by sending an email to a user with a link to authorize agent. If user clicks the link notary sends signed delegation, which agent can use as a prove of authorization on intermediaries authority.
 
 > We plan to define [`did:mailto`][] key resolution algorithm in [UCAN mailto][] specification to remove need for notarization process.
 
