@@ -38,6 +38,7 @@ ED25519
 URIs
 interop
 permissionless
+stateful
 
 # actually correct
 reimagine
