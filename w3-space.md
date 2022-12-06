@@ -325,18 +325,30 @@ In the meantime, publishing providers is not supported. However, existing provid
 
 In a typical flow, a user agent requests [`provider/get`] to get [`consumer/add`][] capability delegated, which it then invokes to add a desired [`nb.consumer`] space.
 
-```sequence
-"did:key:zAgent"->"did:dns:provider.store": provider/get
-
-"did:dns:provider.store"->"did:key:zAgent": consumer/add
-"did:key:zAgent"->"did:dns:web3.storage": consumer/add
+```mermaid
+sequenceDiagram
+  participant Agent as 💻<br/><br/>did:key:zAgent #32;
+  participant Provider as 🤖<br/><br/>did:web:free.web3.storage #32;
+  participant W3 as 🌐<br/><br/>did:web:web3.storage #32;
+  
+  
+  Agent ->> Provider: provider/get
+  activate Provider
+  Provider->>Agent: consumer/add
+  deactivate Provider
+  Agent->>W3: consumer/add
 ```
 
 A more simplified flow exists when a provider is needed for a specific space consumer through a `provider/add` capability, which is an exact equivalent of [`provider/get`], except [`nb.consumer`][] is required. On successful invocation, the handler takes care of invoking [`consumer/add`] instead of delegating it back to agent, removing the need for an extra roundtrip.
 
-```sequence
-"did:key:zAgent"->"did:dns:provider.store": provider/add
-"did:dns:provider.store"->"did:dns:web3.storage": consumer/add
+```mermaid
+sequenceDiagram
+  participant Agent as 💻<br/><br/>did:key:zAgent #32;
+  participant Provider as 🤖<br/><br/>did:web:free.web3.storage #32;
+  participant W3 as 🌐<br/><br/>did:web:web3.storage #32;
+
+  Agent ->> Provider: provider/add
+  Provider ->> W3: consumer/add
 ```
 
 A handler MAY embed a [`provider/add`](#provideradd-invocation) invocation link in the verification email so that clicking it will automatically add consumer space to the provider.
