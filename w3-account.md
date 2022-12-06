@@ -255,8 +255,8 @@ Note that adding the "free provider" to a space more than once has no effect _(e
 [principal]: https://github.com/ucan-wg/spec/blob/main/README.md#321-principals
 [recipient validation]: https://github.com/ucan-wg/spec/blob/main/README.md#621-recipient-validation
 [`did:key`]: https://w3c-ccg.github.io/did-method-key/
-[issue `as`]: #authorize-as
-[issue `with`]: #authorize-with
+[authorize `as`]: #authorize-as
+[authorize `with`]: #authorize-with
 [update `with`]: #update-with
 [update `aud`]: #update-aud
 [update `nb`]: #update-nb
