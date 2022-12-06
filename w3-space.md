@@ -9,25 +9,25 @@ Thinking about users in web2 terms introduces unfortunate limitations and seems 
 
 #### Capabilities
 
-In web2, a user _(which could be an individual or an organization)_ directly correlates to a (name) space _(usually behind a walled garden)_ they're given access to. In this model, a user signs into their space using credentials or a server issued (secret) token to gain an access to set of capabilities with-in a bound (name) space.
+In web2, a user _(which could be an individual or an organization)_ directly correlates to a (name) space _(usually behind a walled garden)_ they're given access to. In this model, a user authenticates using credentials or a server issued (secret) authorization token to gain an access to set of capabilities with-in a bound (name) space.
 
 > If there is a notion of sharing capabilities it's usually limited & very domain specific. Sharing across applications is extremely rare and usually involves large cross-organizational efforts.
 
-With a [UCAN][] based authorization model, things are different. User creates a (name)space _(addressed by [did:key][] URI)_ locally and can delegate any set of capabilities to the user agent _(also addressed by [did:key][] URI)_ which acts on their behalf. This allows an agent to invoke any of the delegated capabilities or to delegate them to _another_ user agent, so they could invoke them. This model enables a wide range of possibilities that are difficult to impossible in the web2 model. Capabilities are the protocol and there for sharing, and interop at every layer is the baseline. Inevitably this breaks 1 to 1 correlation between users and spaces. Instead each user may have access to a multitude of spaces (that they either own or were delegated capabilities to) and a multitude of users may have access to the same space.
+With a [UCAN][] based authorization model, things are different. User creates a (name)space _(addressed by [did:key][] URI)_ locally and can delegate set of capabilities to an agent _(also addressed by [did:key][] URI)_ that acts on their behalf. This allows an agent to invoke any of the delegated capabilities or to (re)delegate them to _another_ user, so they could invoke them. This model enables a wide range of possibilities that are difficult to impossible in the web2 model. Capabilities are the protocol, therefor sharing and interop is built into every layer of the stack. Inevitably this breaks 1 to 1 correlation between users and spaces. Instead each user may have access to a multitude of spaces (that they either own or were delegated capabilities to) and a multitude of users may have access to the same (shared) space.
 
 > The implications of this are tremendous, we are no longer building apps behind walled gardens, but rather tap into the rich network of information with self describing protocols
 
 #### Providers
 
-As we have above established, users create, own, and manage access to their space through the capabilities that can be delegated. However, owning a `store/add` capability to some `did:key:zAlice` space does not magically let me store data in that space. Something needs to provide a `store/add` capability. A user can contract a "storage provider" and add it to their (or anyone else's) space, in turn making it possible for a anyone with `store/add` capability for a space with a store provider to store some data.
+As we have above established, users create, own, and manage access to their space through the capabilities that can be delegated. However, owning a `store/add` capability to some `did:key:zAlice` space does not imply it can be invoked, something needs to provide that capability. A user can contract a "storage provider" which they can add it to their (or anyone else's) space, in turn making it possible for a anyone with `store/add` capability to a space with a store provider to store data.
 
-Providers are like services that you add to a space so they can handle capabilities they provide when they are invoked.
+Providers are services which user can add to a space so they can handle provided capabilities when they are invoked.
 
 #### Funding
 
 Direct correlation between a user and a space in the Web 2 model leads to a system in which users fund their space (by money or their privacy).
 
-Decoupling users from spaces enables all kinds of funding strategies. I can hire a storage provider and add it to my space, but I also can hire a provider and add it to some common goods space I would like to financially support. Just like every capability can be shared, just the same every space can be crowd funded, because we decoupled space from the capability providers.
+Decoupling users from spaces enables all kinds of funding strategies. User can hire a storage provider and add it to their space. User can also hire a provider and add it to some common goods space they would like to financially support. Just like every capability can be shared, just the same, every space can be crowd funded, because space is decoupled from the capability provider(s).
 
 ## Specification
 
@@ -37,13 +37,13 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 #### Representation
 
-Any valid [did:key][] identifier SHOULD represent a valid space— an unknown space that has no capability providers and therefore the system will deny service. An attempt to store data into such space MAY fail because the space has no storage provider.
+Any valid [did:key][] identifier SHOULD represent a valid space that has no capability providers, therefore attempt to store data into such space (or invoking any other capability) SHOULD fail.
 
 #### Ownership
 
 Space is a resource that MUST be addressed by the [did:key][] URI. It is owned by the (corresponding) private key holder.
 
-Any [UCAN][] capability for the space resource MUST be issued by the owner _([UCAN][] `iss` MUST be equal to `with` of the capability)_ or its delegate _([UCAN][] MUST have a proof chain leading to delegation from owner)_.
+Any [UCAN][] capability for the space resource MUST be issued by the owner _([UCAN][] `iss` MUST be equal to `with` of the capability)_ or its delegate _([UCAN][] MUST have a proof chain leading to delegation from the owner)_.
 
 This implies that [UCAN][] invocations on a space resource CAN be validated by verifying:
 
@@ -52,7 +52,7 @@ This implies that [UCAN][] invocations on a space resource CAN be validated by v
 
 #### Creation
 
-User (agent) CAN create a new space by generating a [keypair][public key cryptography] and deriving a valid [did:key][] identifier from it.
+User MAY create a new space by generating a [keypair][public key cryptography] and deriving a valid [did:key][] identifier from it.
 
 > It is RECOMMENDED that user facing applications create a _space_ for a new user with a [ED25519][] keypair & delegate capabilities to it to a local agent whose DID is derived from another [non-extractable keypair](https://developer.mozilla.org/en-US/docs/Web/API/CryptoKey#cryptokey.extractable).
 >
@@ -72,13 +72,11 @@ User (agent) CAN create a new space by generating a [keypair][public key cryptog
 }
 ```
 
-It is also RECOMMENDED that user facing applications provide a way for a user to grant an agent access to their space if they already have one.
-
 #### Setup
 
 As we have established, space creator is an owner and has a full authority to delegate whichever capabilities to others. However, unless a space has an active provider of the capabilities, no invocation of them could succeed.
 
-To make capabilities usable, one needs to obtain a provider and add it to the desired space. For example, a user could obtain the "free" provider from web3.storage, which provides `storage/*` capabilities allowing up to 5GiB of storage.
+To make capabilities invocable, one needs to obtain a provider and add it to the desired space. For example, a user could get the "free" provider from web3.storage, which provides `storage/*` and `upload/*` capabilities allowing them to store up to 5GiB of data.
 
 ```mermaid
 flowchart TB
@@ -112,41 +110,52 @@ It is RECOMMENDED to follow the outlined `provider/*` protocol even though some 
 
 ##### `provider/get`
 
-A user agent MAY get a "free" storage provider by invoking a self-issued `provider/get` capability.
+A user agent MAY get a "free" storage provider by invoking a self-issued `provider/get` capability from an [account][] principal. 
 
 ```ts
 {
-  iss: "did:key:zAgent",
-  aud: "did:dns:web3.storage",
+  iss: "did:mailto:alice@web.mail",
+  aud: "did:web:web3.storage",
   att: [{
     can: "provider/get",
-    with: "did:key:zAgent",
+    with: "did:mailto:alice@web.mail",
     nb: {
-      // did of the provider
-      provider: "did:dns:free.web3.storage"
-      // Getting certain providers may require
-      // additional input. In the case of "free" provider,
-      // the only additional information required is a verifiable
-      // identity of the user
-      credential: "mailto:alice@web.mail",
+      // did of the provider,
+      provider: "did:web:free.web3.storage"
+      // did of the consumer space
+      consumer: "did:key:zSpace"
     }
+  }],
+  // proof that agent is authorized to represent account 
+  prf: [{
+    iss: "did:web:web3.storage",
+    aud: "did:mailto:alice@web.mail",
+    att: [{
+      can: "./update",
+      with: "did:web:web3.storage",
+      nb: {
+        key: "did:key:zAgent"
+      }
+    }]
+    
   }]
+  
 }
 ```
 
 ###### get `with`
 
-Getting some providers MAY only be possible with a resource that meets certain requirements. Paid providers would require that the invocation resource has a payment provider for billing. Free providers on the other hand MAY allow invocation with an arbitrary resource.
+Providers MAY impose certain requirements that resource (`with`) must meet. For example "free storage provider" requires that resource must be an [account][] identifier because they are limited to one per account. Paid providers additionally will require that the invocation resource has a payment provider for billing.
 
 ###### get `nb.provider`
 
-The agent MUST provide `nb.provider` field with a DID of the provider it wants to get.
+Capability MUST have `nb.provider` field with a DID of the provider it wants to get.
 
 ###### get `nb.consumer`
 
-The agent MAY specify `nb.consumer` field with a DID of the space that a provider is requested for.
+Capability MAY specify `nb.consumer` field with a DID of the (consumer) space provider is requested for.
 
-> ⚠️ If `nb.consumer` is omitted, it implies a request for a provider that can be added to an arbitrary number of consumers. Some providers MAY be denied when `nb.consumer` is omitted because a service may limit the number of providers per user.
+> ⚠️ If `nb.consumer` is omitted, it implies that request is for a provider that can be added to an arbitrary number of consumers. Some providers MAY deny requests that do not specify `nb.consumer`, because they may limit the number of providers per user.
 
 
 ```ts
@@ -416,3 +425,4 @@ When a space has a payment provider, its owner or delegate can invoke [`provider
 [`nb.consumer`]: #add-consumer
 [payment method]: https://stripe.com/docs/api/payment_methods/object
 [ed25519]: https://en.wikipedia.org/wiki/EdDSA#Ed25519
+[account]: ./w3-account.md
