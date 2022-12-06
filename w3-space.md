@@ -177,13 +177,13 @@ When provider for arbitrary (number of) consumer(s) is requested MUST specify `"
 
 ###### get `nb...`
 
-Some providers MAY specificy additional `nb` fields.
+Some providers MAY specify additional `nb` fields.
 
 ##### `consumer/add`
 
 An agent MUST be delegated `consumer/add` capability, on successful [`provider/get`][] invocation.
 
-> Please note that provider MAY also delegate `consumer/add` capability for no reason at all e.g. as free giveaway campain.
+> Please note that provider MAY also delegate `consumer/add` capability for no reason at all e.g. as free giveaway campaign.
 
 
 ```ts
