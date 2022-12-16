@@ -23,9 +23,9 @@ Our pinning service implementation will accept [access tokens][] that are valid 
 2. DID in `with` field is associated with some account.
 3. Where all the provided [proofs are embedded](https://github.com/ipld/js-dag-ucan#embedding-proofs) inline.
 
-:::danger
-It is worth calling out that just like typical [access token][]s these do not need to be kept secret as well, since if compromised they could be used to pin arbitrary data.
-:::
+
+> ⚠️ It is worth calling out that just like typical [access token][]s these do not need to be kept secret as well, since if compromised they could be used to pin arbitrary data.
+
 
 This offers following advantages to typical bearer tokens:
 
@@ -33,9 +33,8 @@ This offers following advantages to typical bearer tokens:
 2. Users could tokens with subset of capabilities and consequently restricting access to desired operations.
 3. Users could revoke and rotate tokens as they wish.
 
-:::info
-This also creates an opportunity for implementing better [pinning service][] clients issue short lived tokens per operation and remove the need for keeping tokens secret.
-:::
+
+> This also creates an opportunity for implementing better [pinning service][] clients issue short lived tokens per operation and remove the need for keeping tokens secret.
 
 > [@ipld/dag-ucan](https://www.npmjs.com/package/@ipld/dag-ucan) library could be used to issue such tokens
 
