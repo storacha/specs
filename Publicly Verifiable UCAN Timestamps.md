@@ -1,4 +1,4 @@
-# Publically verifiable timestamps for UCANs with Drand
+# Publicly verifiable timestamps for UCANs with Drand
 
 ![](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
 
@@ -18,9 +18,9 @@ Enabling public verification that a UCAN was created on or after a specific time
 
 [Drand](https://drand.love/) is a distributed randomness beacon. Drand nodes produce collective, publicly verifiable, unbiased, unpredictable random values at fixed intervals using bilinear pairings and threshold cryptography.
 
-By including a drand randomness round in a signed UCAN, anyone can prove that it was created _on_ or _after_ that randomness round was generated. There’s a number of uses for this, an example is allowing the web3.storage service to account for `store/add` invocations, publically proving that we were asked to store data within a given time frame.
+By including a drand randomness round in a signed UCAN, anyone can prove that it was created _on_ or _after_ that randomness round was generated. There’s a number of uses for this, an example is allowing the web3.storage service to account for `store/add` invocations, publicly proving that we were asked to store data within a given time frame.
 
-Services may choose to reject UCANs with timestamps that do not correspond to a recent randomness round. In this case it's reasonable to assume that the UCAN was _probably_ not generated long after the included randomness round. There is no incentive to do so if it is likely to be rejected on reciept.
+Services may choose to reject UCANs with timestamps that do not correspond to a recent randomness round. In this case it's reasonable to assume that the UCAN was _probably_ not generated long after the included randomness round. There is no incentive to do so if it is likely to be rejected on receipt.
 
 ## Specification
 
