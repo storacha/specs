@@ -225,7 +225,7 @@ Issued by an agent on behalf of an account to the service as a request for all v
      aud: "did:mailto:alice@web.mail",
      att: [{
        with: "did:web:web3.storage",
-       can: "./sign",
+       can: "./update",
        nb: { key: "did:key:zAgent" }
      }],
      exp: null
