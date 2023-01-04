@@ -40,7 +40,7 @@ sequenceDiagram
   participant Email as 📬<br/><br/>alice@web.mail
 
   Agent ->> W3: access/authorize
-  Note right of Agent:🎟<br/>with: did:key:zAgent<br/>as: did:mailto:alice@web.mail
+  Note right of Agent:🎟<br/>with: did:key:zAgent<br/>as: did:mailto:web.mail:alice
   W3 ->> Email: ✉️ Verification email
   Email ->> W3: 🔗 Approve
   W3 -->> Agent: ./update
@@ -72,7 +72,7 @@ User agent MAY invoke `access/authorize` capability request an authorization to 
   att: [{
     with: "did:key:zAgent",
     can: "access/authorize",
-    nb: { as: "did:mailto:alice@web.mail" }
+    nb: { as: "did:mailto:web.mail:alice" }
   }]
 }
 ``` 
@@ -81,13 +81,13 @@ Authority over the account MUST be verified by the capability provider as descri
 
 #### authorize `with`
 
-Resource MUST be a [`did:key`][] identifier of an agent that is requesting an authorization to sign [UCAN][]s issued by the [`did:mailto`][] principal in the [`nb.as`][issue `as`] field.
+Resource MUST be a [`did:key`][] identifier of an agent that is requesting an authorization to sign [UCAN][]s issued by the [`did:mailto`][] principal in the [`nb.as`][authorize `as`] field.
 
 > Please note that `with` field identifies requesting agent, which MAY be different from `iss` field identifying issuing agent.
 
 #### authorize `as`
 
-Value MUST be a [`did:mailto`][] identifier of the account that the agent wishes to represent via [`did:key`][] in the [`with`][issue `with`] field. It MUST be a valid [`did:mailto`][] identifier.
+Value MUST be a [`did:mailto`][] identifier of the account that the agent wishes to represent via [`did:key`][] in the [`with`][authorize `with`] field. It MUST be a valid [`did:mailto`][] identifier.
 
 ## Email validation
 
@@ -102,7 +102,7 @@ Issued by trusted authority (usually one handling invocation that contains this 
 ```ts
 {
   iss: "did:web:web3.storage",
-  aud: "did:mailto:alice@web.mail",
+  aud: "did:mailto:web.mail:alice",
   att: [{
     with: "did:web:web3.storage",
     can: "./update",
@@ -137,7 +137,7 @@ When an agent creates a new space, it MAY delegate all capabilities or a subset,
 ```ts
 {
   iss: "did:key:zAliceSpace",
-  aud: "did:mailto:alice@web.mail",
+  aud: "did:mailto:web.mail:alice",
   att: [{ with: "did:key:zAliceSpace", can: "*" }],
   exp: null,
   sig: "..."
@@ -154,7 +154,7 @@ Issued by an agent on behalf of an account to the service, with proof that the a
 
 ```ts
 {
- iss: "did:mailto:alice@web.mail",
+ iss: "did:mailto:web.mail:alice",
  aud: "did:web:web3.storage",
  att: [{
    with: "did:mailto:web.mail",
@@ -163,10 +163,10 @@ Issued by an agent on behalf of an account to the service, with proof that the a
  }],
  prf: [
    // Proof that did:key:zAgent may sign UCAN ☝️
-   // did:mailto:alice@web.mail
+   // did:mailto:web.mail:alice
    {
      iss: "did:web:web3.storage",
-     aud: "did:mailto:alice@web.mail",
+     aud: "did:mailto:web.mail:alice",
      att: [{
        with: "did:web:web3.storage",
        can: "./update",
@@ -179,7 +179,7 @@ Issued by an agent on behalf of an account to the service, with proof that the a
    // account to access space
    {
      iss: "did:key:zAliceSpace",
-     aud: "did:mailto:alice@web.mail",
+     aud: "did:mailto:web.mail:alice",
      att: [{ with: "did:key:zAliceSpace", can: "*" }],
      exp: null,
      sig: "..."
@@ -211,18 +211,18 @@ Issued by an agent on behalf of an account to the service as a request for all v
 
 ```ts
 {
- iss: "did:mailto:alice@web.mail",
+ iss: "did:mailto:web.mail:alice",
  aud: "did:web:web3.storage",
  att: [{
-   with: "did:mailto:alice@web.mail",
+   with: "did:mailto:web.mail:alice",
    can: "access/claim"
  }],
  prf: [
    // proof that did:key:zAgent may represent
-   // did:mailto:alice@web.mail
+   // did:mailto:web.mail:alice
    {
      iss: "did:web:web3.storage",
-     aud: "did:mailto:alice@web.mail",
+     aud: "did:mailto:web.mail:alice",
      att: [{
        with: "did:web:web3.storage",
        can: "./update",
