@@ -107,10 +107,10 @@ type Operation union {
 # Task is similar to one in UCAN invocation draft spec, except it
 # has extra fields from invocation to make it self-contained as per
 # https://github.com/ucan-wg/invocation/issues/6
-type Task<Insruction> struct {
+type Task<Instruction> struct {
   with DID
   do String
-  input Insruction
+  input Instruction
   meta {String : Any} (implicit {})
   nnc optional String
   sig Varsig
@@ -119,9 +119,9 @@ type Task<Insruction> struct {
 
 # Roughly equivalent of the receipts from UCAN invocation spec
 # https://github.com/ucan-wg/invocation/blob/rough/README.md#9-receipt
-type Receipt<Insruction, State> struct {
+type Receipt<Instruction, State> struct {
   # Link to the "dag/put" task this is the receipt is for
-  task Task<Insruction>
+  task Task<Instruction>
   # Current state
   out State
   
@@ -146,7 +146,7 @@ type W3 struct {
   DID Space
 }
 
-# Spaces MAY have varios providers e.g storage provider, upload provider etc...
+# Spaces MAY have various providers e.g storage provider, upload provider etc...
 type Space struct {
   # Storege provider is map keyed by CARs stored. Users can send commands to
   # update or query it.
