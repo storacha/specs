@@ -432,7 +432,10 @@ UCAN capability provided in proofs MAY impose certain constraint on the type of 
 
 ### 3.2.7 Proofs
 
-The `prf` field MUST contain links to any UCANs that provide the authority to perform the invocation. All of the outermost `aud` fields MUST be set to the [Executor]'s DID. All of the outermost `iss` field MUST be set to the [Invoker]'s DID.
+The `prf` field MUST contain links to any UCANs that provide the authority to perform the invocation. All of the outermost proofs MUST either
+
+1. Set `aud` fields to the [Executor]'s DID and `iss` field set to the [Invoker]'s DID, allowing Executor to (re)delegate enclosed capabilities.
+2. Set `aud` field to the [Invoker]'s DID, preventing Executor from (re)delegating enclosed capabilities.
 
 ### 3.2.8 Nonce
 
