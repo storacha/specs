@@ -132,7 +132,28 @@ The JSON examples below are given in [DAG-JSON], but UCAN Task is actually defin
 
 This format help disambiguate type information in generic [DAG-JSON] tooling. However, your presentation need not be in this specific format, as long as it can be converted to and from this cleanly. As it is used for the signature format, [DAG-CBOR] is RECOMMENDED.
 
-## 1.4 Signatures
+## 1.4 Note on Schema Syntax
+
+We use [IPLD Schema] syntax extended with generics. Standard IPLD Schema can be derived by ignoring parameters enclosed in angle brackets and interpreting parameters as `Any`.
+
+Below schema is in our extended syntax
+
+```ipldsch
+type Box<T> struct {
+  value T
+}
+```
+
+Above schema compiled to standard syntax
+
+```ipldsch
+type Box struct {
+  value Box_T
+}
+type Box_T any
+```
+
+## 1.5 Signatures
 
 All payloads described in this spec MUST be signed with a [Varsig].
 
@@ -183,22 +204,6 @@ A [Receipt] describes the output of an invocation. It is referenced either by th
 A [promise] is a reference to expected result of the invocation receipt.
 
 ## 2.3 IPLD Schema
-
-> ℹ️ We use extended [IPLD Schema] notation with generics. Standard IPLD Schema can be derived by ignoring parameters enclosed in angle brackets and interpreting them `Any`. Example below illustrates same type first in extended syntax and then same type in standard syntax
->
-> ```ipldsch
-> type Box<T> struct {
->   value T
-> }
-> ```
->
-> Is equivalent of
->
-> ```ipldsch
-> type Box struct {
->   value Any
-> }
-> ```
 
 ```ipldsch
 type Invocation<In> struct {
