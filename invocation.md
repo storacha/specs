@@ -555,54 +555,70 @@ Batch invocation is simply passing promises as inputs to an invocation
   "do": "control/batch",
   "input": {
     "publishPost": {
-      "<-": [{
-        "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-        "aud": "did:web:ucan.run",
-        "with": "https://example.com/blog/posts",
-        "do": "crud/create",
-        "input": {
-          "headers": {
-            "content-type": "application/json"
+      "<-": [
+        {
+          "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
+          "aud": "did:web:ucan.run",
+          "with": "https://example.com/blog/posts",
+          "do": "crud/create",
+          "input": {
+            "headers": {
+              "content-type": "application/json"
+            },
+            "payload": {
+              "title": "How UCAN Tasks Changed My Life",
+              "body": "This is the story of how one spec changed everything...",
+              "topics": ["authz", "journal"],
+              "draft": true
+            }
           },
-          "payload": {
-            "title": "How UCAN Tasks Changed My Life",
-            "body": "This is the story of how one spec changed everything...",
-            "topics": ["authz", "journal"],
-            "draft": true
-          }
+          "s": {
+            "/": {
+              "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
+            }
+          },
+          "prf": [
+            {
+              "/": "bafybeia3tspzaay4gcx3npcczgidbrsutq7yxnag3sfzrmvua6ogqjwy7a"
+            }
+          ]
         },
-        "s": {
-          "/": {
-            "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-          }
-        },
-        "prf": [
-          {"/": "bafybeia3tspzaay4gcx3npcczgidbrsutq7yxnag3sfzrmvua6ogqjwy7a"}
-        ]
-      },
-      "ok"
-    ],
+        "ok"
+      ]
+    },
     "sendEmail": {
-      "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-      "aud": "did:web:ucan.run",
-      "with": "mailto:akiko@example.com",
-      "do": "msg/send",
-      "input": {
-        "to": ["boris@example.com", "carol@example.com"],
-        "subject": "Coffee",
-        "body": "Hey you two, I'd love to get coffee sometime and talk about UCAN Tasks!"
-      },
-      "s": {
-        "/": {
-          "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-        }
-      },
-      "prf": [
-        {"/": "bafybeia3tspzaay4gcx3npcczgidbrsutq7yxnag3sfzrmvua6ogqjwy7a"}
+      "<-": [
+        {
+          "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
+          "aud": "did:web:ucan.run",
+          "with": "mailto:akiko@example.com",
+          "do": "msg/send",
+          "input": {
+            "to": ["boris@example.com", "carol@example.com"],
+            "subject": "Coffee",
+            "body": "Hey you two, I'd love to get coffee sometime and talk about UCAN Tasks!"
+          },
+          "s": {
+            "/": {
+              "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
+            }
+          },
+          "prf": [
+            {
+              "/": "bafybeia3tspzaay4gcx3npcczgidbrsutq7yxnag3sfzrmvua6ogqjwy7a"
+            }
+          ]
+        },
+        "ok"
       ]
     },
     "sendTextMessage": {
-      "/": "bafybeibwlfwol5bdwj75hdqs3liv6z7dyqwtd2t4ovvgncv4ixkaxlkfle"
+      "<-": [
+        {
+          "/": "bafybeibwlfwol5bdwj75hdqs3liv6z7dyqwtd2t4ovvgncv4ixkaxlkfle"
+        },
+        "ok"
+      ]
     }
   },
   "s": {
