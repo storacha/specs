@@ -551,8 +551,8 @@ Batch invocation is simply passing promises as inputs to an invocation
   "v": "0.1.0",
   "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
   "aud": "did:web:ucan.run",
-  "with": "did:web:ucan.run",
-  "do": "data/identity",
+  "with": "javascript:(data) => data",
+  "do": "js/call",
   "input": {
     "publishPost": {
       "<-": [
