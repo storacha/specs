@@ -249,7 +249,7 @@ type Receipt<In, Out> struct {
 
 # Promise is a way to reference data from the output of the invocation
 type Promise union {
-  Await   "promise/await"
+  Await   "<-"
 }
 
 type Await struct {
@@ -317,7 +317,7 @@ Later, when we explore [Promise]s, this also includes capturing the promise:
   "do": "msg/send",
   "input": {
     "to": {
-      "promise/await": [
+      "<-": [
         {
           "v": "0.1.0",
           "iss": "did:key:zAlice",
@@ -539,7 +539,7 @@ Batch invocation is simply passing promises as inputs to an invocation
   "do": "control/batch",
   "input": {
     "publishPost": {
-      "promise/await": [{
+      "<-": [{
         "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
         "aud": "did:web:ucan.run",
         "with": "https://example.com/blog/posts",
@@ -1118,7 +1118,7 @@ For example, consider the following invocation batch:
 
   "inputs": {
     "to": {
-      "promise/await": [
+      "<-": [
         {
           "/": "bafkreidcqdxosqave5u5pml3pyikiglozyscgqikvb6foppobtk3hwkjn4"
         },
@@ -1162,7 +1162,7 @@ Which is roughly equivalent of the of the following invocation, which inlines ab
 
   "inputs": {
     "to": {
-      "promise/await": [
+      "<-": [
         {
           "meta": { "name": "create-draf" },
 
@@ -1262,7 +1262,7 @@ The `Promise` describes a pointer to the eventual value in a Promise. When the `
 
 ```ipldsch
 type Promise union {
-  Await     "promise/await"
+  Await     "<-"
 }
 
 type Await struct {
@@ -1331,7 +1331,7 @@ flowchart BR
       "to": "bob@example.com",
       "subject": "DNSLink for example.com",
       "body": {
-        "promise/await": [
+        "<-": [
           {
             "/": "bafyreifngx2r7ifssddx5ohdxsn2x5ukfhh6rxy6hswulkxbn6yw6f7jce"
           },
@@ -1356,7 +1356,7 @@ flowchart BR
       "to": "carol@example.com",
       "subject": "Hey Carol, DNSLink was updated!",
       "body": {
-        "promise/await": [
+        "<-": [
           {
             "/": "bafyreifngx2r7ifssddx5ohdxsn2x5ukfhh6rxy6hswulkxbn6yw6f7jce"
           },
@@ -1385,13 +1385,13 @@ flowchart BR
       },
       "_": [
         {
-          "promise/await": [
+          "<-": [
             { "/": "bafyreigb4gzn3ghfownvf5u6tqv4gjb247ai4fbv56nadtcpfznh37y5p4" },
             "ok"
           ]
         },
         {
-          "promise/await": [
+          "<-": [
             { "/": "bafyreidqviro3x5pxy6kneolt6qjdorva46ayrtifeouhyudnxhucqqe7u" },
             "ok"
           ]
