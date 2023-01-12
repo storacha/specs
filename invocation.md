@@ -609,7 +609,7 @@ Batch invocation is simply passing promises as inputs to an invocation
     "/": {
       "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
     }
-  },
+  }
 }
 ```
 
