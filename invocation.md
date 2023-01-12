@@ -76,10 +76,6 @@ Information about the scheduling, order, and pipelining of tasks is orthogonal t
 As we shall see in the [discussion of promise pipelining][pipelines], asking an agent to perform a sequence of tasks before you know the exact parameters requires delegating capabilities for all possible steps in the pipeline. Pulling pipelining detail out of the core UCAN spec serves two functions: it keeps the UCAN spec focused on the flow of authority, and makes salient the level of de facto authority that the executor has (since they can claim any value as having returned for any step).
 
 ```
-
-```
-
-```
   ────────────────────────────────────────────Time──────────────────────────────────────────────────────►
 
 ┌──────────────────────────────────────────Delegation─────────────────────────────────────────────────────┐
@@ -597,59 +593,6 @@ Batch invocation is simply passing promises as inputs to an invocation
 }
 ```
 
-```json
-{
-  "v": "0.1.0",
-  "nnc": "6c*97-3=",
-  "run": {
-    "left": {
-      "with": "https://example.com/blog/posts",
-      "do": "crud/create",
-      "inputs": {
-        "headers": {
-          "content-type": "application/json"
-        },
-        "payload": {
-          "title": "How UCAN Tasks Changed My Life",
-          "body": "This is the story of how one spec changed everything...",
-          "topics": ["authz", "journal"],
-          "draft": true
-        }
-      }
-    },
-    "right": {
-      "with": "mailto:akiko@example.com",
-      "do": "msg/send",
-      "inputs": {
-        "to": ["boris@example.com", "carol@example.com"],
-        "subject": "Coffee",
-        "body": "Hey you two, I'd love to get coffee sometime and talk about UCAN Tasks!"
-      },
-      "meta": {
-        "dev/tags": ["friends", "coffee"],
-        "dev/priority": "high"
-      }
-    }
-  },
-  "prf": [
-    { "/": "bafkreie2cyfsaqv5jjy2gadr7mmupmearkvcg7llybfdd7b6fvzzmhazuy" },
-    { "/": "bafkreibbz5pksvfjyima4x4mduqpmvql2l4gh5afaj4ktmw6rwompxynx4" }
-  ],
-  "meta": {
-    "notes/personal": "I felt like making an invocation today!",
-    "ipvm/config": {
-      "time": [5, "minutes"],
-      "gas": 3000
-    }
-  },
-  "sig": {
-    "/": {
-      "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-    }
-  }
-}
-```
-
 # 4 Receipt
 
 An Invocation Receipt is an attestation of the Result of an Invocation. A Receipt MUST be signed by the Executor (the `aud` of the associated UCANs) or it's delegate, in which case proof of delegation (of the invoked capability) from Executor to the Signer (the `iss` of the receipt) MUST be provided in `prf`.
@@ -703,8 +646,8 @@ A Result records success or a failure state of the [Invocation].
 
 ```ipldsch
 type Result<T, X> union {
-  | T               ("ok")    # Success
-  | X               ("error") # Failure
+  | T  ("ok")    # Success
+  | X  ("error") # Failure
 } representation keyed
 ```
 
@@ -737,9 +680,9 @@ An extension of Result records SHOULD be used when result of [Invocation] does n
 
 ```ipldsch
 type Status<T, X, P> union {
-  | T               ("ok")      # Success
-  | X               ("error")   # Failure
-  | P               ("pending") # Pending
+  | T  ("ok")      # Success
+  | X  ("error")   # Failure
+  | P  ("pending") # Pending
 } representation keyed
 ```
 
@@ -795,299 +738,6 @@ The `s` field MUST contain a [Varsig] of the receipt payload, a receipt without 
   "sig": {
     "/": {
       "bytes": "bdNVZn_uTrQ8bgq5LocO2y3gqIyuEtvYWRUH9YT-SRK6v_SX8bjt_VZ9JIPVTdxkWb6nhVKBt6JGpgnjABpOCA"
-    }
-  }
-}
-```
-
-# 7 Pointer
-
-An Invocation Pointer references a specific [Invocation], either directly by CID (absolute), or from inside the Invocation itself (relative).
-
-```ipldsch
-type InvocationPointer union {
-  | "/" -- Relative to the current invocation
-  | &Invocation
-}
-```
-
-An Invoked Task Pointer references a specific Task inside a Batch, by the name of the label. If the Batch is unlabelled (a `List`), then the index represented as a string MUST be used.
-
-```ipldsch
-type InvokedTaskPointer struct {
-  envl  InvocationPointer
-  label String
-} representation tuple
-```
-
-## 7.2 DAG-JSON Examples
-
-### 7.2.1 Relative
-
-#### 7.2.1.1 Named
-
-This relative pointer:
-
-```json
-["/", "some-label"]
-```
-
-Will select the marked fields in these Named invocations:
-
-```json
-{
-  "uiv": "0.1.0",
-  "nnc": "6c*97-3=",
-  "run": {
-    "some-label": {
-      // <- Selects this
-      "with": "https://example.com/blog/posts",
-      "do": "crud/create",
-      "inputs": {
-        "headers": {
-          "content-type": "application/json"
-        },
-        "payload": {
-          "title": "How UCAN Tasks Changed My Life",
-          "body": "This is the story of how one spec changed everything...",
-          "topics": ["authz", "journal"],
-          "draft": true
-        }
-      }
-    },
-    "some-other-label": {
-      "with": "mailto:akiko@example.com",
-      "do": "msg/send",
-      "inputs": {
-        "to": ["boris@example.com", "carol@example.com"],
-        "subject": "Coffee",
-        "body": "Hey you two, I'd love to get coffee sometime and talk about UCAN Tasks!"
-      },
-      "meta": {
-        "dev/tags": ["friends", "coffee"],
-        "dev/priority": "high",
-        "dev/notes": {
-          "select-task": ["/", "some-label"] // <- Pointer here
-        }
-      }
-    }
-  },
-  "prf": [
-    { "/": "bafkreibbz5pksvfjyima4x4mduqpmvql2l4gh5afaj4ktmw6rwompxynx4" }
-  ],
-  "sig": {
-    "/": {
-      "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-    }
-  }
-}
-```
-
-```json
-{
-  "uiv": "0.1.0",
-  "nnc": "myNonce529",
-  "run": {
-    "some-label": { // <- Selects this
-      "with": "data:application/wasm;base64,AHdhc21lci11bml2ZXJzYWwAAAAAAOAEAAAAAAAAAAD9e7+p/QMAkSAEABH9e8GowANf1uz///8UAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP////8AAAAACAAAACoAAAAIAAAABAAAACsAAAAMAAAACAAAANz///8AAAAA1P///wMAAAAlAAAALAAAAAAAAAAUAAAA/Xu/qf0DAJHzDx/44wMBqvMDAqphAkC5YAA/1mACALnzB0H4/XvBqMADX9bU////LAAAAAAAAAAAAAAAAAAAAAAAAAAvVXNlcnMvZXhwZWRlL0Rlc2t0b3AvdGVzdC53YXQAAGFkZF9vbmUHAAAAAAAAAAAAAAAAYWRkX29uZV9mAAAADAAAAAAAAAABAAAAAAAAAAkAAADk////AAAAAPz///8BAAAA9f///wEAAAAAAAAAAQAAAB4AAACM////pP///wAAAACc////AQAAAAAAAAAAAAAAnP///wAAAAAAAAAAlP7//wAAAACM/v//iP///wAAAAABAAAAiP///6D///8BAAAAqP///wEAAACk////AAAAAJz///8AAAAAlP///wAAAACM////AAAAAIT///8AAAAAAAAAAAAAAAAAAAAAAAAAAET+//8BAAAAWP7//wEAAABY/v//AQAAAID+//8BAAAAxP7//wEAAADU/v//AAAAAMz+//8AAAAAxP7//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU////pP///wAAAAAAAQEBAQAAAAAAAACQ////AAAAAIj///8AAAAAAAAAAAAAAADQAQAAAAAAAA==",
-      "do": "wasm/run",
-      "inputs": {
-        "func": "add_one",
-        "args": [42]
-      }
-    }
-  },
-  "meta": {
-    "dev/notes": {
-      "select-task": ["/", "some-label"] // <- Pointer here
-    }
-  }
-  "prf": [{"/": "bafkreibbz5pksvfjyima4x4mduqpmvql2l4gh5afaj4ktmw6rwompxynx4"}],
-  "sig": {"/": {"bytes:": "LcZglimIwQ58T0rnkErYshq2S8MMF9G/zRqYXv/PmXs="}}
-}
-```
-
-### 7.2.1.1 List
-
-This local pointer:
-
-```json
-["/", "1"]
-```
-
-Will select the marked fields in this List invocation:
-
-```json
-{
-  "uiv": "0.1.0",
-  "nnc": "6c*97-3=",
-  "run": [
-    {
-      "with": "mailto:akiko@example.com",
-      "do": "msg/send",
-      "inputs": {
-        "to": ["boris@example.com", "carol@example.com"],
-        "subject": "Coffee",
-        "body": "Hey you two, I'd love to get coffee sometime and talk about UCAN Tasks!"
-      },
-      "meta": {
-        "dev/tags": ["friends", "coffee"],
-        "dev/priority": "high",
-        "dev/notes": {
-          "select-task": ["/", "0"] // <- Pointer here
-        }
-      }
-    },
-    // Selects this
-    // vvvvvvvvvvvv
-    {
-      "with": "https://example.com/blog/posts",
-      "do": "crud/create",
-      "inputs": {
-        "headers": {
-          "content-type": "application/json"
-        },
-        "payload": {
-          "title": "How UCAN Tasks Changed My Life",
-          "body": "This is the story of how one spec changed everything...",
-          "topics": ["authz", "journal"],
-          "draft": true
-        }
-      }
-    }
-  ],
-  "prf": [
-    { "/": "bafkreibbz5pksvfjyima4x4mduqpmvql2l4gh5afaj4ktmw6rwompxynx4" }
-  ],
-  "sig": {
-    "/": {
-      "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-    }
-  }
-}
-```
-
-### 7.2.2 Absolute
-
-#### 7.2.2.1 Named
-
-This absolute pointer:
-
-```json
-[
-  { "/": "bafkreiff4alf4rdi5mqg4fpxiejgotcnf2zksqanp5ctwzinmqyf7o3i2e" },
-  "some-label"
-]
-```
-
-Will select the marked field in this Named invocation:
-
-```json
-// CID = bafkreiff4alf4rdi5mqg4fpxiejgotcnf2zksqanp5ctwzinmqyf7o3i2e
-{
-  "uiv": "0.1.0",
-  "nnc": "6c*97-3=",
-  "run": {
-    "some-label": {
-      // <- Selects this
-      "with": "https://example.com/blog/posts",
-      "do": "crud/create",
-      "inputs": {
-        "headers": {
-          "content-type": "application/json"
-        },
-        "payload": {
-          "title": "How UCAN Tasks Changed My Life",
-          "body": "This is the story of how one spec changed everything...",
-          "topics": ["authz", "journal"],
-          "draft": true
-        }
-      }
-    },
-    "some-other-label": {
-      "with": "mailto:akiko@example.com",
-      "do": "msg/send",
-      "inputs": {
-        "to": ["boris@example.com", "carol@example.com"],
-        "subject": "Coffee",
-        "body": "Hey you two, I'd love to get coffee sometime and talk about UCAN Tasks!"
-      },
-      "meta": {
-        "dev/tags": ["friends", "coffee"],
-        "dev/priority": "high",
-        "dev/notes": {
-          "select-task": ["/", "some-label"] // <- Pointer here
-        }
-      }
-    }
-  },
-  "prf": [
-    { "/": "bafkreibbz5pksvfjyima4x4mduqpmvql2l4gh5afaj4ktmw6rwompxynx4" }
-  ],
-  "sig": {
-    "/": {
-      "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-    }
-  }
-}
-```
-
-#### 7.2.2.1 List
-
-This absolute pointer:
-
-```json
-[{ "/": "bafkreiew2p74l7bq3hnllbduzagdcezlab54ko4lpw72mfcvilh4ov2hkq" }, "1"]
-```
-
-Will select the marked field in this List invocation:
-
-```json
-// CID = bafkreiew2p74l7bq3hnllbduzagdcezlab54ko4lpw72mfcvilh4ov2hkq
-{
-  "uiv": "0.1.0",
-  "nnc": "6c*97-3=",
-  "run": [
-    {
-      "with": "mailto:akiko@example.com",
-      "do": "msg/send",
-      "inputs": {
-        "to": ["boris@example.com", "carol@example.com"],
-        "subject": "Coffee",
-        "body": "Hey you two, I'd love to get coffee sometime and talk about UCAN Tasks!"
-      },
-      "meta": {
-        "dev/tags": ["friends", "coffee"],
-        "dev/priority": "high",
-        "dev/notes": {
-          "select-task": ["/", "0"] // <- Pointer here
-        }
-      }
-    },
-    // Selects this
-    // vvvvvvvvvvvv
-    {
-      "with": "https://example.com/blog/posts",
-      "do": "crud/create",
-      "inputs": {
-        "headers": {
-          "content-type": "application/json"
-        },
-        "payload": {
-          "title": "How UCAN Tasks Changed My Life",
-          "body": "This is the story of how one spec changed everything...",
-          "topics": ["authz", "journal"],
-          "draft": true
-        }
-      }
-    }
-  ],
-  "prf": [
-    { "/": "bafkreibbz5pksvfjyima4x4mduqpmvql2l4gh5afaj4ktmw6rwompxynx4" }
-  ],
-  "sig": {
-    "/": {
-      "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
     }
   }
 }
@@ -1314,7 +964,9 @@ flowchart BR
     "with": "dns:example.com?TYPE=TXT",
     "do": "crud/update",
     "input": { "value": "hello world" },
-    "prf": [{"/": "bafyreicelfj3kxtnpp2kwefs66rebbnpawjjnvkscrdtyjc6bxjmuix27u"}],
+    "prf": [
+      { "/": "bafyreicelfj3kxtnpp2kwefs66rebbnpawjjnvkscrdtyjc6bxjmuix27u" }
+    ],
     "sig": {
       "/": {
         "bytes": "bdNVZn_uTrQ8bgq5LocO2y3gqIyuEtvYWRUH9YT-SRK6v_SX8bjt-VZ9JIPVTdxkWb6nhVKBt6JGpgnjABpOCA"
@@ -1339,7 +991,9 @@ flowchart BR
         ]
       }
     },
-    "prf": [{ "/": "bafyreialservj7dxazg4cskm5fuqwh5atgs54rgkvpmtkylbddygs37tce" }],
+    "prf": [
+      { "/": "bafyreialservj7dxazg4cskm5fuqwh5atgs54rgkvpmtkylbddygs37tce" }
+    ],
     "sig": {
       "/": {
         "bytes": "bdNVZn_uTrQ8bgq5LocO2y3gqIyuEtvYWRUH9YT-SRK6v_SX8bjt-VZ9JIPVTdxkWb6nhVKBt6JGpgnjABpOCA"
@@ -1364,7 +1018,9 @@ flowchart BR
         ]
       }
     },
-    "prf": [{ "/": "bafyreifusp3qabhrzexltt6ausy4cz7t3cjxcnmwyiqkon5iuthx4h5uo4" }],
+    "prf": [
+      { "/": "bafyreifusp3qabhrzexltt6ausy4cz7t3cjxcnmwyiqkon5iuthx4h5uo4" }
+    ],
     "sig": {
       "/": {
         "bytes": "bdNVZn_uTrQ8bgq5LocO2y3gqIyuEtvYWRUH9YT-SRK6v_SX8bjt-VZ9JIPVTdxkWb6nhVKBt6JGpgnjABpOCA"
@@ -1386,76 +1042,29 @@ flowchart BR
       "_": [
         {
           "<-": [
-            { "/": "bafyreigb4gzn3ghfownvf5u6tqv4gjb247ai4fbv56nadtcpfznh37y5p4" },
+            {
+              "/": "bafyreigb4gzn3ghfownvf5u6tqv4gjb247ai4fbv56nadtcpfznh37y5p4"
+            },
             "ok"
           ]
         },
         {
           "<-": [
-            { "/": "bafyreidqviro3x5pxy6kneolt6qjdorva46ayrtifeouhyudnxhucqqe7u" },
+            {
+              "/": "bafyreidqviro3x5pxy6kneolt6qjdorva46ayrtifeouhyudnxhucqqe7u"
+            },
             "ok"
           ]
         }
       ]
     },
-    "prf": [{ "/": "bafyreihwfiwuv4f2sajj7r247rezqaarhydd7ffod4tcesdv2so5nkmq7y" }],
+    "prf": [
+      { "/": "bafyreihwfiwuv4f2sajj7r247rezqaarhydd7ffod4tcesdv2so5nkmq7y" }
+    ],
     "sig": {
       "/": {
         "bytes": "bdNVZn_uTrQ8bgq5LocO2y3gqIyuEtvYWRUH9YT-SRK6v_SX8bjt-VZ9JIPVTdxkWb6nhVKBt6JGpgnjABpOCA"
       }
-    }
-  }
-}
-{
-  "v": "0.1.0",
-  "nnc": "abcdef",
-  "prf": [
-    { "/": "bafkreie2cyfsaqv5jjy2gadr7mmupmearkvcg7llybfdd7b6fvzzmhazuy" },
-    { "/": "bafkreibbz5pksvfjyima4x4mduqpmvql2l4gh5afaj4ktmw6rwompxynx4" }
-  ],
-  "run": {
-    "update-dns": {
-      "with": "dns:example.com?TYPE=TXT",
-      "do": "crud/update",
-      "inputs": { "value": "hello world" }
-    },
-    "notify-bob": {
-      "with": "mailto://alice@example.com",
-      "do": "msg/send",
-      "inputs": {
-        "to": "bob@example.com",
-        "subject": "DNSLink for example.com",
-        "body": { "promise/ok": ["/", "update-dns"] }
-      }
-    },
-    "notify-carol": {
-      "with": "mailto://alice@example.com",
-      "do": "msg/send",
-      "inputs": {
-        "to": "carol@example.com",
-        "subject": "Hey Carol, DNSLink was updated!",
-        "body": { "promise/ok": ["/", "update-dns"] }
-      }
-    },
-    "log-as-done": {
-      "with": "https://example.com/report",
-      "do": "crud/update",
-      "inputs": {
-        "payload": {
-          "from": "mailto://alice@exmaple.com",
-          "to": ["bob@exmaple.com", "carol@example.com"],
-          "event": "email-notification"
-        },
-        "_": [
-          { "promise/ok": ["/", "notify-bob"] },
-          { "promise/ok": ["/", "notify-carol"] }
-        ]
-      }
-    }
-  },
-  "sig": {
-    "/": {
-      "bytes": "bdNVZn_uTrQ8bgq5LocO2y3gqIyuEtvYWRUH9YT-SRK6v_SX8bjt-VZ9JIPVTdxkWb6nhVKBt6JGpgnjABpOCA"
     }
   }
 }
