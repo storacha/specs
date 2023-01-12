@@ -226,7 +226,7 @@ type Invocation<In> struct {
 }
 
 type Receipt<In, Out> struct {
-  src     &Invocation<In>
+  job     &Invocation<In>
 
   # output of the invocation
   out     Out
@@ -244,26 +244,38 @@ type Receipt<In, Out> struct {
   s       Varsig
 
   # Proof that `iss` was authorized to by invocation `aud` to issue
-  # receipts. Can be omitted if `src.aud === this.iss`
+  # receipts. Can be omitted if `job.aud === this.iss`
   prf     [&UCAN] implicit ([])
 }
 
 # Promise is a way to reference data from the output of the invocation
-type Promise union {
-  Await   "<-"
-}
+type Promise struct {
+  Await    "<-"
+} representation keyed
 
-type Await struct {
-  # promise to select from
-  invocation    InvocationReference
-  # `/` delimited path from the `out` of the `Receipt`.
-  # If omitted implies whole `out` field.
-  selector      optional String
+
+type Await union {
+  # Invocation reference
+  | &Invocation<Any>
+  # Inline invocation
+  | Invocation<Any>
+  # Specific invocation output
+  | ResultSelector
+} representation kinded
+
+type ResultSelector struct {
+  job   InvocationReference
+  at    Selector
 } representation tuple
 
+type Selector union {
+  | Key     String
+  | Path    [String]
+} kinded
+
 type InvocationReference union {
-  | Invocation
-  | &Invocation
+  | Invocation<Any>
+  | &Invocation<Any>
 } representation kinded
 ```
 
@@ -610,7 +622,7 @@ Receipts MUST use the same version as the invocation that they contain.
 
 ```ipldsch
 type Receipt<In, Out> struct {
-  src     &Invocation<In>
+  job     &Invocation<In>
 
   # output of the invocation
   out     Out
@@ -625,7 +637,7 @@ type Receipt<In, Out> struct {
   iss     Principal
 
   # Proof that `iss` was authorized to by invocation `aud` to issue
-  # receipts. Can be omitted if `src.aud === this.iss`
+  # receipts. Can be omitted if `job.aud === this.iss`
   prf     [&UCAN] implicit ([])
 
   # Signature from the `iss`.
@@ -637,7 +649,7 @@ type Receipt<In, Out> struct {
 
 ### 4.2.1 Invocation
 
-The `src` field MUST include a link to the Invocation that the Receipt is for.
+The `job` field MUST include a link to the Invocation that the Receipt is for.
 
 ### 4.2.2 Output
 
@@ -719,7 +731,7 @@ The `s` field MUST contain a [Varsig] of the receipt payload, a receipt without 
 
 ```json
 {
-  "src": { "/": "bafkreifzjut3te2nhyekklss27nh3k72ysco7y32koao5eei66wof36n5e" },
+  "job": { "/": "bafkreifzjut3te2nhyekklss27nh3k72ysco7y32koao5eei66wof36n5e" },
   "out": {
     "ok": [
       {
@@ -916,21 +928,34 @@ An invocation MUST fail if promise is resolved does not match the supplied branc
 The `Promise` describes a pointer to the eventual value in a Promise. When the `selector` of the `Await` omitted pointer resolves to the invocation result (`out` of the Receipt), otherwise it resolves to the specified branch `ok` on success and `error` on failure. Selector could also be used to resolve value nested deeper in any branch.
 
 ```ipldsch
-type Promise union {
-  Await     "<-"
-}
+# Promise is a way to reference data from the output of the invocation
+type Promise struct {
+  Await    "<-"
+} representation keyed
 
-type Await struct {
-  # promise to select from
-  invocation    InvocationReference
-  # `/` delimited path from the `out` of the `Receipt`.
-  # If omitted implies whole `out` field.
-  selector          optional String
+
+type Await union {
+  # Invocation reference
+  | &Invocation<Any>
+  # Inline invocation
+  | Invocation<Any>
+  # Specific invocation output
+  | ResultSelector
+} representation kinded
+
+type ResultSelector struct {
+  job   InvocationReference
+  at    Selector
 } representation tuple
 
+type Selector union {
+  | Key     String
+  | Path    [String]
+} kinded
+
 type InvocationReference union {
-  | Invocation
-  | &Invocation
+  | Invocation<Any>
+  | &Invocation<Any>
 } representation kinded
 ```
 
