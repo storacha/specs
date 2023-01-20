@@ -39,6 +39,9 @@ URIs
 interop
 permissionless
 stateful
+drand
+bilinear
+mainnet
 
 # actually correct
 reimagine
