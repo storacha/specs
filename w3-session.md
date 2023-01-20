@@ -121,7 +121,7 @@ Authorization context extends to the principals that trust that notary has carri
 
 #### Delegated Trust
 
-Trust in notary CAN explicitly be captured via [session] delegating, in which case notary SHOULD re-delegate it. This allows modelling complex trust relationships where trusted authority delegates trust to some intermediary principal which (re)delegates this trust to the notary that issued a [session].
+Trust in notary CAN explicitly be captured via [session] delegating, in which case notary SHOULD re-delegate it. This allows modeling complex trust relationships where trusted authority delegates trust to some intermediary principal which (re)delegates this trust to the notary that issued a [session].
 
 ## Session
 
