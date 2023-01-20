@@ -123,7 +123,7 @@ Agent CAN invoke `access/claim` capability to the service implementing this prot
 
 > Access protocol implies that delegation issuer be aware of the audience DID. Often complementary [authorization] protocol can be utilized to remove need for passing around cryptographic [`did:key`] identifiers as following example attempt to illustrate.
 
-When Alice first runs `w3up` program it asks for the user identity she'd like to use. After alice types `alice@web.mail` program initiates [authorization] protocol and creates a new (user) space by deriving `did:key:zAliceSpace` [`did:key`] from it. It immediately delegates capabilities to this space to Alice's identity:
+When Alice first runs `w3up` program it asks for the user identity she'd like to use. After Alice types `alice@web.mail` program initiates [authorization] protocol and creates a new (user) space by deriving `did:key:zAliceSpace` [`did:key`] from it. It immediately delegates capabilities to this space to Alice's identity:
 
 ```ts
 {
