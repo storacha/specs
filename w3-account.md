@@ -75,19 +75,19 @@ User agent MAY invoke `access/authorize` capability request an authorization to 
     nb: { as: "did:mailto:alice@web.mail" }
   }]
 }
-``` 
+```
 
 Authority over the account MUST be verified by the capability provider as described in the [Email Validation](#email-validation) section.
 
 #### authorize `with`
 
-Resource MUST be a [`did:key`][] identifier of an agent that is requesting an authorization to sign [UCAN][]s issued by the [`did:mailto`][] principal in the [`nb.as`][issue `as`] field.
+Resource MUST be a [`did:key`][] identifier of an agent that is requesting an authorization to sign [UCAN][]s issued by the [`did:mailto`][] principal in the [`nb.as`][authorize `as`] field.
 
 > Please note that `with` field identifies requesting agent, which MAY be different from `iss` field identifying issuing agent.
 
 #### authorize `as`
 
-Value MUST be a [`did:mailto`][] identifier of the account that the agent wishes to represent via [`did:key`][] in the [`with`][issue `with`] field. It MUST be a valid [`did:mailto`][] identifier.
+Value MUST be a [`did:mailto`][] identifier of the account that the agent wishes to represent via [`did:key`][] in the [`with`][authorize `with`] field. It MUST be a valid [`did:mailto`][] identifier.
 
 ## Email validation
 
@@ -97,7 +97,7 @@ Delegation represents authorization to issue [UCAN][]s with [`did:mailto`] accou
 
 ### `./update`
 
-Issued by trusted authority (usually one handling invocation that contains this proof) to the account (`aud`) to update invocation local state of the document. It is roughly equivalent of [`Set-Cookie`][] HTTP header and in this instance allows agent (`att[0].nb.key`) to prove that it has been authorized to sign [UCAN][]s issued by the account (`aud`). 
+Issued by trusted authority (usually the one handling invocations that contains this proof) to the account (`aud`) to update invocation local state of the document. It is roughly equivalent of [`Set-Cookie`][] HTTP header and in this instance allows agent (`att[0].nb.key`) to prove that it has been authorized to sign [UCAN][]s issued by the account (`aud`).
 
 ```ts
 {
@@ -115,18 +115,17 @@ Issued by trusted authority (usually one handling invocation that contains this 
 
 #### update `with`
 
-Authorization context, implying that this proof MUST be considered valid by this recipient (`aud` matches this `with`).
+Authorization context, implying that this proof MUST be considered valid by the principal that issued it (`iss` matches this `with`).
 
 Other recipients MAY also recognize proofs issued by trusted principals.
 
 #### update `aud`
 
-Audience of the [UCAN][] MUST be [`did:mailto`][] identifier of the account principal. This ensures that [principal alignment] requirement can be met when authorization is used as proof in [UCAN][]s issued by an account.
+Audience of the [UCAN][] MUST be [`did:mailto`][] account identifier. This ensures that [principal alignment] requirement can be met when authorization is used as proof in [UCAN][]s issued by an account.
 
 #### update `nb.key`
 
-MUST be a [`did:key`][] of the principal which MAY sign [UCAN][]s issued by an account principal in [`aud`](#sign-aud). It MUST be the same DID as [`nb.as`][authorize-as] in the authorization request.
-
+MUST be a [`did:key`][] of the principal which MAY sign [UCAN][]s issued by an account principal in [`aud`](#sign-aud). It MUST be the same DID as [`with`][authorize `with`] in the authorization request.
 
 ## Delegate Access
 
@@ -265,6 +264,6 @@ Note that adding the "free provider" to a space more than once has no effect _(e
 [email verification]: #Email-Verification
 [authorization]: #Authorization
 [access delegation]: #Delegate-Access
-[Cookies]:https://en.wikipedia.org/wiki/HTTP_cookie
-[`./update`]:#update
-[`Set-Cookie`]:https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+[cookies]: https://en.wikipedia.org/wiki/HTTP_cookie
+[`./update`]: #update
+[`set-cookie`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
