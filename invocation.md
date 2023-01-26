@@ -207,23 +207,48 @@ A [promise] is a reference to expected result of the invocation receipt.
 
 ```ipldsch
 type Invocation<In> struct {
-  v      SemVer
+  v       SemVer
 
-  iss    Principal
-  aud    Principal
+  with    URI
+  do      Ability
+  input   In (implicit {})
 
-  with   URI
-  do     Ability
-  input  In (implicit {})
+  meta    {String : Any} (implicit {})
 
-  meta   {String : Any} (implicit {})
+  prf     [&UCAN]
+  nnc     optional String
+  nbf     optional Int
 
-  prf    [&UCAN]
-  nnc    optional String
-  nbf    optional Int
-
-  s      Varsig
+  auth    &Auth
 }
+
+# Invocation ID represents fields of the Invocation by which
+# it can be uniquely identified.
+type InvocationID<In> struct {
+  v       Semver
+  with    URI
+  do      Ability
+  input   In (implicit {})
+
+  meta    {String : Any} (implicit {})
+
+  prf     [&UCAN]
+  nnc     optional String
+  nbf     optional Int
+}
+
+# Authorization signed by invoker (iss) for the executor (aud)
+# for running any of the invocations inside the `run` field.
+type Auth {
+  iss     Principal
+  aud     Principal
+  # CIDs MUST be sorted alphabetically
+  run     [&InvocationID]
+
+  # Signature from the `iss`
+  s       VarSig
+}
+
 
 type Receipt<In, Out> struct {
   job     &Invocation<In>
@@ -257,26 +282,19 @@ type Promise struct {
 type Await union {
   # Invocation reference
   | &Invocation<Any>
-  # Inline invocation
-  | Invocation<Any>
   # Specific invocation output
   | ResultSelector
 } representation kinded
 
 type ResultSelector struct {
-  job   InvocationReference
+  job   &Invocation<Any>
   at    Selector
 } representation tuple
 
 type Selector union {
-  | Key     String
+  | Branch  String
   | Path    [String]
 } kinded
-
-type InvocationReference union {
-  | Invocation<Any>
-  | &Invocation<Any>
-} representation kinded
 ```
 
 # 3 Invocation
@@ -287,25 +305,29 @@ Using the JavaScript analogy from the introduction, an invocation is similar to 
 
 ```json
 {
-  "v": "0.1.0",
-  "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-  "aud": "did:web:ucan.run",
-
-  "with": "mailto:alice@example.com",
-  "do": "msg/send",
-  "inputs": {
-    "to": ["bob@example.com", "carol@example.com"],
-    "subject": "hello",
-    "body": "world"
-  },
-
-  "prf": [
-    { "/": "bafkreie2cyfsaqv5jjy2gadr7mmupmearkvcg7llybfdd7b6fvzzmhazuy" }
-  ],
-  "s": {
-    "/": {
-      "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
+  "bafy...auth": {
+    "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
+    "aud": "did:web:ucan.run",
+    "run": [{ "/": "bafy...msgSendID" }],
+    "s": {
+      "/": {
+        "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
+      }
     }
+  },
+  "bafy...msgSend": {
+    "v": "0.1.0",
+    "with": "mailto:alice@example.com",
+    "do": "msg/send",
+    "inputs": {
+      "to": ["bob@example.com", "carol@example.com"],
+      "subject": "hello",
+      "body": "world"
+    },
+    "auth": { "/": "bafy...auth" },
+    "prf": [
+      { "/": "bafybeia3tspzaay4gcx3npcczgidbrsutq7yxnag3sfzrmvua6ogqjwy7a" }
+    ]
   }
 }
 ```
@@ -323,40 +345,38 @@ Later, when we explore [Promise]s, this also includes capturing the promise:
 
 ```json
 {
-  "v": "0.1.0",
-  "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-  "aud": "did:web:ucan.run",
-  "with": "mailto://alice@example.com",
-  "do": "msg/send",
-  "input": {
-    "to": {
-      "<-": [
-        {
-          "v": "0.1.0",
-          "iss": "did:key:zAlice",
-          "aud": "did:web:ucan.run",
-          "with": "https://example.com/mailinglist",
-          "do": "crud/read",
-          "s": {
-            "/": {
-              "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-            }
-          },
-          "prf": [{"/": "bafybeia3tspzaay4gcx3npcczgidbrsutq7yxnag3sfzrmvua6ogqjwy7a"}]
-        },
-        "ok"
-      ],
+  "bafy...auth": {
+    "iss": "did:key:zAlice",
+    "aud": "did:web:ucan.run",
+    "run": [{ "/": "bafy...crudReadID" }, { "/": "bafy...msgSend" }],
+    "s": {
+      "/": {
+        "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
+      }
     }
-    "subject": "hello",
-    "body": "world"
   },
-  "prf": [
-    { "/": "bafkreie2cyfsaqv5jjy2gadr7mmupmearkvcg7llybfdd7b6fvzzmhazuy" }
-  ],
-  "s": {
-    "/": {
-      "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-    }
+  "bafy...crudRead": {
+    "v": "0.1.0",
+    "with": "https://example.com/mailinglist",
+    "do": "crud/read",
+    "auth": { "/": "bay...auth" },
+    "prf": [
+      { "/": "bafybeia3tspzaay4gcx3npcczgidbrsutq7yxnag3sfzrmvua6ogqjwy7a" }
+    ]
+  },
+  "bafy...msgSend": {
+    "v": "0.1.0",
+    "with": "mailto://alice@example.com",
+    "do": "msg/send",
+    "input": {
+      "to": { "<-": [{ "/": "bafy...crud" }, "ok"] },
+      "subject": "hello",
+      "body": "world"
+    },
+    "prf": [
+      { "/": "bafkreie2cyfsaqv5jjy2gadr7mmupmearkvcg7llybfdd7b6fvzzmhazuy" }
+    ],
+    "auth": { "/": "bay...auth" }
   }
 }
 ```
@@ -489,8 +509,6 @@ Sending Email:
 ```json
 {
   "v": "0.1.0",
-  "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-  "aud": "did:web:ucan.run",
   "with": "mailto:akiko@example.com",
   "do": "msg/send",
   "input": {
@@ -502,10 +520,8 @@ Sending Email:
     "dev/tags": ["friends", "coffee"],
     "dev/priority": "high"
   },
-  "s": {
-    "/": {
-      "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-    }
+  "auth": {
+    "/": "bafkreie2cyfsaqv5jjy2gadr7mmupmearkvcg7llybfdd7b6fvzzmhazuy"
   },
   "prf": [
     { "/": "bafybeia3tspzaay4gcx3npcczgidbrsutq7yxnag3sfzrmvua6ogqjwy7a" }
@@ -518,8 +534,6 @@ Running WebAssembly from binary:
 ```json
 {
   "v": "0.1.0",
-  "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-  "aud": "did:web:ucan.run",
   "with": "data:application/wasm;base64,AHdhc21lci11bml2ZXJzYWwAAAAAAOAEAAAAAAAAAAD9e7+p/QMAkSAEABH9e8GowANf1uz///8UAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP////8AAAAACAAAACoAAAAIAAAABAAAACsAAAAMAAAACAAAANz///8AAAAA1P///wMAAAAlAAAALAAAAAAAAAAUAAAA/Xu/qf0DAJHzDx/44wMBqvMDAqphAkC5YAA/1mACALnzB0H4/XvBqMADX9bU////LAAAAAAAAAAAAAAAAAAAAAAAAAAvVXNlcnMvZXhwZWRlL0Rlc2t0b3AvdGVzdC53YXQAAGFkZF9vbmUHAAAAAAAAAAAAAAAAYWRkX29uZV9mAAAADAAAAAAAAAABAAAAAAAAAAkAAADk////AAAAAPz///8BAAAA9f///wEAAAAAAAAAAQAAAB4AAACM////pP///wAAAACc////AQAAAAAAAAAAAAAAnP///wAAAAAAAAAAlP7//wAAAACM/v//iP///wAAAAABAAAAiP///6D///8BAAAAqP///wEAAACk////AAAAAJz///8AAAAAlP///wAAAACM////AAAAAIT///8AAAAAAAAAAAAAAAAAAAAAAAAAAET+//8BAAAAWP7//wEAAABY/v//AQAAAID+//8BAAAAxP7//wEAAADU/v//AAAAAMz+//8AAAAAxP7//wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU////pP///wAAAAAAAQEBAQAAAAAAAACQ////AAAAAIj///8AAAAAAAAAAAAAAADQAQAAAAAAAA==",
   "do": "wasm/run",
   "input": {
@@ -533,14 +547,12 @@ Running WebAssembly from binary:
       "gas": 5000
     }
   },
-  "s": {
-    "/": {
-      "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-    }
-  },
   "prf": [
     { "/": "bafybeia3tspzaay4gcx3npcczgidbrsutq7yxnag3sfzrmvua6ogqjwy7a" }
-  ]
+  ],
+  "auth": {
+    "/": "bafkreie2cyfsaqv5jjy2gadr7mmupmearkvcg7llybfdd7b6fvzzmhazuy"
+  }
 }
 ```
 
@@ -548,83 +560,63 @@ Batch invocation is simply passing promises as inputs to an invocation
 
 ```json
 {
-  "v": "0.1.0",
-  "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-  "aud": "did:web:ucan.run",
-  "with": "javascript:(data) => data",
-  "do": "js/call",
-  "input": {
-    "publishPost": {
-      "<-": [
-        {
-          "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-          "aud": "did:web:ucan.run",
-          "with": "https://example.com/blog/posts",
-          "do": "crud/create",
-          "input": {
-            "headers": {
-              "content-type": "application/json"
-            },
-            "payload": {
-              "title": "How UCAN Tasks Changed My Life",
-              "body": "This is the story of how one spec changed everything...",
-              "topics": ["authz", "journal"],
-              "draft": true
-            }
-          },
-          "s": {
-            "/": {
-              "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-            }
-          },
-          "prf": [
-            {
-              "/": "bafybeia3tspzaay4gcx3npcczgidbrsutq7yxnag3sfzrmvua6ogqjwy7a"
-            }
-          ]
-        },
-        "ok"
-      ]
-    },
-    "sendEmail": {
-      "<-": [
-        {
-          "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-          "aud": "did:web:ucan.run",
-          "with": "mailto:akiko@example.com",
-          "do": "msg/send",
-          "input": {
-            "to": ["boris@example.com", "carol@example.com"],
-            "subject": "Coffee",
-            "body": "Hey you two, I'd love to get coffee sometime and talk about UCAN Tasks!"
-          },
-          "s": {
-            "/": {
-              "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-            }
-          },
-          "prf": [
-            {
-              "/": "bafybeia3tspzaay4gcx3npcczgidbrsutq7yxnag3sfzrmvua6ogqjwy7a"
-            }
-          ]
-        },
-        "ok"
-      ]
-    },
-    "sendTextMessage": {
-      "<-": [
-        {
-          "/": "bafybeibwlfwol5bdwj75hdqs3liv6z7dyqwtd2t4ovvgncv4ixkaxlkfle"
-        },
-        "ok"
-      ]
+  "bafy...auth": {
+    "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
+    "aud": "did:web:ucan.run",
+    "run": [{ "/": "bafy...post" }, { "/": "bafy...msg" }],
+    "s": {
+      "/": {
+        "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
+      }
     }
   },
-  "s": {
-    "/": {
-      "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-    }
+  "bafy...post": {
+    "v": "0.1.0",
+    "with": "https://example.com/blog/posts",
+    "do": "crud/create",
+    "input": {
+      "headers": {
+        "content-type": "application/json"
+      },
+      "payload": {
+        "title": "How UCAN Tasks Changed My Life",
+        "body": "This is the story of how one spec changed everything...",
+        "topics": ["authz", "journal"],
+        "draft": true
+      }
+    },
+    "prf": [
+      { "/": "bafybeia3tspzaay4gcx3npcczgidbrsutq7yxnag3sfzrmvua6ogqjwy7a" }
+    ],
+    "auth": { "/": "bafy...auth" }
+  },
+  "bafy...msg": {
+    "v": "0.1.0",
+    "with": "mailto:akiko@example.com",
+    "do": "msg/send",
+    "input": {
+      "to": ["boris@example.com", "carol@example.com"],
+      "subject": "Coffee",
+      "body": "Hey you two, I'd love to get coffee sometime and talk about UCAN Tasks!"
+    },
+    "prf": [
+      { "/": "bafybeia3tspzaay4gcx3npcczgidbrsutq7yxnag3sfzrmvua6ogqjwy7a" }
+    ],
+    "auth": { "/": "bafy...auth" }
+  },
+  "bafy...batch": {
+    "v": "0.1.0",
+    "with": "javascript:(data) => data",
+    "do": "js/call",
+    "input": {
+      "publishPost": { "<-": [{ "/": "bafy...post" }, "ok"] },
+      "sendEmail": { "<-": [{ "/": "bafy...msg" }, "ok"] },
+      "sendTextMessage": { "<-": [{ "/": "bafy...text" }, "ok"] }
+    },
+    "prf": [
+      { "/": "bafybeia3tspzaay4gcx3npcczgidbrsutq7yxnag3sfzrmvua6ogqjwy7a" }
+    ],
+    "auth": { "/": "bafy...auth" }
   }
 }
 ```
@@ -796,8 +788,6 @@ For example, consider the following invocation batch:
 ```json
 {
   "v": "0.1.0",
-  "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-  "aud": "did:web:ucan.run",
 
   "with": "mailto:akiko@example.com",
   "do": "msg/send",
@@ -805,31 +795,23 @@ For example, consider the following invocation batch:
   "inputs": {
     "to": {
       "<-": [
-        {
-          "/": "bafkreidcqdxosqave5u5pml3pyikiglozyscgqikvb6foppobtk3hwkjn4"
-        },
+        { "/": "bafkreidcqdxosqave5u5pml3pyikiglozyscgqikvb6foppobtk3hwkjn4" },
         "ok"
       ]
     },
     "subject": "Coffee",
     "body": {
-      "promise/ok": [
-        {
-          "/": "bafkreieimb4hvcwizp74vu4xfk34oivbdojzqrbpg2y3vcboqy5hwblmeu"
-        },
+      "<-": [
+        { "/": "bafkreieimb4hvcwizp74vu4xfk34oivbdojzqrbpg2y3vcboqy5hwblmeu" },
         "ok"
       ]
     }
-  }
+  },
 
   "prf": [
     { "/": "bafkreie2cyfsaqv5jjy2gadr7mmupmearkvcg7llybfdd7b6fvzzmhazuy" }
   ],
-  "s": {
-    "/": {
-      "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-    }
-  }
+  "auth": { "/": "bafy...auth" }
 }
 ```
 
@@ -839,76 +821,55 @@ Which is roughly equivalent of the of the following invocation, which inlines ab
 
 ```json
 {
-  "v": "0.1.0",
-  "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-  "aud": "did:web:ucan.run",
-
-  "with": "mailto:akiko@example.com",
-  "do": "msg/send",
-
-  "inputs": {
-    "to": {
-      "<-": [
-        {
-          "meta": { "name": "create-draf" },
-
-          "v": "0.1.0",
-          "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-          "aud": "did:web:ucan.run",
-          "with": "https://example.com/blog/posts",
-          "do": "crud/create",
-          "inputs": {
-            "payload": {
-              "title": "How UCAN Tasks Changed My Life",
-              "body": "This is the story of how one spec changed everything..."
-            }
-          },
-          "prf": [
-            "/": "bafkreieimb4hvcwizp74vu4xfk34oivbdojzqrbpg2y3vcboqy5hwblmeu"
-          ],
-          "s": {
-            "/": {
-              "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-            }
-          }
-        },
-        "ok"
-      ]
-    },
-    "subject": "Coffee",
-    "body": {
-      "promise/ok": [
-        {
-          "meta": { "name": "get-editors" },
-
-          "v": "0.1.0",
-          "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-          "aud": "did:web:ucan.run",
-
-          "with": "https://example.com/users/editors",
-          "do": "crud/read"
-
-          "prf": [
-            "/": "bafkreieimb4hvcwizp74vu4xfk34oivbdojzqrbpg2y3vcboqy5hwblmeu"
-          ],
-          "s": {
-            "/": {
-              "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-            }
-          }
-        },
-        "ok"
-      ]
+  "bafy...atuh": {
+    "v": "0.1.0",
+    "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
+    "aud": "did:web:ucan.run",
+    "run": [
+      { "/": "bafy...mkDraft" },
+      { "/": "bafy...edtrs" },
+      { "/": "bafy...msgSend" }
+    ],
+    "s": {
+      "/": {
+        "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
+      }
     }
   },
-
-  "prf": [
-    { "/": "bafkreie2cyfsaqv5jjy2gadr7mmupmearkvcg7llybfdd7b6fvzzmhazuy" }
-  ],
-  "s": {
-    "/": {
-      "bytes:": "5vNn4--uTeGk_vayyPuNTYJ71Yr2nWkc6AkTv1QPWSgetpsu8SHegWoDakPVTdxkWb6nhVKAz6JdpgnjABppC7"
-    }
+  "bafy...mkDraft": {
+    "meta": { "name": "create-draf" },
+    "v": "0.1.0",
+    "with": "https://example.com/blog/posts",
+    "do": "crud/create",
+    "input": {
+      "payload": {
+        "title": "How UCAN Tasks Changed My Life",
+        "body": "This is the story of how one spec changed everything..."
+      }
+    },
+    "prf": [{"/": "bafkreieimb4hvcwizp74vu4xfk34oivbdojzqrbpg2y3vcboqy5hwblmeu"}],
+    "auth": {"/": "bafy...auth"}
+  },
+  "bafy...edtrs": {
+    "meta": { "name": "get-editors" },
+    "v": "0.1.0",
+    "with": "https://example.com/users/editors",
+    "do": "crud/read",
+    "prf": [{"/": "bafybeibwlfwol5bdwj75hdqs3liv6z7dyqwtd2t4ovvgncv4ixkaxlkfle"}],
+    "auth": {"/": "bafy...auth"}
+  },
+  "bafy...msgSend": {
+    "v": "0.1.0",
+    "with": "mailto:akiko@example.com",
+    "do": "msg/send",
+    "input": {
+      "to": { "<-": [{ "/": "bafy...mkDraft" }, "ok"] },
+      "subject": "Coffee",
+      "body": { "<-": [{ "/": "bafy...edtrs" }, "ok"] }
+    },
+    "prf": [{ "/": "bafkreie2cyfsaqv5jjy2gadr7mmupmearkvcg7llybfdd7b6fvzzmhazuy" }]
+    ],
+    "auth": {"/": "bafy...auth"}
   }
 }
 ```
@@ -1006,80 +967,62 @@ flowchart BR
 
 ```json
 {
-  "bafyreifngx2r7ifssddx5ohdxsn2x5ukfhh6rxy6hswulkxbn6yw6f7jce": {
-    "v": "0.1.0",
+  "bafy...auth": {
     "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
     "aud": "did:web:ucan.run",
+    "run": [
+      { "/": "bady...crudUp" },
+      { "/": "bady...dns" },
+      { "/": "bafy...bob" },
+      { "/": "bafy...carol" },
+      { "/": "bafy...log" }
+    ],
+    "sig": {
+      "/": {
+        "bytes": "bdNVZn_uTrQ8bgq5LocO2y3gqIyuEtvYWRUH9YT-SRK6v_SX8bjt-VZ9JIPVTdxkWb6nhVKBt6JGpgnjABpOCA"
+      }
+    }
+  },
+  "bafy...dns": {
+    "v": "0.1.0",
     "with": "dns:example.com?TYPE=TXT",
     "do": "crud/update",
     "input": { "value": "hello world" },
     "prf": [
       { "/": "bafyreicelfj3kxtnpp2kwefs66rebbnpawjjnvkscrdtyjc6bxjmuix27u" }
     ],
-    "sig": {
-      "/": {
-        "bytes": "bdNVZn_uTrQ8bgq5LocO2y3gqIyuEtvYWRUH9YT-SRK6v_SX8bjt-VZ9JIPVTdxkWb6nhVKBt6JGpgnjABpOCA"
-      }
-    }
+    "auth": { "/": "bafy...auth" }
   },
-  "bafyreigb4gzn3ghfownvf5u6tqv4gjb247ai4fbv56nadtcpfznh37y5p4": {
+  "bafy...bob": {
     "v": "0.1.0",
-    "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-    "aud": "did:web:ucan.run",
     "with": "mailto://alice@example.com",
     "do": "msg/send",
     "input": {
       "to": "bob@example.com",
       "subject": "DNSLink for example.com",
-      "body": {
-        "<-": [
-          {
-            "/": "bafyreifngx2r7ifssddx5ohdxsn2x5ukfhh6rxy6hswulkxbn6yw6f7jce"
-          },
-          "ok"
-        ]
-      }
+      "body": { "<-": [{ "/": "bafy...dns" }, "ok"] }
     },
     "prf": [
       { "/": "bafyreialservj7dxazg4cskm5fuqwh5atgs54rgkvpmtkylbddygs37tce" }
     ],
-    "sig": {
-      "/": {
-        "bytes": "bdNVZn_uTrQ8bgq5LocO2y3gqIyuEtvYWRUH9YT-SRK6v_SX8bjt-VZ9JIPVTdxkWb6nhVKBt6JGpgnjABpOCA"
-      }
-    }
+    "auth": { "/": "bafy...auth" }
   },
-  "bafyreidqviro3x5pxy6kneolt6qjdorva46ayrtifeouhyudnxhucqqe7u": {
+  "bafy...carol": {
     "v": "0.1.0",
-    "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-    "aud": "did:web:ucan.run",
     "with": "mailto://alice@example.com",
     "do": "msg/send",
     "input": {
       "to": "carol@example.com",
       "subject": "Hey Carol, DNSLink was updated!",
-      "body": {
-        "<-": [
-          {
-            "/": "bafyreifngx2r7ifssddx5ohdxsn2x5ukfhh6rxy6hswulkxbn6yw6f7jce"
-          },
-          "ok"
-        ]
-      }
+      "body": { "<-": [{ "/": "bafy...dns" }, "ok"] }
     },
     "prf": [
       { "/": "bafyreifusp3qabhrzexltt6ausy4cz7t3cjxcnmwyiqkon5iuthx4h5uo4" }
     ],
-    "sig": {
-      "/": {
-        "bytes": "bdNVZn_uTrQ8bgq5LocO2y3gqIyuEtvYWRUH9YT-SRK6v_SX8bjt-VZ9JIPVTdxkWb6nhVKBt6JGpgnjABpOCA"
-      }
-    }
+    "auth": { "/": "bafy...auth" }
   },
-  "bafyreigr4evtgj6zojwhvceurdbpclm2wrftka5snymvze53fcpbtmiaeq": {
+  "bafy...log": {
     "v": "0.1.0",
-    "iss": "did:key:z6Mkqa4oY9Z5Pf5tUcjLHLUsDjKwMC95HGXdE1j22jkbhz6r",
-    "aud": "did:web:ucan.run",
     "with": "https://example.com/report",
     "do": "crud/update",
     "input": {
@@ -1089,32 +1032,14 @@ flowchart BR
         "event": "email-notification"
       },
       "_": [
-        {
-          "<-": [
-            {
-              "/": "bafyreigb4gzn3ghfownvf5u6tqv4gjb247ai4fbv56nadtcpfznh37y5p4"
-            },
-            "ok"
-          ]
-        },
-        {
-          "<-": [
-            {
-              "/": "bafyreidqviro3x5pxy6kneolt6qjdorva46ayrtifeouhyudnxhucqqe7u"
-            },
-            "ok"
-          ]
-        }
+        { "<-": [{ "/": "bafy...bob" }, "ok"] },
+        { "<-": [{ "/": "bafy...carol" }, "ok"] }
       ]
     },
     "prf": [
       { "/": "bafyreihwfiwuv4f2sajj7r247rezqaarhydd7ffod4tcesdv2so5nkmq7y" }
     ],
-    "sig": {
-      "/": {
-        "bytes": "bdNVZn_uTrQ8bgq5LocO2y3gqIyuEtvYWRUH9YT-SRK6v_SX8bjt-VZ9JIPVTdxkWb6nhVKBt6JGpgnjABpOCA"
-      }
-    }
+    "auth": { "/": "bafy...auth" }
   }
 }
 ```
