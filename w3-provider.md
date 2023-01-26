@@ -221,7 +221,7 @@ An agent MUST be delegated `consumer/add` capability, on successful [`provider/g
 
 Capability MUST be delegated back to the `iss` of the [`provider/get`] request.
 
-> This allows authorized agent to delegate `provider/get` capability to an agent or another user, which can then complete the loop using [`consumer/add`]. If capability was delegated back to `with` identifier instead only account or delegate (with `consumer/add` capability) would be able to complete the loop.
+> This allows authorized agent to delegate `provider/get` capability to an agent or another user, which can then complete the loop using [`consumer/add`]. If capability was delegated back to `with` identifier instead, only account or delegate (with `consumer/add` capability) would be able to complete the loop.
 
 ###### add `with`
 

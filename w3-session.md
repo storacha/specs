@@ -57,7 +57,7 @@ sequenceDiagram
   participant Email as 📬<br/><br/>alice@web.mail
 
   Agent ->> W3: access/authorize
-  Note right of Agent:🎟<br/>with: did:key:zAgent<br/>as: did:mailto:alice@web.mail
+  Note right of Agent:🎟<br/>with: did:key:zAgent<br/>as: did:mailto:web.mail:alice
   W3 ->> Email: ✉️ Verification email
   Email ->> W3: 🔗 Approve
   W3 -->> Agent: ./update
@@ -131,7 +131,7 @@ In other words notary has ensured that principal in `aud` field has approved UCA
 
 ### Session Example
 
-> Proof that `did:mailto:web:mail:alice` can issue UCANs signed with `did:key:zAgent` session key.
+> Proof that `did:mailto:web.mail:alice` can issue UCANs signed with `did:key:zAgent` session key.
 
 ```ts
 {
@@ -171,7 +171,7 @@ Authorization [session] covers UCANs that include it in their [proofs] and are s
 
 The `./update` capability provides functionality roughly equivalent of [`Set-Cookie`][] HTTP header. It allows capturing stateful information in the stateless UCAN delegations.
 
-Capability MAY include arbitrary session information besides `key` which MUST ignored in the context of this specification, or put it differently have no how authorization [session] handling.
+Capability MAY include arbitrary session information besides `key` which MUST be ignored in the context of this specification, or put it differently MUST NOT impact authorization [session] handling.
 
 [petname]: https://en.wikipedia.org/wiki/Petname
 [ucan mailto]: https://github.com/ucan-wg/ucan-mailto/

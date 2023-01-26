@@ -53,7 +53,7 @@ Agent CAN invoke `access/delegate` capability with arbitrary delegations which w
 
 #### Example
 
-> Invoke `access/delegate` asking web3.storage to record delegation from the previous the previous example
+> Invoke `access/delegate` asking web3.storage to record delegation from the previous example
 
 ```ts
 {
@@ -152,7 +152,7 @@ When Alice first runs `w3up` program it asks for the user identity she'd like to
 }
 ```
 
-When Alice runs `w3up` program on her other device it also initiates [authorization] flow to obtain access on a new device.
+When Alice runs `w3up` program on her other device, and she enters the same email address, it also initiates [authorization] flow to obtain access on a new device.
 
 ```ts
 {
@@ -166,7 +166,7 @@ When Alice runs `w3up` program on her other device it also initiates [authorizat
 }
 ```
 
-After receiving an email and approving authorization agent on new device receives delegation allowing agent to sign delegations via local (non-extractable) `did:key:zAli` key
+After receiving an email and clicking a link to approve authorization, an agent on a new device receives a delegation allowing that agent to sign delegations via local (non-extractable) `did:key:zAli` key
 
 ```ts
 {
@@ -180,7 +180,7 @@ After receiving an email and approving authorization agent on new device receive
 }
 ```
 
-Using this authorization new device can claim capabilities that were delegated to it
+Using this authorization, a new device can claim capabilities that were delegated to it
 
 ```ts
 {
@@ -221,9 +221,9 @@ Service will respond with delegations where audience is `did:mailto:web:mail:ali
 
 ## Sharing access with a friend
 
-> Access protocol could be utilized to share access with a friend who may never used web3.storage.
+> Access protocol could be utilized to share access with a friend who may have never used web3.storage.
 
-Alice wants to share access to her space with her friend Bob. She does not know if Bob has ever heard of the web3.storage, but she knows his email address `bob@gmail.com` allowing her to delegate capabilities to it:
+Alice wants to share access to her space with her friend Bob. She does not know if Bob has ever heard of web3.storage, but she knows his email address `bob@gmail.com` allowing her to delegate capabilities to it:
 
 ```ts
 {
@@ -276,7 +276,7 @@ When Bob runs `w3up` agent the first time and authorizes as `bob@gmail.com` prog
 }
 ```
 
-Service responds with a delegation from Alice giving Bobs agent capability to execute `store/list` on `did:key:zAliceSpace` space
+Service responds with a delegation from Alice giving Bob's agent capability to execute `store/list` on `did:key:zAliceSpace` space
 
 ```ts
 {
