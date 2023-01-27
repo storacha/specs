@@ -45,8 +45,16 @@ reimagine
 invocable
 roundtrip
 else's
-
-
+cryptographic
+non-extractable
+petname
+NameDescriptionIdentityPrincipal
+HeaderTypeDescriptionRequiredCardinalityEntry
+identityNotaryTrusted
+AuthorityAn
+validSession
+keyThe
+DKIM-Signature
 
 # wut
 HeaderTypeDescriptionRequiredCardinalityEntrypoint
