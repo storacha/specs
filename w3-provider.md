@@ -1,4 +1,4 @@
-# Provider protocol
+# Provider Protocol
 
 ![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
 [![hackmd-github-sync-badge](https://hackmd.io/Zb7gjpLsQn2w3a3JUvnFcw/badge)](https://hackmd.io/Zb7gjpLsQn2w3a3JUvnFcw)

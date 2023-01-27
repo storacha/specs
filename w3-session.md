@@ -1,4 +1,4 @@
-# Authorization
+# Authorization Protocol
 
 ![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
 
@@ -149,19 +149,19 @@ In other words notary has ensured that principal in `aud` field has approved UCA
 
 ### Session Context
 
-Resource MUST be set to the trusted principal corresponding to the [authorization context]. It SHOULD match `aud` of the UCAN that uses [session] in [proofs].
+Resource MUST be set to the trusted principal corresponding to the [authorization context](#authorization-context). It SHOULD match `aud` of the UCAN that uses [session](#session) in [proofs].
 
 Authority MAY choose to trust principal other than itself and therefor extend authorization context to those principals.
 
 ### Session Principal
 
-Audience of the [UCAN][] MUST be a non-cryptographic identifier of the authorizing principal. It MUST match [`nb.as`][authorization principal] of the corresponding authorization request.
+Audience of the [UCAN][] MUST be a non-cryptographic identifier of the authorizing principal. It MUST match [authorize `nb.as`] of the corresponding authorization request.
 
 > This ensures [principal alignment] when [session] is used as a proof in [UCAN][] issued by the authorizing principal.
 
 ### Session Key
 
-The `nb.key` field MUST be set to [`did:key`][] identifier of the session key. It MUST be the same DID as [`nb.with`][authorization key] of the authorization request.
+The `nb.key` field MUST be set to [`did:key`][] identifier of the session key. It MUST be the same DID as [authorize `with`][authorization key] of the authorization request.
 
 ## Session Scope
 
@@ -173,6 +173,7 @@ The `./update` capability provides functionality roughly equivalent of [`Set-Coo
 
 Capability MAY include arbitrary session information besides `key` which MUST be ignored in the context of this specification, or put it differently MUST NOT impact authorization [session] handling.
 
+[session]: #session
 [petname]: https://en.wikipedia.org/wiki/Petname
 [ucan mailto]: https://github.com/ucan-wg/ucan-mailto/
 [`did:mailto`]: https://github.com/ucan-wg/did-mailto/
@@ -180,15 +181,15 @@ Capability MAY include arbitrary session information besides `key` which MUST be
 [recipient validation]: https://github.com/ucan-wg/spec/blob/main/README.md#621-recipient-validation
 [`did:key`]: https://w3c-ccg.github.io/did-method-key/
 [`access/authorize`]: #Authorize
-[authorize `as`]: #authorize-as
-[authorize `with`]: #authorize-with
+[authorize `nb.as`]: #authorization-principal
+[authorize `with`]: #authorization-key
 [session `with`]: #Session-with
 [session `aud`]: #Session-aud
 [session `nb`]: #Session-nbkey
 [ucan]: https://github.com/ucan-wg/spec/
 [principal alignment]: https://github.com/ucan-wg/spec/blob/main/README.md#62-principal-alignment
 [email verification]: #Email-Verification
-[authorization]: #Authorization
+[authorization]: #authorization
 [access delegation]: #Delegate-Access
 [cookies]: https://en.wikipedia.org/wiki/HTTP_cookie
 [`./update`]: #update
