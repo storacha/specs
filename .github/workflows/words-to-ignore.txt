@@ -39,6 +39,9 @@ URIs
 interop
 permissionless
 stateful
+structs
+schemas
+RPC
 
 # actually correct
 reimagine
