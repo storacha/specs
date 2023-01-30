@@ -74,6 +74,7 @@ canonicalized
 OAuth
 simple-but-evolvable
 implicits
+ok
 
 # actually correct
 reimagine
