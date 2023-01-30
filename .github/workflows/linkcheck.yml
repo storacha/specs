@@ -1,4 +1,4 @@
-name: Check Markdown links
+name: Check Markdown
 
 on: push
 
@@ -9,6 +9,8 @@ jobs:
       - uses: actions/checkout@master
       - uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
-          use-quiet-mode: "yes"
-          check-modified-files-only: "no"
-          base-branch: "main"
+          use-quiet-mode: 'yes'
+          check-modified-files-only: 'no'
+          base-branch: 'main'
+      - name: markdownlint-cli2-action
+        uses: DavidAnson/markdownlint-cli2-action

@@ -35,11 +35,11 @@ An agent MAY delegate some capabilities to any other agent
 
 > `did:key:zAlice` delegates `store/*` capabilities to `did:key:zBob`
 
-```ts
+```json
 {
   "iss": "did:key:zAlice",
   "aud": "did:key:zBob",
-  "att": [{ with: "did:key:zAlice", can: "store/*" }],
+  "att": [{ "with": "did:key:zAlice", "can": "store/*" }],
   "exp": null,
   "sig": "..."
 }
@@ -55,27 +55,33 @@ Agent CAN invoke `access/delegate` capability with arbitrary delegations which w
 
 > Invoke `access/delegate` asking web3.storage to record delegation from the previous example
 
-```ts
+```json
 {
   "iss": "did:key:zAlice",
   "aud": "did:web:web3.storage",
-  "att": [{
-    "with": "did:key:zAlice",
-    "can": "access/delegate",
-    // Map of delegation links to be stored for their audiences.
-    "nb": { ["bafy...prf1"]: {"/": "bafy...prf1"} }
-  }],
-  "prf": [{
-    "iss": "did:key:zAlice",
-    "aud": "did:key:zBob",
-    "att": [{
+  "att": [
+    {
       "with": "did:key:zAlice",
-      "can": "store/*"
-    }],
-    "exp": null,
-    "sig": "..."
-  }],
-  sig: "..."
+      "can": "access/delegate",
+      // Map of delegation links to be stored for their audiences.
+      "nb": { "bafy...prf1": { "/": "bafy...prf1" } }
+    }
+  ],
+  "prf": [
+    {
+      "iss": "did:key:zAlice",
+      "aud": "did:key:zBob",
+      "att": [
+        {
+          "with": "did:key:zAlice",
+          "can": "store/*"
+        }
+      ],
+      "exp": null,
+      "sig": "..."
+    }
+  ],
+  "sig": "..."
 }
 ```
 
@@ -105,15 +111,17 @@ However a user may also add new delegations on one device and expect to have acc
 
 Agent CAN invoke `access/claim` capability to the service implementing this protocol to collect all the valid delegations where audience matches `with` field.
 
-```ts
+```json
 {
- iss: "did:key:zBob",
- aud: "did:web:web3.storage",
- att: [{
-   with: "did:key:zBob",
-   can: "access/claim"
- }],
- sig: "..."
+  "iss": "did:key:zBob",
+  "aud": "did:web:web3.storage",
+  "att": [
+    {
+      "with": "did:key:zBob",
+      "can": "access/claim"
+    }
+  ],
+  "sig": "..."
 }
 ```
 
@@ -125,25 +133,29 @@ Agent CAN invoke `access/claim` capability to the service implementing this prot
 
 When Alice first runs `w3up` program it asks for the user identity she'd like to use. After Alice types `alice@web.mail` program initiates [authorization] protocol and creates a new (user) space by deriving `did:key:zAliceSpace` [`did:key`] from it. It immediately delegates capabilities to this space to Alice's identity:
 
-```ts
+```json
 {
   "iss": "did:key:zAliceSpace",
   "aud": "did:web:web3.storage",
-  "att": [{
-    "with": "did:key:zAliceSpace",
-    "can": "access/delegate",
-    // Map of delegation links to be stored for their audiences.
-    "nb": { ["bafy...prf1"]: {"/": "bafy...prf1"} }
-  }],
+  "att": [
+    {
+      "with": "did:key:zAliceSpace",
+      "can": "access/delegate",
+      // Map of delegation links to be stored for their audiences.
+      "nb": { "bafy...prf1": { "/": "bafy...prf1" } }
+    }
+  ],
   "prf": [
     // delegation to
     {
       "iss": "did:key:zAliceSpace",
       "aud": "did:mailto:web.mail:alice",
-      "att": [{
-        "with": "did:key:zAliceSpace",
-        "can": "*"
-      }],
+      "att": [
+        {
+          "with": "did:key:zAliceSpace",
+          "can": "*"
+        }
+      ],
       "exp": null,
       "sig": "..."
     }
@@ -154,51 +166,57 @@ When Alice first runs `w3up` program it asks for the user identity she'd like to
 
 When Alice runs `w3up` program on her other device, and she enters the same email address, it also initiates [authorization] flow to obtain access on a new device.
 
-```ts
+```json
 {
   "iss": "did:key:zAli",
   "aud": "did:web:web3.storage",
-  "att": [{
-    "with": "did:key:zAli",
-    "can": "access/authorize",
-    "nb": { as: "did:mailto:web.mail:alice" }
-  }]
+  "att": [
+    {
+      "with": "did:key:zAli",
+      "can": "access/authorize",
+      "nb": { "as": "did:mailto:web.mail:alice" }
+    }
+  ]
 }
 ```
 
 After receiving an email and clicking a link to approve authorization, an agent on a new device receives a delegation allowing that agent to sign delegations via local (non-extractable) `did:key:zAli` key
 
-```ts
+```json
 {
   "iss": "did:web:web3.storage",
   "aud": "did:mailto:web.mail:alice",
-  "att": [{
-    "with": "did:web:web3.storage",
-    "can": "./update",
-    "nb": { "key": "did:key:zAli" }
-  }],
+  "att": [
+    {
+      "with": "did:web:web3.storage",
+      "can": "./update",
+      "nb": { "key": "did:key:zAli" }
+    }
+  ]
 }
 ```
 
 Using this authorization, a new device can claim capabilities that were delegated to it
 
-```ts
+```json
 {
   "iss": "did:mailto:web.mail:alice",
   "aud": "did:web:web3.storage",
   "att": {
     "with": "did:mailto:web.mail:alice",
-    "can": "access/claim",
+    "can": "access/claim"
   },
   "prf": [
     {
       "iss": "did:web:web3.storage",
       "aud": "did:mailto:web.mail:alice",
-      "att": [{
-        "with": "did:web:web3.storage",
-        "can": "./update",
-        "nb": { "key": "did:key:zAli" }
-      }],
+      "att": [
+        {
+          "with": "did:web:web3.storage",
+          "can": "./update",
+          "nb": { "key": "did:key:zAli" }
+        }
+      ]
     }
   ]
 }
@@ -206,14 +224,16 @@ Using this authorization, a new device can claim capabilities that were delegate
 
 Service will respond with delegations where audience is `did:mailto:web:mail:alice` which will give agent on this new device access to `did:key:zAliceSpace`:
 
-```ts
+```json
 {
   "iss": "did:key:zAliceSpace",
   "aud": "did:mailto:web.mail:alice",
-  "att": [{
-    "with": "did:key:zAliceSpace",
-    "can": "*"
-  }],
+  "att": [
+    {
+      "with": "did:key:zAliceSpace",
+      "can": "*"
+    }
+  ],
   "exp": null,
   "sig": "..."
 }
@@ -225,25 +245,29 @@ Service will respond with delegations where audience is `did:mailto:web:mail:ali
 
 Alice wants to share access to her space with her friend Bob. She does not know if Bob has ever heard of web3.storage, but she knows his email address `bob@gmail.com` allowing her to delegate capabilities to it:
 
-```ts
+```json
 {
   "iss": "did:key:zAliceSpace",
   "aud": "did:web:web3.storage",
-  "att": [{
-    "with": "did:key:zAliceSpace",
-    "can": "access/delegate",
-    // Map of delegation links to be stored for their audiences.
-    "nb": { ["bafy...prf1"]: {"/": "bafy...prf1"} }
-  }],
+  "att": [
+    {
+      "with": "did:key:zAliceSpace",
+      "can": "access/delegate",
+      // Map of delegation links to be stored for their audiences.
+      "nb": { "bafy...prf1": { "/": "bafy...prf1" } }
+    }
+  ],
   "prf": [
     // delegation to
     {
       "iss": "did:key:zAliceSpace",
       "aud": "did:mailto:gmail.com:bob",
-      "att": [{
-        "with": "did:key:zAliceSpace",
-        "can": "store/list"
-      }],
+      "att": [
+        {
+          "with": "did:key:zAliceSpace",
+          "can": "store/list"
+        }
+      ],
       "exp": "...",
       "sig": "..."
     }
@@ -254,23 +278,25 @@ Alice wants to share access to her space with her friend Bob. She does not know 
 
 When Bob runs `w3up` agent the first time and authorizes as `bob@gmail.com` program will collect capabilities delegated to it:
 
-```ts
+```json
 {
   "iss": "did:mailto:gmail.com:bob",
   "aud": "did:web:web3.storage",
   "att": {
     "with": "did:mailto:gmail.com:bob",
-    "can": "access/claim",
+    "can": "access/claim"
   },
   "prf": [
     {
       "iss": "did:web:web3.storage",
       "aud": "did:mailto:gmail.com:bob",
-      "att": [{
-        "with": "did:web:web3.storage",
-        "can": "./update",
-        "nb": { "key": "did:key:zBobAgent" }
-      }],
+      "att": [
+        {
+          "with": "did:web:web3.storage",
+          "can": "./update",
+          "nb": { "key": "did:key:zBobAgent" }
+        }
+      ]
     }
   ]
 }
@@ -278,14 +304,16 @@ When Bob runs `w3up` agent the first time and authorizes as `bob@gmail.com` prog
 
 Service responds with a delegation from Alice giving Bob's agent capability to execute `store/list` on `did:key:zAliceSpace` space
 
-```ts
+```json
 {
   "iss": "did:key:zAliceSpace",
   "aud": "did:mailto:gmail.com:bob",
-  "att": [{
-    "with": "did:key:zAliceSpace",
-    "can": "store/list"
-  }],
+  "att": [
+    {
+      "with": "did:key:zAliceSpace",
+      "can": "store/list"
+    }
+  ],
   "exp": "...",
   "sig": "..."
 }
@@ -299,22 +327,5 @@ web3.storage offers one "free provider" per account. It will be denied if a `con
 
 Note that adding the "free provider" to a space more than once has no effect _(even when obtained through different accounts)_, because a space has _set_ of providers, and "free provider" is either in that set or not.
 
-[ucan mailto]: https://github.com/ucan-wg/ucan-mailto/
-[`did:mailto`]: https://github.com/ucan-wg/did-mailto/
-[principal]: https://github.com/ucan-wg/spec/blob/main/README.md#321-principals
-[recipient validation]: https://github.com/ucan-wg/spec/blob/main/README.md#621-recipient-validation
 [`did:key`]: https://w3c-ccg.github.io/did-method-key/
-[authorize `as`]: #authorize-as
-[authorize `with`]: #authorize-with
-[update `with`]: #update-with
-[update `aud`]: #update-aud
-[update `nb`]: #update-nb
-[ucan]: https://github.com/ucan-wg/spec/
-[principal alignment]: https://github.com/ucan-wg/spec/blob/main/README.md#62-principal-alignment
-[email verification]: #Email-Verification
-[authorization]: #Authorization
-[access delegation]: #Delegate-Access
-[cookies]: https://en.wikipedia.org/wiki/HTTP_cookie
-[`./update`]: #update
-[`set-cookie`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
-[authorization]: ./w3-session.md
+[authorization]: w3-session.md#authorization
