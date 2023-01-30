@@ -45,7 +45,7 @@ Mapping cryptographic [`did:key`] identifier to an identity with memorable ident
 
 To keep UCANs verifiable in stateless settings we propose capturing stateful information (out-of-bound authorization) in a stateless [session], represented using a UCAN, so it can be included in verifiable proofs.
 
-### Authorization
+## Authorization
 
 An agent MAY request an authorization [session] by invoking `access/authorize` capability that specifies desired identity (`nb.as`) and session key (`with`).
 Capability provider (notary) MUST carry out-of-bound authentication that allows identity owner to accept or deny authorization request.
@@ -64,27 +64,29 @@ sequenceDiagram
     Note right of Agent:🎫<br/>with: did:web:web3.storage<br/>key: did:key:zAgent
 ```
 
-#### Authorization Example
+### Authorization Example
 
 > Request authorization from `alice@web.mail` with `did:key:zAgent`.
 
-```ts
+```json
 {
-  "iss": "did:key:zAgent",        // agent
-  "aud": "did:web:web3.storage",  // notary
-  "att": [{
-    "with": "did:key:zAgent",     // session key
-    "can": "access/authorize",
-    "nb": { as: "did:mailto:web.mail:alice" }  // identity
-  }]
+  "iss": "did:key:zAgent", // agent
+  "aud": "did:web:web3.storage", // notary
+  "att": [
+    {
+      "with": "did:key:zAgent", // session key
+      "can": "access/authorize",
+      "nb": { "as": "did:mailto:web.mail:alice" } // identity
+    }
+  ]
 }
 ```
 
-#### Authorization Principal
+### Authorization Principal
 
 The `nb.as` field MUST specify a principal that requesting agent wishes to represent in authorized session. It MUST be valid [UCAN principal] so that it can be used as issuer (`iss`) in UCANs covered by authorized session.
 
-#### Authorization Key
+### Authorization Key
 
 Resource (`with`) MUST be a [`did:key`][] identifier for the desired session key. It represents a key that agent wishes to use for signing [UCAN][]s that it will issue using authorization principal.
 
@@ -133,17 +135,18 @@ In other words notary has ensured that principal in `aud` field has approved UCA
 
 > Proof that `did:mailto:web.mail:alice` can issue UCANs signed with `did:key:zAgent` session key.
 
-```ts
+```json
 {
-  iss: "did:web:web3.storage",
-  aud: "did:mailto:web.mail:alice",
-  att: [{
-    with: "did:web:web3.storage",
-    can: "./update",
-    nb: { key: "did:key:zAgent" }
-  }],
-  exp: null
-  sig: "..."
+  "iss": "did:web:web3.storage",
+  "aud": "did:mailto:web.mail:alice",
+  "att": [
+    {
+      "with": "did:web:web3.storage",
+      "can": "./update",
+      "nb": { "key": "did:key:zAgent" }
+    }
+  ],
+  "sig": "..."
 }
 ```
 
@@ -161,11 +164,11 @@ Audience of the [UCAN][] MUST be a non-cryptographic identifier of the authorizi
 
 ### Session Key
 
-The `nb.key` field MUST be set to [`did:key`][] identifier of the session key. It MUST be the same DID as [authorize `with`][authorization key] of the authorization request.
+The `nb.key` field MUST be set to [`did:key`] identifier of the session key. It MUST be the same DID as [authorize `with`] of the authorization request.
 
 ## Session Scope
 
-Authorization [session] covers UCANs that include it in their [proofs] and are subject to UCAN [time bounds][] and [revocations][ucan revocation]. Only UCANs meeting standard [principal alignment] requirement are covered by the [session], meaning UCAN MUST be issued by the `aud` of the included [session].
+Authorization [session] covers UCANs that include it in their [proofs] and are subject to UCAN [time bounds] and [revocations][ucan revocation]. Only UCANs meeting standard [principal alignment] requirement are covered by the [session], meaning UCAN MUST be issued by the `aud` of the included [session].
 
 ## Session Extensions
 
@@ -175,26 +178,14 @@ Capability MAY include arbitrary session information besides `key` which MUST be
 
 [session]: #session
 [petname]: https://en.wikipedia.org/wiki/Petname
-[ucan mailto]: https://github.com/ucan-wg/ucan-mailto/
 [`did:mailto`]: https://github.com/ucan-wg/did-mailto/
-[principal]: https://github.com/ucan-wg/spec/blob/main/README.md#321-principals
-[recipient validation]: https://github.com/ucan-wg/spec/blob/main/README.md#621-recipient-validation
 [`did:key`]: https://w3c-ccg.github.io/did-method-key/
-[`access/authorize`]: #Authorize
 [authorize `nb.as`]: #authorization-principal
 [authorize `with`]: #authorization-key
-[session `with`]: #Session-with
-[session `aud`]: #Session-aud
-[session `nb`]: #Session-nbkey
 [ucan]: https://github.com/ucan-wg/spec/
 [principal alignment]: https://github.com/ucan-wg/spec/blob/main/README.md#62-principal-alignment
-[email verification]: #Email-Verification
 [authorization]: #authorization
-[access delegation]: #Delegate-Access
-[cookies]: https://en.wikipedia.org/wiki/HTTP_cookie
-[`./update`]: #update
 [`set-cookie`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
-[session]: #Session
 [ucan revocation]: https://github.com/ucan-wg/spec/#28-revocation
 [`did:web`]: https://w3c-ccg.github.io/did-method-web/
 [did resolution]: https://www.w3.org/TR/did-core/#resolution
@@ -205,7 +196,3 @@ Capability MAY include arbitrary session information besides `key` which MUST be
 [time bounds]: https://github.com/ucan-wg/spec/#322-time-bounds
 [proofs]: https://github.com/ucan-wg/spec/#327-proof-of-delegation
 [ucan principal]: https://github.com/ucan-wg/spec/#321-principals
-[session scope]: #Session_Scope
-[authorization context]: #Authorization_Context
-[authorization principal]: #Authorization_Principal
-[authorization key]: #Authorization_Key

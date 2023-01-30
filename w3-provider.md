@@ -3,11 +3,19 @@
 ![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
 [![hackmd-github-sync-badge](https://hackmd.io/Zb7gjpLsQn2w3a3JUvnFcw/badge)](https://hackmd.io/Zb7gjpLsQn2w3a3JUvnFcw)
 
-## Abstract
+## Editors
+
+- [Irakli Gozalishvili](https://github.com/Gozala), [DAG House](https://dag.house/)
+
+## Authors
+
+- [Irakli Gozalishvili](https://github.com/Gozala), [DAG House](https://dag.house/)
+
+# Abstract
 
 Thinking about users in web2 terms introduces unfortunate limitations and seems to be a poor fit for User Controlled Authorization Network ([UCAN][]).
 
-#### Capabilities
+## Capabilities
 
 In web2, a user _(which could be an individual or an organization)_ directly correlates to a (name) space _(usually behind a walled garden)_ they're given access to. In this model, a user authenticates using credentials or a server issued (secret) authorization token to gain an access to set of capabilities with-in a bound (name) space.
 
@@ -17,29 +25,29 @@ With a [UCAN][] based authorization model, things are different. User creates a 
 
 > The implications of this are tremendous, we are no longer building apps behind walled gardens, but rather tap into the rich network of information with self describing protocols
 
-#### Providers
+## Providers
 
 As we have above established, users create, own, and manage access to their space through the capabilities that can be delegated. However, owning a `store/add` capability to some `did:key:zAlice` space does not imply it can be invoked, something needs to provide that capability. A user can contract a "storage provider" which they can add it to their (or anyone else's) space, in turn making it possible for a anyone with `store/add` capability to a space with a store provider to store data.
 
 Providers are services which user can add to a space so they can handle provided capabilities when they are invoked.
 
-#### Funding
+## Funding
 
 Direct correlation between a user and a space in the Web 2 model leads to a system in which users fund their space (by money or their privacy).
 
 Decoupling users from spaces enables all kinds of funding strategies. User can hire a storage provider and add it to their space. User can also hire a provider and add it to some common goods space they would like to financially support. Just like every capability can be shared, just the same, every space can be crowd funded, because space is decoupled from the capability provider(s).
 
-## Specification
+## Language
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
-### Space
+# Space
 
-#### Representation
+## Representation
 
 Any valid [did:key][] identifier SHOULD represent a valid space that has no capability providers, therefore attempt to store data into such space (or invoking any other capability) SHOULD fail.
 
-#### Ownership
+## Ownership
 
 Space is a resource that MUST be addressed by the [did:key][] URI. It is owned by the (corresponding) private key holder.
 
@@ -50,7 +58,7 @@ This implies that [UCAN][] invocations on a space resource CAN be validated by v
 1. Signatures, time bounds and principal alignment of the delegation chain.
 2. Root `issuer` is the same DID as a resource (`with` field) of the invoked capability.
 
-#### Creation
+## Creation
 
 User MAY create a new space by generating a [keypair][public key cryptography] and deriving a valid [did:key][] identifier from it.
 
@@ -58,21 +66,23 @@ User MAY create a new space by generating a [keypair][public key cryptography] a
 >
 > This grants an agent access to a space without reusing its key or a risk of it been compromised.
 
-```ts
+```json
 // illustration of the space to agent delegation
 {
-  iss: "did:key:zSpace",
-  aud: "did:key:zAgent",
-  exp: null, // delegation never expires
+  "iss": "did:key:zSpace",
+  "aud": "did:key:zAgent",
+  "exp": null, // delegation never expires
   // allows did:key:zAgent to do anything with did:key:zSpace
-  att: [{
-    with: "did:key:zSpace",
-    can: "*"
-  }]
+  "att": [
+    {
+      "with": "did:key:zSpace",
+      "can": "*"
+    }
+  ]
 }
 ```
 
-#### Setup
+## Setup
 
 As we have established, space creator is an owner and has a full authority to delegate whichever capabilities to others. However, unless a space has an active provider of the capabilities, no invocation of them could succeed.
 
@@ -102,70 +112,76 @@ flowchart TB
   Name-->W3
 ```
 
-#### Provider protocol
+# Provider protocol
 
 The "free" provider setup describes a more general framework for unlocking various capabilities.
 
 It is RECOMMENDED to follow the outlined `provider/*` protocol even if some domain specific details may vary.
 
-##### `provider/get`
+## `provider/get`
 
 A user MAY get a "free" storage provider (from web3.storage) by invoking a self-issued `provider/get` capability.
 
 > Free provider requires that resource of invocation MUST be an [`did:mailto`] principal and that `consumer` is provided in order to uphold 1 free provider per account limitation.
 
-```ts
+```json
 {
   "iss": "did:mailto:web.mail:alice",
   "aud": "did:web:web3.storage",
-  "att": [{
-    "can": "provider/get",
-    "with": "did:mailto:web.mail:alice",
-    "nb": {
-      // did of the provider,
-      "provider": "did:web:free.web3.storage"
-      // did of the consumer space
-      "consumer": "did:key:zSpace"
-    }
-  }],
-  // proof that agent is authorized to represent account
-  "prf": [{
-    "iss": "did:web:web3.storage",
-    "aud": "did:mailto:web.mail:alice",
-    "att": [{
-      "can": "./update",
-      "with": "did:web:web3.storage",
+  "att": [
+    {
+      "can": "provider/get",
+      "with": "did:mailto:web.mail:alice",
       "nb": {
-        "key": "did:key:zAgent"
+        // did of the provider,
+        "provider": "did:web:free.web3.storage",
+        // did of the consumer space
+        "consumer": "did:key:zSpace"
       }
-    }]
-  }]
+    }
+  ],
+  // proof that agent is authorized to represent account
+  "prf": [
+    {
+      "iss": "did:web:web3.storage",
+      "aud": "did:mailto:web.mail:alice",
+      "att": [
+        {
+          "can": "./update",
+          "with": "did:web:web3.storage",
+          "nb": {
+            "key": "did:key:zAgent"
+          }
+        }
+      ]
+    }
+  ]
 }
 ```
 
-###### get `with`
+### get `with`
 
 Providers MAY impose certain requirements that resource (`with`) must meet.
 
 > Free provider (from web3.storage) requires that resource MUST be a [`did:mailto`] identifier. Lite and Expert providers (from web3.storage) additionally require that the invocation resource have a payment provider (for billing purposes).
 
-###### get `nb.provider`
+### get `nb.provider`
 
 Capability MUST have `nb.provider` field specifying a DID of the provider requested.
 
-###### get `nb.consumer`
+### get `nb.consumer`
 
 Capability MUST specify `nb.consumer` field with a DID of the (consumer) space provider is requested for.
 
 When provider for arbitrary (number of) consumer(s) is requested MUST specify `"did:*"` in `nb.consumer`.
 
-```ts
+```json
 {
   "can": "provider/get",
   "with": "did:mailto:web.mail:alice",
   "nb": {
     // did of the provider,
-    "provider": "did:web:lite.web3.storage"
+    "provider": "did:web:lite.web3.storage",
     "consumer": "did:*"
   }
 }
@@ -173,21 +189,21 @@ When provider for arbitrary (number of) consumer(s) is requested MUST specify `"
 
 > ⚠️ Some providers (e.g. Free provider from web3.storage) MAY deny request when `nb.consumer` is a `did:*` pattern, because they limit number of providers issued per user account.
 
-###### get `nb...`
+### get `nb...`
 
 Some providers MAY specify additional `nb` fields.
 
-##### `consumer/add`
+## `consumer/add`
 
 An agent MUST be delegated `consumer/add` capability, on successful [`provider/get`] invocation.
 
 > Please note that provider MAY also delegate `consumer/add` capability for no reason at all e.g. as free giveaway campaign.
 
-```ts
+```json
 {
   "iss": "did:web:web3.storage",
   "aud": "did:key:zAgent",
-  "att":[
+  "att": [
     {
       "can": "consumer/add",
       "with": "did:web:web3.storage:plan:free",
@@ -217,39 +233,39 @@ An agent MUST be delegated `consumer/add` capability, on successful [`provider/g
 }
 ```
 
-###### add `aud`
+### add `aud`
 
 Capability MUST be delegated back to the `iss` of the [`provider/get`] request.
 
 > This allows authorized agent to delegate `provider/get` capability to an agent or another user, which can then complete the loop using [`consumer/add`]. If capability was delegated back to `with` identifier instead, only account or delegate (with `consumer/add` capability) would be able to complete the loop.
 
-###### add `with`
+### add `with`
 
 Capability resource MUST be a provider DID. It MUST be the same as [`nb.provider`](#get-nbprovider) of the corresponding [`provider/get`] invocation.
 
-###### add `nb.consumer`
+### add `nb.consumer`
 
-The `nb.consumer` MUST be set to the same DID as [`nb.consumer`](#get-consumer) of the [`provider/get`] request.
+The `nb.consumer` MUST be set to the same DID as [`nb.consumer`](#get-nbconsumer) of the [`provider/get`] request.
 
 > ⚠️ Omitting `nb.consumer` is equivalent of `did:*` and allows delegate to add arbitrary number of consumers to the provider
 
-###### add `nb.request`
+### add `nb.request`
 
 Issuers MUST set the `nb.request` field to the corresponding link (CID) of the [`provider/get`] invocation.
 
 > This also represents a signed proof that user agreed to the terms and conditions of the service.
 
-###### add `nb...`
+### add `nb...`
 
-Providers MAY impose various other constraints using `nb` fields of the `consumer/add` capability. Usually they would mirror [`nb`](#get_nb) fields of the corresponding [`provider/get`] request.
+Providers MAY impose various other constraints using `nb` fields of the `consumer/add` capability. Usually they would mirror [`nb`](#get-nb) fields of the corresponding [`provider/get`] request.
 
-##### `consumer/add` invocation
+### `consumer/add` invocation
 
 Invoking delegated [`consumer/add`] capability adds a consumer (space) to the provider. It also automatically adds the provider to the consumer space, making provided capabilities invocable by authorized agents.
 
 > Please note that while providers may add consumers without their consent, that will not affect consumers in any way. Unless a provider is used it has no effect on space. Consumer is also not who gets billed for the service it is an account that submitted a request, which is to say that unsolicited providers are sponsored by a third party.
 
-```ts
+```json
 {
   "iss": "did:mailto:web.mail:alice",
   "aud:" "did:web:web3.storage",
@@ -311,7 +327,7 @@ Invoking delegated [`consumer/add`] capability adds a consumer (space) to the pr
 }
 ```
 
-##### `provider/publish`
+## `provider/publish`
 
 In the future we plan to define a set of `provider` capabilities that will allow an author to specify the capabilities it provides, terms of service and various other details.
 
@@ -321,9 +337,9 @@ In the meantime, publishing providers is not supported. However, existing provid
 2. Agent MUST specify `nb.consumer` in [`provider/get`] invocation to enforce single consumer space per user limitation.
 3. Invocation MUST be issued by a [`did:mailto`] identifier
 
-##### `provider/add`
+## `provider/add`
 
-In a typical flow, a user requests [`provider/get`] to get [`consumer/add`] capability delegated, which it then invokes to add a desired [`nb.consumer`] (space).
+In a typical flow, a user requests [`provider/get`](#providerget) to get [`consumer/add`](#consumeradd) capability delegated, which it then invokes to add a desired [`nb.consumer`](#add-nbconsumer) (space).
 
 ```mermaid
 sequenceDiagram
@@ -339,7 +355,7 @@ sequenceDiagram
   Agent->>W3: consumer/add
 ```
 
-A more simplified flow exists for cases when provider is needed for a specific (space) consumer. In those cases a `provider/add` capability can be invoked, which is equivalent of [`provider/get`], except [`nb.consumer`] MUST be a concrete DID. On successful invocation, the provider takes care of invoking [`consumer/add`] instead of delegating it back to an agent, which removes the need for an extra roundtrip.
+A more simplified flow exists for cases when provider is needed for a specific (space) consumer. In those cases a `provider/add` capability can be invoked, which is equivalent of [`provider/get`](#providerget), except [`nb.consumer`](#get-nbconsumer) MUST be a concrete DID. On successful invocation, the provider takes care of invoking [`consumer/add`] instead of delegating it back to an agent, which removes the need for an extra roundtrip.
 
 ```mermaid
 sequenceDiagram
@@ -351,55 +367,60 @@ sequenceDiagram
   Provider ->> W3: consumer/add
 ```
 
-#### Payment protocol
+## Payment protocol
 
-##### Add payment provider
+### Add payment provider
 
 A user agent MAY add a payment provider using credit card information.
 
-```ts
+```json
 {
   "iss": "did:mailto:web.mail:alice",
   "aud": "did:web:web3.storage",
-  "att": [{
-    "can": "provider/add",
-    "with": "did:mailto:web.mail:alice",
-    "nb": {
-      "provider": "did:web:web3.storage:pay",
-      "consumer": "did:mailto:web.mail:alice",
-      /* data is the linked CBOR block that has
+  "att": [
+    {
+      "can": "provider/add",
+      "with": "did:mailto:web.mail:alice",
+      "nb": {
+        "provider": "did:web:web3.storage:pay",
+        "consumer": "did:mailto:web.mail:alice",
+        /* data is the linked CBOR block that has
          been encrypted with a symmetric key
          inside the `cypher`. We inline here for
          simplicity
       */
-      "credential": {
-        "type": 'card',
-        "card": {
-          "number": '4242424242424242',
-          "exp_month": 9,
-          "exp_year": 2023,
-          "cvc": '314',
-        }
-      }
-      /* symmetric key encrypted with a public
+        "credential": {
+          "type": "card",
+          "card": {
+            "number": "4242424242424242",
+            "exp_month": 9,
+            "exp_year": 2023,
+            "cvc": "314"
+          }
+        },
+        /* symmetric key encrypted with a public
          key of the `aud` so only private key
          holder is able to decrypt */
-      "cypher": ".....",
-    }
-  }],
-  // proof that agent is authorized to represent account
-  "prf": [{
-    "iss": "did:web:web3.storage",
-    "aud": "did:mailto:web.mail:alice",
-    "att": [{
-      "can": "./update",
-      "with": "did:web:web3.storage",
-      "nb": {
-        "key": "did:key:zAgent"
+        "cypher": "....."
       }
-    }]
-
-  }]
+    }
+  ],
+  // proof that agent is authorized to represent account
+  "prf": [
+    {
+      "iss": "did:web:web3.storage",
+      "aud": "did:mailto:web.mail:alice",
+      "att": [
+        {
+          "can": "./update",
+          "with": "did:web:web3.storage",
+          "nb": {
+            "key": "did:key:zAgent"
+          }
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -407,55 +428,56 @@ On success, the payment provider is added to the consumer, allowing an owner or 
 
 > A service MAY instead, or in addition to, create an out of bound payment method setup flow to avoid capturing sensitive data like card info.
 
-##### Get payment provider
+### Get payment provider
 
 Just like with other providers user can invoke [`provider/get`] capability which may incur out-of-band interaction e.g. user may be directed to type in credit card information before response is completed.
 
-Also note that [`provider/get`] / [`provider/add`] capabilities let user start a provider acquisition process, however services MAY also define alternative ways to issue `consumer/add` capabilities the users.
+Also note that [`provider/get`](#providerget) / [`provider/add`](#provideradd) capabilities let user start a provider acquisition process, however services MAY also define alternative ways to issue `consumer/add` capabilities the users.
 
-##### Add paid provider
+### Add paid provider
 
-When a space has a payment provider, its owner or delegate can invoke [`provider/add`] and [`provider/get`] capabilities to add providers that require payments.
+When a space has a payment provider, its owner or delegate can invoke [`provider/add`](#provideradd) and [`provider/get`](#providerget) capabilities to add providers that require payments.
 
 > Example below illustrates Alice adding a "Lite plan" to Bob's space on her expense.
 
-```ts
+```json
 {
   "iss": "did:mailto:web.mail:alice",
   "aud": "did:web:web3.storage",
-  "att": [{
-    "can": "provider/add",
-    "with": "did:mailto:web.mail:alice",
-    "nb": {
-      // 30GiB storage plan
-      "provider": "did:web:lite.web3.storage"
-      // Space to add storage provider to
-      "consumer": "did:key:zBob"
-    }
-  }]
-  // proof that agent is authorized to represent account
-  "prf": [{
-    "iss": "did:web:web3.storage",
-    "aud": "did:mailto:web.mail:alice",
-    "att": [{
-      "can": "./update",
-      "with": "did:web:web3.storage",
+  "att": [
+    {
+      "can": "provider/add",
+      "with": "did:mailto:web.mail:alice",
       "nb": {
-        "key": "did:key:zAgent"
+        // 30GiB storage plan
+        "provider": "did:web:lite.web3.storage",
+        // Space to add storage provider to
+        "consumer": "did:key:zBob"
       }
-    }]
-  }]
+    }
+  ],
+  // proof that agent is authorized to represent account
+  "prf": [
+    {
+      "iss": "did:web:web3.storage",
+      "aud": "did:mailto:web.mail:alice",
+      "att": [
+        {
+          "can": "./update",
+          "with": "did:web:web3.storage",
+          "nb": {
+            "key": "did:key:zAgent"
+          }
+        }
+      ]
+    }
+  ]
 }
 ```
 
 [did:key]: https://w3c-ccg.github.io/did-method-key/
 [ucan]: https://github.com/ucan-wg/spec/#57-revocation
-[acl]: https://en.wikipedia.org/wiki/Access-control_list
 [public key cryptography]: https://en.wikipedia.org/wiki/Public-key_cryptography
 [`provider/get`]: #providerget
 [`consumer/add`]: #consumeradd
-[`provider/add`]: #provideradd-delegation
-[`nb.consumer`]: #add-consumer
-[payment method]: https://stripe.com/docs/api/payment_methods/object
 [ed25519]: https://en.wikipedia.org/wiki/EdDSA#Ed25519
-[account]: ./w3-account.md

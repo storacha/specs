@@ -1,6 +1,6 @@
 # Web3 Pinning Service
 
-![](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
+![wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
 
 We reimagine IPFS [pinning service][] as web3 service, where:
 
@@ -17,15 +17,13 @@ Below table maps [IPFS pinning service API][pinning service] operations to capab
 | [replace](https://ipfs.github.io/pinning-services-api-spec/#tag/pins/paths/~1pins~1{requestid}/post)  | [`store/add`][] [`store/remove`][] |
 | [get](https://ipfs.github.io/pinning-services-api-spec/#tag/pins/paths/~1pins~1{requestid}/get)       | [`store/list`][]                   |
 
-Our pinning service implementation will accept [access tokens][] that are valid JWT formatted [UCAN][]s where:
+Our pinning service implementation will accept [access token] that are valid JWT formatted [UCAN][]s where:
 
 1. Root issuer is the same DID as one in `with` field of the delegated capabilities.
 2. DID in `with` field is associated with some account.
 3. Where all the provided [proofs are embedded](https://github.com/ipld/js-dag-ucan#embedding-proofs) inline.
 
-
 > ⚠️ It is worth calling out that just like typical [access token][]s these do not need to be kept secret as well, since if compromised they could be used to pin arbitrary data.
-
 
 This offers following advantages to typical bearer tokens:
 
@@ -33,12 +31,11 @@ This offers following advantages to typical bearer tokens:
 2. Users could tokens with subset of capabilities and consequently restricting access to desired operations.
 3. Users could revoke and rotate tokens as they wish.
 
-
 > This also creates an opportunity for implementing better [pinning service][] clients issue short lived tokens per operation and remove the need for keeping tokens secret.
-
+>
 > [@ipld/dag-ucan](https://www.npmjs.com/package/@ipld/dag-ucan) library could be used to issue such tokens
 
-### Request ID
+## Request ID
 
 Pinning service uses `requestid` field to uniquely identify pinning requests. We extend IPFS [pinning service][] specification with additional constraint.
 
@@ -68,7 +65,7 @@ interface Pin {
 
 ### Implementation Notes
 
-This design frees [pinning service][] from doing any kind of access control or token validation. It simply needs to
+This design frees [pinning service] from doing any kind of access control or token validation. It simply needs to
 
 1. Parse [access token][] as a UCAN.
 2. Ensure that `audience` corresponds to own DID.
@@ -77,7 +74,6 @@ This design frees [pinning service][] from doing any kind of access control or t
 
 While UCAN validation is not strictly necessary (as they get verified downstream anyway) it might be a good idea to avoid unnecessary work downstream.
 
-[string literal pattern]: https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html
 [pinning service]: https://ipfs.github.io/pinning-services-api-spec/
 [link-type]: https://github.com/ipld/js-dag-ucan/blob/364379b54cae383198fcf6a9c0016b497e62d422/src/ucan.ts#L227-L242
 [access token]: https://ipfs.github.io/pinning-services-api-spec/#section/Authentication/accessToken
