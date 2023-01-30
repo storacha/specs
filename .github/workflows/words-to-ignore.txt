@@ -39,6 +39,8 @@ URIs
 interop
 permissionless
 stateful
+linter
+vscode
 
 # actually correct
 reimagine
