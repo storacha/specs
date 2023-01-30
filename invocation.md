@@ -751,7 +751,7 @@ The `sig` field MUST contain a [Varsig] of the [CBOR] encoded `Authorization` bl
 }
 ```
 
-### 3.4.2 With all the optionals
+### 3.4.2 With all the optional fields
 
 ```json
 {
@@ -782,9 +782,9 @@ The `sig` field MUST contain a [Varsig] of the [CBOR] encoded `Authorization` bl
 
 As [noted in the introduction][lazy-vs-eager], there is a difference between a reference to a function and calling that function. [Tasks] are not executable until they have been authorized using signed [Authorization] from the [Invoker].
 
-Invocation describes `(task, authorization)` tuple and which instructs [Executor] to run the [Task].
+Invocation describes `(task, authorization)` tuple, which instructs [Executor] to run the [Task].
 
-The `authorization` MUST authorize the `task` - Linked [Authorization] MUST contain `task` in it's `run` field.
+The `authorization` MUST authorize the `task`. Linked [Authorization] MUST contain `task` in it's `run` field.
 
 ## 4.1 Schema
 
@@ -1162,7 +1162,7 @@ Promises keyed as `await/task/*`, `await/task/ok`, `await/task/error` use a `Tas
 
 ### 7.2.2
 
-Promises keyd as `await/invocation/*`, `await/invocation/ok`, `await/invocation/error` use an [Invocation] when referencing an Invocation from different [Authorization].
+Promises keyed as `await/invocation/*`, `await/invocation/ok`, `await/invocation/error` use an [Invocation] when referencing an Invocation from different [Authorization].
 
 
 ## 5.2 Pipelines
