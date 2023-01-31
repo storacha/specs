@@ -209,7 +209,7 @@ When invoking `store/list` the `size` caveat may be set to the desired number of
 | `field`     | `value`                             | `required?` | `context`                                             |
 | --------- | --------------------------------- | --------- | --------------------------------------------------- |
 | `can`     | `store/remove`                    |  ✔        | The ability to remove CAR data from a memory space. |
-| `with`    | URI string, e.g. `did:key:123...` |  ✔        | The `did:key` URI for the space to list       |
+| `with`    | URI string, e.g. `did:key:123...` |  ✔        | The `did:key` URI for the space to list.       |
 | `size` | `number` | | The desired number of results to return. |
 | `cursor` | `string` | An opaque string included in a prior `store/list` response that allows the service to provide the next "page" of results. |
 
