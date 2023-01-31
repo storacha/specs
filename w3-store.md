@@ -120,14 +120,14 @@ On success, the response will include a `status` field, which may have one of th
 
 If `status == 'upload'`, the response will include additional fields containing information about the request, including the URL and headers needed to upload:
 
-| field     | type                     | description                                                    |
+| `field`     | `type`                     | `description`                                                    |
 | --------- | ------------------------ | -------------------------------------------------------------- |
-| `url`     | string                   | A URL that will accept a `PUT` request containing the CAR data |
+| `url`     | `string`                   | A URL that will accept a `PUT` request containing the CAR data |
 | `headers` | `Record<string, string>` | HTTP headers that must be attached to the `PUT` request        |
-| `with`    | string                   | The space resource URI used in the invocation                  |
-| `link`    | string                   | The CAR CID specified in the invocation's `link` field         |
+| `with`    | `string`                   | The space resource URI used in the invocation                  |
+| `link`    | `string`                   | The CAR CID specified in the invocation's `link` field         |
 
-The client should then make an HTTPS `PUT` request to the `url` specified in the response, attaching all the included `headers`. The body of the request MUST be CAR data, whose size exactly equals the size specified in the `store/add` invocation's `size` caveat. Additionally, the CID of the uploaded CAR must match the invocation's `link` caveat. In other words, attempting to upload any data other than that authorized by the `store/add` invocation will fail.
+The client should then make an HTTP `PUT` request to the `url` specified in the response, attaching all the included `headers`. The body of the request MUST be CAR data, whose size exactly equals the size specified in the `store/add` invocation's `size` caveat. Additionally, the CID of the uploaded CAR must match the invocation's `link` caveat. In other words, attempting to upload any data other than that authorized by the `store/add` invocation will fail.
 
 ### `store/remove` <a id="store-remove" />
 
@@ -161,7 +161,7 @@ If a delegation contains a `link` caveat, an invocation derived from it must hav
 }
 ```
 
-| field     | value                             | required? | context                                             |
+| `field`     | `value`                             | `required?` | `context`                                             |
 | --------- | --------------------------------- | --------- | --------------------------------------------------- |
 | `can`     | `store/remove`                    |  ✔        | The ability to remove CAR data from a memory space. |
 | `with`    | URI string, e.g. `did:key:123...` |  ✔        | The `did:key` URI for the CAR's memory space        |
@@ -206,7 +206,7 @@ When invoking `store/list` the `size` caveat may be set to the desired number of
 }
 ```
 
-| field     | value                             | required? | context                                             |
+| `field`     | `value`                             | `required?` | `context`                                             |
 | --------- | --------------------------------- | --------- | --------------------------------------------------- |
 | `can`     | `store/remove`                    |  ✔        | The ability to remove CAR data from a memory space. |
 | `with`    | URI string, e.g. `did:key:123...` |  ✔        | The `did:key` URI for the space to list       |
