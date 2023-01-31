@@ -93,11 +93,11 @@ Example:
 
 Fields marked as "required" below must be present in the invocation, but may be absent in capability delegations.
 
-| field       | value                             | required? | context                                                    |
+| `field`       | `value`                             | `required?` | `context`                                                    |
 | ----------- | --------------------------------- | --------- | ---------------------------------------------------------- |
-| `can`       | `store/add`                       | ✔️         | The ability to add CAR data to a memory space.             |
-| `with`      | URI string, e.g. `did:key:123...` | ✔         | The `did:key` URI for the CAR's destination memory space   |
-| `nb.link`   | CAR CID string, e.g. `bag123...`  | ✔         | CID of CAR that the user wants to store                    |
+| `can`       | `store/add`                       | ✔️         | The ability to add CAR data to a space.             |
+| `with`      | URI string, e.g. `did:key:123...` | ✔         | The `did:key` URI for the CAR's destination space.   |
+| `nb.link`   | CAR CID string, e.g. `bag123...`  | ✔         | CID of CAR that the user wants to store.                    |
 | `nb.size`   | size in bytes                     | ✔         | The size of the CAR to be uploaded in bytes.               |
 | `nb.origin` | CAR CID string, e.g. `bagabc...`  |           | Optional link to related CARs. See below for more details. |
 
