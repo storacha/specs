@@ -36,11 +36,17 @@ The private key for a space is able to issue invocations for the `store` and `up
 
 # Capabilities
 
+This section describes the capabilities that form the storage protocol, along with details relevant to invoking capabilities with a service provider.
+
+When invoking any capability listed in this spec, the agent MUST include proof that they have been delegated the capability for the space identified in the `with` URI. For example, if an agent is trying to invoke [`store/add`](#store-add), they must include proof that they were delegated `store/add`, or a capability from which `store/add` can be derived, e.g. [`store/*`](#store-top).
+
+In the special case where the private key corresponding to the space itself is the issuer of the invocation (as opposed to invocations issued by an agent), the proof may be omitted, as the space key is considered the "owner" of the space. In all other cases, the invocation UCAN must include a delegation that includes the requested capability for the space that the invocation is acting upon.
+
 ## `store/` namespace
 
 The `store/` namespace contains capabilities relating to storage of CAR files.
 
-### `store/*`
+### `store/*` <a id="store-top" />
 
 > Delegate all capabilities in the `store/` namespace
 
@@ -75,8 +81,6 @@ Regardless of whether `nb.size` is set in the delegation, the agent must include
 #### Invocation <a id="store-add-invocation" />
 
 To invoke `store/add`, an agent constructs a UCAN with the shape described below.
-
-The agent MUST include proof that they have been delegated the `store/add` capability for the space identified in the `with` URI. In the special case where the private key corresponding to the space itself is the issuer of the invocation (as opposed to being issued by an agent), the proof may be omitted, as the space key is considered the "owner" of the space. In all other cases, the invocation UCAN must include a delegation that includes the `store/add` ability for the space.
 
 Example:
 
