@@ -176,7 +176,8 @@ When Alice runs `w3up` program on her other device, and she enters the same emai
       "can": "access/authorize",
       "nb": { "as": "did:mailto:web.mail:alice" }
     }
-  ]
+  ],
+  "sig": "..."
 }
 ```
 
@@ -192,7 +193,8 @@ After receiving an email and clicking a link to approve authorization, an agent 
       "can": "./update",
       "nb": { "key": "did:key:zAli" }
     }
-  ]
+  ],
+  "sig": "..."
 }
 ```
 
@@ -218,7 +220,8 @@ Using this authorization, a new device can claim capabilities that were delegate
         }
       ]
     }
-  ]
+  ],
+  "sig": "..."
 }
 ```
 
@@ -298,7 +301,8 @@ When Bob runs `w3up` agent the first time and authorizes as `bob@gmail.com` prog
         }
       ]
     }
-  ]
+  ],
+  "sig": "..."
 }
 ```
 
