@@ -63,8 +63,10 @@ Agent CAN invoke `access/delegate` capability with arbitrary delegations which w
     {
       "with": "did:key:zAlice",
       "can": "access/delegate",
-      // Map of delegation links to be stored for their audiences.
-      "nb": { "bafy...prf1": { "/": "bafy...prf1" } }
+      "nb": {
+        // Map of delegation links to be stored for their audiences.
+        "delegations": { "bafy...prf1": { "/": "bafy...prf1" } }
+      }
     }
   ],
   "prf": [
@@ -93,7 +95,9 @@ Provider SHOULD deny service if DID in the `with` field has no storage provider.
 
 #### delegate `nb`
 
-Field is a set of delegations links represented as a JSON. Keys SHOULD be CID strings of the values to make encoding deterministic.
+##### delegate `nb.delegations`
+
+Field is a set of delegation links represented as JSON. Keys SHOULD be CID strings of the values to make encoding deterministic.
 
 Delegations MUST be included with an invocation. Invocations that link to delegations not included with invocation MUST be denied.
 
@@ -141,8 +145,10 @@ When Alice first runs `w3up` program it asks for the user identity she'd like to
     {
       "with": "did:key:zAliceSpace",
       "can": "access/delegate",
-      // Map of delegation links to be stored for their audiences.
-      "nb": { "bafy...prf1": { "/": "bafy...prf1" } }
+      "nb": {
+        // Map of delegation links to be stored for their audiences.
+        "delegations": { "bafy...prf1": { "/": "bafy...prf1" } }
+      }
     }
   ],
   "prf": [
@@ -256,8 +262,10 @@ Alice wants to share access to her space with her friend Bob. She does not know 
     {
       "with": "did:key:zAliceSpace",
       "can": "access/delegate",
-      // Map of delegation links to be stored for their audiences.
-      "nb": { "bafy...prf1": { "/": "bafy...prf1" } }
+      "nb": {
+        // Map of delegation links to be stored for their audiences.
+        "delegations": { "bafy...prf1": { "/": "bafy...prf1" } }
+      }
     }
   ],
   "prf": [
