@@ -429,7 +429,7 @@ On success, the response object will have the following shape:
 
 ```ts
 interface UploadListResponse {
-  /** Cursor that can be used in a subsequent store/list invocation to fetch the next page of results */
+  /** Cursor that can be used in a subsequent upload/list invocation to fetch the next page of results */
   cursor?: string
 
   /** Number of results in this page of listings. */
