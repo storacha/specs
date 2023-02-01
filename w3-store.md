@@ -92,6 +92,12 @@ The `size` caveat sets a limit on the size (in bytes) of the stored CAR. Agents 
 
 Regardless of whether `nb.size` is set in the delegation, the agent must include an `nb.size` field in their invocation, with a value that is equal to the size in bytes of the CAR to be stored. If a limit has been set in the delegation, the size must be less than or equal to the limit.
 
+| `field`     | `value`                           | `required?` | `context`                                                  |
+| ----------- | --------------------------------- | ----------- | ---------------------------------------------------------- |
+| `link`   | CAR CID string, e.g. `bag123...`  | ✔           | CID of CAR that the user wants to store.                   |
+| `size`   | size in bytes                     | ✔           | The size of the CAR to be uploaded in bytes.               |
+| `origin` | CAR CID string, e.g. `bagabc...`  |             | Optional link to related CARs. See below for more details. |
+
 #### Invocation
 
 To invoke `store/add`, an agent constructs a UCAN with the shape described below.
@@ -108,16 +114,6 @@ Example:
   }
 }
 ```
-
-Fields marked as "required" below must be present in the invocation, but may be absent in capability delegations.
-
-| `field`     | `value`                           | `required?` | `context`                                                  |
-| ----------- | --------------------------------- | ----------- | ---------------------------------------------------------- |
-| `can`       | `store/add`                       | ✔️           | The ability to add CAR data to a space.                    |
-| `with`      | URI string, e.g. `did:key:123...` | ✔           | The `did:key` URI for the CAR's destination space.         |
-| `nb.link`   | CAR CID string, e.g. `bag123...`  | ✔           | CID of CAR that the user wants to store.                   |
-| `nb.size`   | size in bytes                     | ✔           | The size of the CAR to be uploaded in bytes.               |
-| `nb.origin` | CAR CID string, e.g. `bagabc...`  |             | Optional link to related CARs. See below for more details. |
 
 The `nb.origin` field may be set to provide a link to a related CAR file. This is useful when storing large DAGs that are sharded across multiple CAR files. In this case, the agent can link each uploaded shard with a previous one. Providing the `origin` field informs the service that the CAR being stored is a shard of the larger DAG, as opposed to an intentionally partial DAG.
 
@@ -167,6 +163,10 @@ When invoking `store/remove`, the `link` caveat must be set to the CID of the CA
 
 If a delegation contains a `link` caveat, an invocation derived from it must have the same CAR CID in its `link` field. A delegation without a `link` caveat may be invoked with any `link` value.
 
+| `field`   | `value`                           | `required?` | `context`                                     |
+| --------- | --------------------------------- | ----------- | --------------------------------------------- |
+| `link` | CAR CID string, e.g. `bag...`     | ✔           | The CID of the CAR file to remove.            |
+
 #### Invocation
 
 ```js
@@ -178,12 +178,6 @@ If a delegation contains a `link` caveat, an invocation derived from it must hav
   }
 }
 ```
-
-| `field`   | `value`                           | `required?` | `context`                                     |
-| --------- | --------------------------------- | ----------- | --------------------------------------------- |
-| `can`     | `store/remove`                    | ✔           | The ability to remove CAR data from a space.  |
-| `with`    | URI string, e.g. `did:key:123...` | ✔           | The `did:key` URI for the CAR's memory space. |
-| `nb.link` | CAR CID string, e.g. `bag...`     | ✔           | The CID of the CAR file to remove.            |
 
 #### Responses
 
@@ -211,6 +205,11 @@ The `with` field of the invocation must be set to the DID of the memory space to
 
 When invoking `store/list` the `size` caveat may be set to the desired number of results to return per invocation. If there are more total results than will fit into the given `size`, the response will include an opaque `cursor` field that can be used to continue the listing in a subsequent invocation by setting the `cursor` caveat to the value in the response.
 
+| `field`  | `value`                           | `required?` | `context`                                                                                                                 |
+| -------- | --------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `size`   | `number`                          |             | The desired number of results to return.                                                                                  |
+| `cursor` | `string`                          |             | An opaque string included in a prior `store/list` response that allows the service to provide the next "page" of results. |
+
 #### Invocation
 
 ```js
@@ -223,13 +222,6 @@ When invoking `store/list` the `size` caveat may be set to the desired number of
   }
 }
 ```
-
-| `field`  | `value`                           | `required?`                                                                                                               | `context`                                           |
-| -------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| `can`    | `store/remove`                    | ✔                                                                                                                         | The ability to remove CAR data from a memory space. |
-| `with`   | URI string, e.g. `did:key:123...` | ✔                                                                                                                         | The `did:key` URI for the space to list.            |
-| `size`   | `number`                          |                                                                                                                           | The desired number of results to return.            |
-| `cursor` | `string`                          | An opaque string included in a prior `store/list` response that allows the service to provide the next "page" of results. |
 
 #### Responses
 
@@ -308,6 +300,11 @@ The `shards` array must contain at least one CID of a CAR file, which is expecte
 
 Taken together, the CARs in the `shards` array should contain all the blocks in the DAG identified by the `root` CID.
 
+| `field`     | `value`                                                  | `required?` | `context`                                                        |
+| ----------- | -------------------------------------------------------- | ----------- | ---------------------------------------------------------------- |
+| `root`   | data CID string, e.g. `bafy...`                          | ✔           | The CID of the data item that was uploaded.                      |
+| `shards` | array of CID strings, e.g. `[ "bag123...", "bag234..."]` | ✔           | The CIDs of CAR files containing the full DAG for the data item. |
+
 #### Invocation
 
 To invoke `upload/add`, an agent constructs a UCAN with the shape described below.
@@ -324,15 +321,6 @@ Example:
   }
 }
 ```
-
-Fields marked as "required" below must be present in the invocation, but may be absent in capability delegations.
-
-| `field`     | `value`                                                  | `required?` | `context`                                                        |
-| ----------- | -------------------------------------------------------- | ----------- | ---------------------------------------------------------------- |
-| `can`       | `upload/add`                                             | ✔           | The ability to add uploads to the index.                         |
-| `with`      | URI string, e.g. `did:key:123...`                        | ✔           | The `did:` URI of the space to add the upload to.                |
-| `nb.root`   | data CID string, e.g. `bafy...`                          | ✔           | The CID of the data item that was uploaded.                      |
-| `nb.shards` | array of CID strings, e.g. `[ "bag123...", "bag234..."]` | ✔           | The CIDs of CAR files containing the full DAG for the data item. |
 
 #### Responses
 
@@ -359,15 +347,19 @@ interface UploadAddResponse {
 
 Note that this will not remove the stored CARs; clients will need to use [`store/remove`](#storeremove) to remove the CARs once all uploads referencing those CARs have been removed.
 
+The `with` resource URI must be set to the DID of the space to remove the upload from.
+
 #### Derivations
 
 `upload/remove` can be derived from an [`upload/*`](#upload) or [`*`][ucan-spec-top] capability with a matching `with` resource URI.
 
 #### Caveats
 
-The `with` resource URI must be set to the DID of the space to remove the upload from.
-
 The `root` caveat must contain the root CID of the data item to remove.
+
+| `field`   | `value`                           | `required?` | `context`                                                     |
+| --------- | --------------------------------- | ----------- | ------------------------------------------------------------- |
+| `root` | data CID string, e.g. `bafy...`   | ✔           | The CID of the data item to remove.    |
 
 #### Invocation
 
@@ -383,13 +375,7 @@ To invoke `upload/remove`, an agent prepares a UCAN with the following shape:
 }
 ```
 
-Fields marked as "required" below must be present in the invocation, but may be absent in capability delegations.
-
-| `field`     | `value`                             | `required?` | `context`                                                       |
-| --------- | --------------------------------- | --------- | ------------------------------------------------------------- |
-| `can`     | `upload/remove`                   | ✔         | The ability to remove uploads from the index.                 |
-| `with`    | URI string, e.g. `did:key:123...` | ✔         | The `did:` URI of the memory space to remove the upload from. |
-| `nb.root` | data CID string, e.g. `bafy...`   | ✔         | The CID of the data item to remove.                           |
+                       |
 
 #### Responses
 
@@ -414,6 +400,11 @@ The `upload/list` capability can be invoked to request a list of metadata about 
 #### Caveats
 
 When invoking `upload/list` the `size` caveat may be set to the desired number of results to return per invocation. If there are more total results than will fit into the given `size`, the response will include an opaque `cursor` field that can be used to continue the listing in a subsequent invocation by setting the `cursor` caveat to the value in the response.
+
+| `field`  | `value`                           | `required?` | `context`                                                                                                                 |
+| -------- | --------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `size`   | `number`                          |             | The desired number of results to return.                                                                                  |
+| `cursor` | `string`                          |             | An opaque string included in a prior `store/list` response that allows the service to provide the next "page" of results. |
 
 #### Invocation
 
