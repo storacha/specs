@@ -55,6 +55,7 @@ sharding
 namespace
 namespaces
 UnixFS
+repo
 
 # actually correct
 reimagine
