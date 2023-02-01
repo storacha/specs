@@ -1,4 +1,4 @@
-# Storage protocol
+# Storage and upload protocol
 
 ![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
 
@@ -10,11 +10,53 @@
 
 - [Yusef Napora](https://github.com/yusefnapora), [DAG House](https://dag.house)
 
-# Abstract
+## Abstract
 
 This spec describes the data storage protocol used by web3.storage's "w3up" platform.
 
 The protocol is modeled as a set of capabilities which can be fulfilled by a [provider](./w3-provider.md) via UCAN invocations. In the web3.storage implementation, the providers are implemented using [ucanto](https://github.com/web3-storage/ucanto), a type-safe UCAN RPC framework.
+
+- [Storage and upload protocol](#storage-and-upload-protocol)
+  - [Editors](#editors)
+  - [Authors](#authors)
+  - [Abstract](#abstract)
+  - [Background](#background)
+    - [Spaces](#spaces)
+  - [Capabilities](#capabilities)
+  - [`store/` namespace](#store-namespace)
+    - [`store/*`](#store)
+    - [`store/add`](#storeadd)
+      - [Derivations](#derivations)
+      - [Caveats](#caveats)
+      - [Invocation](#invocation)
+      - [Responses](#responses)
+    - [`store/remove`](#storeremove)
+      - [Derivations](#derivations-1)
+      - [Caveats](#caveats-1)
+      - [Invocation](#invocation-1)
+      - [Responses](#responses-1)
+    - [`store/list`](#storelist)
+      - [Derivations](#derivations-2)
+      - [Caveats](#caveats-2)
+      - [Invocation](#invocation-2)
+      - [Responses](#responses-2)
+  - [`upload/` namespace](#upload-namespace)
+    - [`upload/*`](#upload)
+    - [`upload/add`](#uploadadd)
+      - [Derivations](#derivations-3)
+      - [Caveats](#caveats-3)
+      - [Invocation](#invocation-3)
+      - [Responses](#responses-3)
+    - [`upload/remove`](#uploadremove)
+      - [Derivations](#derivations-4)
+      - [Caveats](#caveats-4)
+      - [Invocation](#invocation-4)
+      - [Responses](#responses-4)
+    - [`upload/list`](#uploadlist)
+      - [Derivations](#derivations-5)
+      - [Caveats](#caveats-5)
+      - [Invocation](#invocation-5)
+      - [Responses](#responses-5)
 
 ## Background
 
@@ -22,7 +64,7 @@ The w3up protocol accepts data in [CAR](https://ipld.io/specs/transport/car/) fo
 
 The current w3up clients encode files and directories using [UnixFS](https://docs.ipfs.tech/concepts/file-systems/#unix-file-system-unixfs) and the [DAG-PB codec](https://ipld.io/specs/codecs/dag-pb/spec/), however, the storage protocol makes no assumptions about the format of the DAG (or DAGs) contained within a CAR, and any valid IPLD codec may be used.
 
-Large DAGs may be "sharded" across multiple CAR files to fit within storage and transport size limits. In this case, the [`store/add`](#store-add) invocation for each of the shards (apart from the first) will include a CID link to a previous shard, so that the shards can be grouped into a single logical unit.
+Large DAGs may be "sharded" across multiple CAR files to fit within storage and transport size limits. In this case, the [`store/add`](#storeadd) invocation for each of the shards (apart from the first) will include a CID link to a previous shard, so that the shards can be grouped into a single logical unit.
 
 Because a given CAR can contain many DAGs, and each DAG may itself contain sub-DAGs that can be viewed as standalone entities (e.g. files in a nested directory), the protocol provides separate capabilities for CAR storage and identifying the root of "interesting" DAGs within the CAR. The [`store/` namespace](#store-namespace) defines the capabilities related to CAR storage, while the [`upload/` namespace](#upload-namespace) defines the capabilities for linking the root CID of a DAG to the CAR (or CARs) that contain it.
 
@@ -34,11 +76,11 @@ The private key for a space is generated locally by each space's owner and is ne
 
 The private key for a space is able to issue invocations for the `store` and `upload` capabilities, however we do not recommend issuing invocations directly using the space private key. Instead, the space key should be used to issue a long-lived delegation to an "agent," allowing the agent to invoke capabilities related to the space. If desired, the private key for the space can be saved in "cold storage" and used to issue further delegations.
 
-# Capabilities
+## Capabilities
 
 This section describes the capabilities that form the storage protocol, along with details relevant to invoking capabilities with a service provider.
 
-When invoking any capability listed in this spec, the agent MUST include proof that they have been delegated the capability for the space identified in the `with` URI. For example, if an agent is trying to invoke [`store/add`](#store-add), they must include proof that they were delegated `store/add`, or a capability from which `store/add` can be derived, e.g. [`store/*`](#store-top).
+When invoking any capability listed in this spec, the agent MUST include proof that they have been delegated the capability for the space identified in the `with` URI. For example, if an agent is trying to invoke [`store/add`](#storeadd), they must include proof that they were delegated `store/add`, or a capability from which `store/add` can be derived, e.g. [`store/*`](#store).
 
 In the special case where the private key corresponding to the space itself is the issuer of the invocation (as opposed to invocations issued by an agent), the proof may be omitted, as the space key is considered the "owner" of the space. In all other cases, the invocation UCAN must include a delegation that includes the requested capability for the space that the invocation is acting upon.
 
@@ -46,7 +88,7 @@ In the special case where the private key corresponding to the space itself is t
 
 The `store/` namespace contains capabilities relating to storage of CAR files.
 
-### `store/*` <a id="store-top" />
+### `store/*`
 
 > Delegate all capabilities in the `store/` namespace
 
@@ -54,17 +96,17 @@ The `store/*` capability is the "top" capability of the `store/*` namespace. `st
 
 In other words, if an agent has a delegation for `store/*` for a given space URI, they can invoke any capability in the `store/` namespace using that space as the resource.
 
-### `store/add` <a id="store-add" />
+### `store/add`
 
 > Request storage of a CAR file
 
 The `store/add` capability allows an agent to store a CAR file into the space identified by the `did:key` URI in the `with` field. The agent must encode the CAR locally and provide the CAR's CID and size using the `nb.link` and `nb.size` fields, allowing a service to provision a write location for the agent to submit the CAR.
 
-#### Derivations <a id="store-add-derivations" />
+#### Derivations
 
 `store/add` can be derived from a `store/*` or [`*`][ucan-spec-top] capability with a matching `with` field.
 
-#### Caveats <a id="store-add-caveats" />
+#### Caveats
 
 When invoking a `store/add` capability, the `link` caveat MUST be set to the CID of the CAR being stored.
 
@@ -78,7 +120,7 @@ The `size` caveat sets a limit on the size (in bytes) of the stored CAR. Agents 
 
 Regardless of whether `nb.size` is set in the delegation, the agent must include an `nb.size` field in their invocation, with a value that is equal to the size in bytes of the CAR to be stored. If a limit has been set in the delegation, the size must be less than or equal to the limit.
 
-#### Invocation <a id="store-add-invocation" />
+#### Invocation
 
 To invoke `store/add`, an agent constructs a UCAN with the shape described below.
 
@@ -109,7 +151,7 @@ The `nb.origin` field may be set to provide a link to a related CAR file. This i
 
 Note that the `nb.link` and `nb.origin` caveats contain the CID of the CAR itself, not the CID of any content contained within the CAR. It should have the [multicodec code value `0x0202`](https://github.com/multiformats/multicodec/blob/master/table.csv#L135), which is reserved for data in CAR format. When encoded to a CID string using the default encoding, this results in a CID with a prefix of `bagb`.
 
-#### Responses <a id="store-add-responses" />
+#### Responses
 
 *Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
 
@@ -133,7 +175,7 @@ If `status == 'upload'`, the response will include additional fields containing 
 
 The client should then make an HTTP `PUT` request to the `url` specified in the response, attaching all the included `headers`. The body of the request MUST be CAR data, whose size exactly equals the size specified in the `store/add` invocation's `size` caveat. Additionally, the CID of the uploaded CAR must match the invocation's `link` caveat. In other words, attempting to upload any data other than that authorized by the `store/add` invocation will fail.
 
-### `store/remove` <a id="store-remove" />
+### `store/remove`
 
 > Remove a stored CAR from a space
 
@@ -141,19 +183,19 @@ The `store/remove` capability can be invoked to remove a CAR file from a [space]
 
 This may or may not cause the CAR to be removed completely from the underlying storage system; for example, if the CAR exists in other spaces, it will not be removed.
 
-`store/remove` will remove the CAR from the listing provided by [`store/list`](#store-list) for the space. Removal may also have billing implications, depending on the service provider (e.g. by affecting storage quotas).
+`store/remove` will remove the CAR from the listing provided by [`store/list`](#storelist) for the space. Removal may also have billing implications, depending on the service provider (e.g. by affecting storage quotas).
 
-#### Derivations <a id="store-remove-derivations" />
+#### Derivations
 
 `store/remove` can be derived from a `store/*` or [`*`][ucan-spec-top] capability with a matching `with` field.
 
-#### Caveats <a id="store-remove-caveats" />
+#### Caveats
 
 When invoking `store/remove`, the `link` caveat must be set to the CID of the CAR file to remove.
 
 If a delegation contains a `link` caveat, an invocation derived from it must have the same CAR CID in its `link` field. A delegation without a `link` caveat may be invoked with any `link` value.
 
-#### Invocation <a id="store-remove-invocation" />
+#### Invocation
 
 ```js
 {
@@ -171,7 +213,7 @@ If a delegation contains a `link` caveat, an invocation derived from it must hav
 | `with`    | URI string, e.g. `did:key:123...` | ✔           | The `did:key` URI for the CAR's memory space. |
 | `nb.link` | CAR CID string, e.g. `bag...`     | ✔           | The CID of the CAR file to remove.            |
 
-#### Responses <a id="store-remove-responses" />
+#### Responses
 
 *Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
 
@@ -181,7 +223,7 @@ If a failure occurs, the response will have an `error` field with a value of `tr
 
 On success, the response object will be empty.
 
-### `store/list` <a id="store-list" />
+### `store/list`
 
 > Obtain a list of stored CARs
 
@@ -189,15 +231,15 @@ The `store/list` capability can be invoked to request a list of CARs in a given 
 
 The `with` field of the invocation must be set to the DID of the memory space to be listed.
 
-#### Derivations <a id="store-list-derivations" />
+#### Derivations
 
 `store/list` can be derived from a `store/*` or `*` capability with a matching `with` field.
 
-#### Caveats <a id="store-list-caveats" />
+#### Caveats
 
 When invoking `store/list` the `size` caveat may be set to the desired number of results to return per invocation. If there are more total results than will fit into the given `size`, the response will include an opaque `cursor` field that can be used to continue the listing in a subsequent invocation by setting the `cursor` caveat to the value in the response.
 
-#### Invocation <a id="store-list-invocation" />
+#### Invocation
 
 ```js
 {
@@ -217,7 +259,7 @@ When invoking `store/list` the `size` caveat may be set to the desired number of
 | `size`   | `number`                          |                                                                                                                           | The desired number of results to return.            |
 | `cursor` | `string`                          | An opaque string included in a prior `store/list` response that allows the service to provide the next "page" of results. |
 
-#### Responses <a id="store-list-responses" />
+#### Responses
 
 *Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
 
@@ -260,13 +302,13 @@ interface StoreListItem {
 
 ## `upload/` namespace
 
-The `upload/` namespace contains capabilities relating to "uploads", which represent user data that is contained in one or more CAR files that have previously been stored using [`store/add`](#store-add).
+The `upload/` namespace contains capabilities relating to "uploads", which represent user data that is contained in one or more CAR files that have previously been stored using [`store/add`](#storeadd).
 
-An upload is essentially an index that maps "data CIDs" to CAR CIDs. Data CIDs are the root CID of user-uploaded data items, for example, files that have been encoded into UnixFS. A given data item may be stored in a single CAR, or it may be split into multiple CAR "shards," as described in the [`store/add` section](#store-add).
+An upload is essentially an index that maps "data CIDs" to CAR CIDs. Data CIDs are the root CID of user-uploaded data items, for example, files that have been encoded into UnixFS. A given data item may be stored in a single CAR, or it may be split into multiple CAR "shards," as described in the [`store/add` section](#storeadd).
 
 Similarly, a CAR can potentially contain many data items. This is true even if the CAR has only a single root CID. For example, when storing a CAR containing a nested directory structure, you could create one "upload" for the root of the directory structure, and a separate upload for a file nested inside.
 
-### `upload/*` <a id="upload-top" />
+### `upload/*`
 
 > Delegate all abilities in the `upload/*` namespace.
 
@@ -274,19 +316,19 @@ The `upload/*` capability can be delegated to a user agent, but cannot be invoke
 
 The `upload/*` capability (and all capabilities in the `upload/` namespace) can be derived from a [`*`][ucan-spec-top] capability with a matching resource URI.
 
-### `upload/add` <a id="upload-add" />
+### `upload/add`
 
 > Add an upload to a space.
 
 `upload/add` can be invoked to register a given DAG as being contained in a given set of CARs. The resulting "upload" will be associated with the memory space identified by the DID in the `with` field.
 
-An `upload/add` invocation requires the root CID of the DAG to register as an "upload," along with the CID of one or more CARs that contain the complete DAG. It is expected that these CARs have previously been stored in the space using [`store/add`](#store-add); a service provider MAY return an error response if this is not the case.
+An `upload/add` invocation requires the root CID of the DAG to register as an "upload," along with the CID of one or more CARs that contain the complete DAG. It is expected that these CARs have previously been stored in the space using [`store/add`](#storeadd); a service provider MAY return an error response if this is not the case.
 
-#### Derivations <a id="upload-add-derivations" />
+#### Derivations
 
-`upload/add` can be derived from an [`upload/*`](#upload-top) or [`*`][ucan-spec-top] capability with a matching `with` resource URI.
+`upload/add` can be derived from an [`upload/*`](#upload) or [`*`][ucan-spec-top] capability with a matching `with` resource URI.
 
-#### Caveats <a id="upload-add-caveats" />
+#### Caveats
 
 When invoking `upload/add`, the `root` caveat must be set to the root CID of the data item.
 
@@ -294,7 +336,7 @@ The `shards` array must contain at least one CID of a CAR file, which is expecte
 
 Taken together, the CARs in the `shards` array should contain all the blocks in the DAG identified by the `root` CID.
 
-#### Invocation <a id="upload-add-invocation" />
+#### Invocation
 
 To invoke `upload/add`, an agent constructs a UCAN with the shape described below.
 
@@ -320,7 +362,7 @@ Fields marked as "required" below must be present in the invocation, but may be 
 | `nb.root`   | data CID string, e.g. `bafy...`                          | ✔           | The CID of the data item that was uploaded.                      |
 | `nb.shards` | array of CID strings, e.g. `[ "bag123...", "bag234..."]` | ✔           | The CIDs of CAR files containing the full DAG for the data item. |
 
-#### Responses <a id="upload-add-responses" />
+#### Responses
 
 *Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
 
@@ -337,25 +379,25 @@ interface UploadAddResponse {
 }
 ```
 
-### `upload/remove` <a id="upload-remove" />
+### `upload/remove`
 
 > Remove an upload from a space.
 
 `upload/remove` can be invoked to remove the link between an uploaded data CID and the CARs containing the data.
 
-Note that this will not remove the stored CARs; clients will need to use [`store/remove`](#store-remove) to remove the CARs once all uploads referencing those CARs have been removed.
+Note that this will not remove the stored CARs; clients will need to use [`store/remove`](#storeremove) to remove the CARs once all uploads referencing those CARs have been removed.
 
-#### Derivations <a id="upload-remove-derivations" />
+#### Derivations
 
-`upload/remove` can be derived from an [`upload/*`](#upload-top) or [`*`][ucan-spec-top] capability with a matching `with` resource URI.
+`upload/remove` can be derived from an [`upload/*`](#upload) or [`*`][ucan-spec-top] capability with a matching `with` resource URI.
 
-#### Caveats <a id="upload-remove-caveats" />
+#### Caveats
 
 The `with` resource URI must be set to the DID of the space to remove the upload from.
 
 The `root` caveat must contain the root CID of the data item to remove.
 
-#### Invocation <a id="upload-remove-invocation" />
+#### Invocation
 
 To invoke `upload/remove`, an agent prepares a UCAN with the following shape:
 
@@ -377,21 +419,31 @@ Fields marked as "required" below must be present in the invocation, but may be 
 | `with`    | URI string, e.g. `did:key:123...` | ✔         | The `did:` URI of the memory space to remove the upload from. |
 | `nb.root` | data CID string, e.g. `bafy...`   | ✔         | The CID of the data item to remove.                           |
 
-### `upload/list` <a id="upload-list" />
+#### Responses
+
+*Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
+
+Executing an `upload/remove` invocation with a service provider should return a response object.
+
+If a failure occurs, the response will have an `error` field with a value of `true`, and a `message` string field with details about the error.
+
+On success, the response object will be empty.
+
+### `upload/list`
 
 > Obtain a list of uploaded data items.
 
 The `upload/list` capability can be invoked to request a list of metadata about uploads.
 
-#### Derivations <a id="upload-list-derivations" />
+#### Derivations
 
-`upload/list` can be derived from an [`upload/*`](#upload-top) or [`*`][ucan-spec-top] capability with a matching `with` resource URI.
+`upload/list` can be derived from an [`upload/*`](#upload) or [`*`][ucan-spec-top] capability with a matching `with` resource URI.
 
-#### Caveats <a id="upload-list-caveats" />
+#### Caveats
 
 When invoking `upload/list` the `size` caveat may be set to the desired number of results to return per invocation. If there are more total results than will fit into the given `size`, the response will include an opaque `cursor` field that can be used to continue the listing in a subsequent invocation by setting the `cursor` caveat to the value in the response.
 
-#### Invocation <a id="upload-list-invocation" />
+#### Invocation
 
 ```js
 {
@@ -404,7 +456,7 @@ When invoking `upload/list` the `size` caveat may be set to the desired number o
 }
 ```
 
-#### Responses <a id="upload-list-responses" />
+#### Responses
 
 *Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
 
