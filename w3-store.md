@@ -375,8 +375,6 @@ To invoke `upload/remove`, an agent prepares a UCAN with the following shape:
 }
 ```
 
-                       |
-
 #### Responses
 
 *Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
