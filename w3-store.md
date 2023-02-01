@@ -76,7 +76,7 @@ The `store/add` capability allows an agent to store a CAR file into the space id
 
 #### Derivations
 
-`store/add` can be derived from a `store/*` or [`*`][ucan-spec-top] capability with a matching `with` field.
+`store/add` can be derived from a [`store/*`](#store) or [`*`][ucan-spec-top] capability with a matching `with` field.
 
 #### Caveats
 
@@ -155,7 +155,7 @@ This may or may not cause the CAR to be removed completely from the underlying s
 
 #### Derivations
 
-`store/remove` can be derived from a `store/*` or [`*`][ucan-spec-top] capability with a matching `with` field.
+`store/remove` can be derived from a [`store/*`](#store) or [`*`][ucan-spec-top] capability with a matching `with` field.
 
 #### Caveats
 
@@ -199,7 +199,7 @@ The `with` field of the invocation must be set to the DID of the memory space to
 
 #### Derivations
 
-`store/list` can be derived from a `store/*` or `*` capability with a matching `with` field.
+`store/list` can be derived from a [`store/*`](#store) or [`*`][ucan-spec-top] capability with a matching `with` field.
 
 #### Caveats
 
