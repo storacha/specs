@@ -171,9 +171,7 @@ Capability MUST have `nb.provider` field specifying a DID of the provider reques
 
 ### get `nb.consumer`
 
-Capability MUST specify `nb.consumer` field with a DID of the (consumer) space provider is requested for.
-
-When provider for arbitrary (number of) consumer(s) is requested MUST specify `"did:*"` in `nb.consumer`.
+Providers can be requested for multiple consumers (spaces) by omitting this field or to a specific consumer by setting this field to a DID.
 
 ```json
 {
@@ -181,13 +179,13 @@ When provider for arbitrary (number of) consumer(s) is requested MUST specify `"
   "with": "did:mailto:web.mail:alice",
   "nb": {
     // did of the provider,
-    "provider": "did:web:lite.web3.storage",
-    "consumer": "did:*"
+    "provider": "did:web:lite.web3.storage"
+    // without the consumer field the request is for multiple consumers
   }
 }
 ```
 
-> ⚠️ Some providers (e.g. Free provider from web3.storage) MAY deny request when `nb.consumer` is a `did:*` pattern, because they limit number of providers issued per user account.
+> ⚠️ Some providers (e.g. Free provider from web3.storage) MAY deny request when `nb.consumer` is not defined, because they limit number of providers issued per user account.
 
 ### get `nb...`
 
@@ -222,10 +220,7 @@ An agent MUST be delegated `consumer/add` capability, on successful [`provider/g
       "att": [
         {
           "can": "consumer/add",
-          "with": "did:web:web3.storage:plan:free",
-          "nb": {
-            "consumer": "did:*"
-          }
+          "with": "did:web:web3.storage:plan:free"
         }
       ]
     }
@@ -247,7 +242,7 @@ Capability resource MUST be a provider DID. It MUST be the same as [`nb.provider
 
 The `nb.consumer` MUST be set to the same DID as [`nb.consumer`](#get-nbconsumer) of the [`provider/get`] request.
 
-> ⚠️ Omitting `nb.consumer` is equivalent of `did:*` and allows delegate to add arbitrary number of consumers to the provider
+> ⚠️ Omitting `nb.consumer` allows delegate to add arbitrary number of consumers to the provider
 
 ### add `nb.request`
 
@@ -314,10 +309,7 @@ Invoking delegated [`consumer/add`] capability adds a consumer (space) to the pr
           "att": [
             {
               "can": "consumer/add",
-              "with": "did:web:free.web3.storage",
-              "nb": {
-                "consumer": "did:*"
-              }
+              "with": "did:web:free.web3.storage"
             }
           ]
         }
