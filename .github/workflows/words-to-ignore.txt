@@ -41,6 +41,21 @@ permissionless
 stateful
 linter
 vscode
+w3up
+RPC
+CAR
+CARs
+CAR's
+DAG
+DAGs
+sub-DAGs
+codec
+sharded
+sharding
+namespace
+namespaces
+UnixFS
+repo
 
 # actually correct
 reimagine
@@ -65,4 +80,3 @@ UCANYesOneMapping
 HeaderTypeDescriptionRequiredCardinalityEntry
 OperationCapabilities
 5GiB
-
