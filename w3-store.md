@@ -203,8 +203,7 @@ The `with` field of the invocation must be set to the DID of the memory space to
 
 #### Caveats
 
-When invoking `store/list` the `size` caveat may be set to the desired number of results to return per invocation. If there are more total results than will fit into the given `size`, the response will include an opaque `cursor` field that can be used to continue the listing in a subsequent invocation by setting the `cursor` caveat to the value in the response. The `pre`
-caveat may be set to return the page of results preceeding the cursor.
+When invoking `store/list` the `size` caveat may be set to the desired number of results to return per invocation. If there are more total results than will fit into the given `size`, the response will include an opaque `cursor` field that can be used to continue the listing in a subsequent invocation by setting the `cursor` caveat to the value in the response. The `pre` caveat may be set to return the page of results preceeding the cursor.
 
 | `field`  | `value`                           | `required?` | `context`                                                                                                                 |
 | -------- | --------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------- |
@@ -399,8 +398,7 @@ The `upload/list` capability can be invoked to request a list of metadata about 
 
 #### Caveats
 
-When invoking `upload/list` the `size` caveat may be set to the desired number of results to return per invocation. If there are more total results than will fit into the given `size`, the response will include an opaque `cursor` field that can be used to continue the listing in a subsequent invocation by setting the `cursor` caveat to the value in the response. The `pre`
-caveat may be set to return the page of results preceeding the cursor.
+When invoking `upload/list` the `size` caveat may be set to the desired number of results to return per invocation. If there are more total results than will fit into the given `size`, the response will include an opaque `cursor` field that can be used to continue the listing in a subsequent invocation by setting the `cursor` caveat to the value in the response. The `pre` caveat may be set to return the page of results preceeding the cursor.
 
 | `field`  | `value`                           | `required?` | `context`                                                                                                                 |
 | -------- | --------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------- |
