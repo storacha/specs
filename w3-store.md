@@ -406,7 +406,6 @@ When invoking `upload/list` the `size` caveat may be set to the desired number o
 | `cursor` | `string`                          |             | An opaque string included in a prior `store/list` response that allows the service to provide the next "page" of results. |
 | `pre`    | `boolean`                         |             | If true, return the page of results preceeding the cursor.                                                                |
 
-
 #### Invocation
 
 ```js
