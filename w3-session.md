@@ -12,7 +12,7 @@
 
 # Abstract
 
-In w3 family of protocols users can use an [account] to manage access across namespaces through delegated [UCAN] capabilities. Doing so however requires use of unfamiliar user flows which may prove intimidating to an average user. We propose complimentary solution that can leverage widely used email authorization flow.
+Within the w3 family of protocols, users have the ability to manage access across namespaces through delegated [UCAN] capabilities using an [account]. However, this process can be daunting for an average user due to the use of unfamiliar user flows. To address this, we propose a complementary solution that can utilize a widely used email authorization flow.
 
 ## Language
 
@@ -20,13 +20,11 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 # Introduction
 
-An [account] abstraction provides a convenient way to share capabilities without having to prearrange key exchange. Delegation to an [account] is represented with pretty standard [UCAN], however delegation from an [account] requires use of [DKIM signatures]. To generate such signature user needs to send an email with special subject line, which is unusual and may prove to not to work well for many users.
+An abstraction of an [account] provides a convenient method for sharing capabilities without the need to prearrange key exchange. While delegation to an [account] is represented with a standard [UCAN], delegation from an [account] requires the use of [DKIM signature]. However, generating such signatures requires users to send an email with a special subject line, which may not work well for many users.
 
-We propose another method for delegating capabilities from the [account] that uses well known email based authorization flow instead, which could be used instead of [DKIM Signatures] or in conjunction with it.
+To address this, we propose an alternative method for delegating capabilities from the [account] that uses a well-known email-based authorization flow that can be used alongside or instead of [DKIM signature]. In this document, we propose a protocol through which a user [agent] _(identified by a [`did:key`] identifier)_ can request a set of desired capabilities from a memorable [`did:mailto`] identifier through an intermediary that facilitates out-of-band user authorization. We also specify how the special `ucan/attest` capability can be utilized by supporting agents to establish authorization session.
 
-In this document we propose a protocol through which user [agent] (identified by [`did:key`] identifier) could request set of desired capabilities from memorable [`did:mailto`] identifier through an intermediary facilitating out-of-bound user authorization. We also specify how **special** `./update` capability may be utilized by supporting agents for establishing authorization sessions.
-
-> ℹ️ This specification focuses on [`did:mailto`] identifiers, however approach is valid and can be extended to various other identifiers.
+> ℹ️ Note that while this specification focuses on [`did:mailto`] identifiers, this approach is valid and can be extended to various other identifiers.
 
 # Terminology
 
@@ -45,23 +43,23 @@ There are several roles that agents in the authorization flow may assume:
 
 ### Account
 
-_Account_ is a [principal] identified by a memorable identifier like [`did:mailto`].
+An _account_ is a type of [principal] that is identified by a memorable identifier, such as [`did:mailto`].
 
-Account MAY be used for convenience of aggregating and managing capabilities across various user [Agent]s.
+Accounts can be used to conveniently aggregate and manage capabilities across different user [agents].
 
-Account CAN be used to facilitate familiar user authorization and recovery flows.
+In addition, accounts can facilitate familiar user authorization and recovery flows.
 
 ### Agent
 
-_Agent_ is a [principal] identified by a [`did:key`] identifier.
+An _agent_ is a type of [principal] identified by a [`did:key`] identifier.
 
-Users interacts with a system through different _agents_ across multiple devices and applications. It is highly RECOMMENDED that _agents_ use [non-extractable keys] when possible.
+When interacting with a system, users may use different _agents_ across multiple devices and applications. It is strongly advised that _agents_ use [non-extractable keys] whenever possible.
 
-> ℹ️ _Agents_ are meant to be ephemeral that could be disposed or created on demand.
+> ℹ️ Note that agents are designed to be temporary and can be disposed of or created as needed.
 
 ### Oracle
 
-_Oracle_ is a [principal], facilitating out-of-bound account authorization flow. _Oracle_ is explicitly or implicitly trusted by the [authority] to carry out authorization in good faith and record the outcome in an issued [permit].
+The term _Oracle_ refers to a specific kind of [principal] that is authorized by the [authority] to conduct an out-of-band authorization process on behalf of a user [agent]. This process enables the [agent] to obtain delegation for the requested capabilities from the [account]. As part of this process, the _Oracle_ is trusted to carry out the authorization in good faith and to delegate the `ucan/attest` capability to the [agent], which serves as proof that the delegation from the [account] to the [agent] has been authorized by the [account] holder.
 
 ### Authority
 
@@ -75,11 +73,11 @@ Component of the [authority] that performs UCAN validation
 
 ## Overview
 
-At the high level we propose capturing stateful out-of-bound authorization in a stateless [authorization session] using a UCAN delegation, that delegate [agent] could use to proof that an [account] has delegated set of capabilities.
+At a high level, our proposal involves capturing stateful out-of-bound authorization in a stateless [authorization session], using a [UCAN] delegation. This delegation can then be used by a delegated [agent] to prove that an [account] has delegated a set of capabilities.
 
 ## Authorization Request
 
-User [agent] MAY request an authorization from a user [account] by invoking `access/authorize` capability through a trusted [oracle] facilitating out-of-bound authorization flow.
+The user's [agent] has the option to request authorization from the user's [account] by utilizing the `access/authorize` capability, which is facilitated by a trusted [oracle] to carry out the out-of-bound authorization flow.
 
 ```mermaid
 sequenceDiagram
@@ -91,14 +89,14 @@ sequenceDiagram
   
   W3 ->> Email: ✉️ Confirm Authorization 
   Email ->> W3: 🔗 Grant Authorization
-  W3 -->> Agent: ucan/attest
-  Email -->> Agent: store/add
+  Email -->> Agent: store/*
+  W3 ->> Agent: ucan/attest
 ```
 
 ### Authorization Request Schema
 
 ```ipldsch
-# Authorization protocol consists of a single `Claim` capability.
+# Authorization protocol consists of a single capability.
 type Access union {
   | Claim   "access/authorize"
 } representation inline {
@@ -115,8 +113,8 @@ type Claim struct {
 
 type AuthorizationRequest {
   # DID of the Account authorization is requested from.
-  iss optional Account
-  # Capabilities requesting agent wishes to be granted.
+  iss Account
+  # Capabilities agent wishes to be granted.
   att [CapabilityRequest]
 }
 
@@ -132,26 +130,21 @@ type Account DIDMailto
 
 #### Agent Requesting Authorization
 
-Resource (`with` field) MUST be set to [`did:key`] agent identifier requesting an authorization.
+The resource (`with` field) MUST be set to the [`did:key`] of the [agent] requesting an authorization.
 
-> ℹ️ Note that it MAY be different from the issuer of the authorization request. The issuer is irrelevant, as long as it has been delegated `access/claim` capability from  the [agent].
+> ℹ️ It should be noted that the resource specified in the with field of the authorization request is not required to be the same as the issuer of the request. The identity of the issuer is not important as long as it has been granted the `access/claim` capability by the [agent].
 
 #### Account Granting Authorization
 
-The OPTIONAL `nb.iss` field, if specified MUST be set to the [account] DID from which desired capabilities (`nb.att`) are requested.
-
-If `nb.iss` field is omitted, request MUST be interpreted as desire to fetch UCAN delegations to the [agent] that match requested capabilities (described by `nb.iss` field).
+The `nb.iss` field MUST be set to the [account] DID from which the desired capabilities (`nb.att`) are being requested.
 
 #### Requested Capabilities
 
-The `nb.att` field MUST conform to the `CapabilityRequest` [IPLD schema]. It MUST
-specify set of capabilities [agent] is requesting.
+The `nb.att` field MUST adhere to the `CapabilityRequest` [IPLD schema] and MUST specify the capabilities that the [agent] is requesting. The `{ "can": "*" }` is equivalent to [sudo] access and should be reserved for special cases as it represents a request for [superuser] permissions.
 
-The `{ "can": "*" }` is equivalent to [sudo] access and represents request for for [superuser] permissions and SHOULD be reserved for special cases.
+In general, it is RECOMMENDED that [agents] only request the set of capabilities that are necessary to complete a user-initiated action and only when the user initiates such an action.
 
-It is generally RECOMMENDED that [agent]s request only a set of capabilities needed to complete a user initiated action and when user initiates such action.
-
-### Authorization Example
+### Authorization Request Example
 
 > Agent `did:key:z6Mkk89bC3JrVqKie71YEcc5M1SMVxuCgNx6zLZ8SYJsxALi` requests a `store/*` capability from `alice@web.mail` account
 
@@ -180,95 +173,43 @@ It is generally RECOMMENDED that [agent]s request only a set of capabilities nee
 }
 ```
 
-## Authorization Permit
+## Authorization
 
-An [oracle] MUST provide `access/claim` capability. When `access/claim` capability is invoked [oracle] MUST carry out an out-of-bound authorization flow allowing [account] holder to select capabilities they wish to grant. It is RECOMMENDED that [oracle] by default limit set of presented capability choices to a subset matching request criteria.
+An [oracle] MUST provide `access/authorize` capability. When this capability is invoked, the [oracle] MUST facilitate an out-of-bound authorization flow that allows the [account] holder to select which capabilities they wish to grant. It is RECOMMENDED that the [oracle] by default presents only a subset of capabilities that match the request criteria.
 
-If user denied authorization request, [oracle] MUST fail corresponding `access/claim` invocation. Otherwise [oracle] MUST record authorization result as an IPLD node conforming to `Permit` [IPLD Schema].
+If the user denies the authorization request, the corresponding `access/authorize` invocation MUST fail. Otherwise, the [oracle] must issue a delegation from the [account] [`did:mailto`] principal using an [Authorization Session Signature]. This delegation MUST delegate ONLY the capabilities that the user has granted.
 
-### Authorization Permit Schema
-
-The `Permit` is the same as [UCAN-IPLD] schema except for omitted proofs (`prf`) and and a signature (`s`).
-
-```ipldsch
-type Permit struct {
-  v                 SemVer
-  iss               Account
-  aud               Agent
-  att               [Capability]
-  exp               Int
-
-  fct               [Fact]
-  nnc   optional    String
-  nbf   optional    Int
-}
-
-type SemVer string
-```
-
-#### Permit Version
-
-The `v` field MUST contain the SemVer-formatted version of the [UCAN-IPLD] schema.
-
-#### Account Granting Authorization
-
-The `iss` field MUST be set to the [Account] DID encoded as a UCAN [principal]. Issuer MUST be set to the [account granting authorization] (`nb.iss` in the [authorization request]).
-
-#### Agent Granted Authorization
-
-The `aud` field MUST be set to the [Agent] DID encoded as a [principal]. [Agent] MUST be set to the [agent requesting authorization] (`nb.with` in the [authorization request]).
-
-#### Authorized Capabilities
-
-The `att` field MUST contain set of capabilities conforming to [UCAN Capability] schema. It MUST contain capabilities that [account] holder authorized through out-of-bound authorization flow.
-
-#### Authorization Expiry
-
-The `exp` field MUST be set to the expiration in UTC Unix Timestamp format. If the authorization explicitly never expires, the `exp` field MUST be set to `null`. If the `exp` time is in the past at validation time, the authorization MUST be treated as expired and invalid.
-
-#### Authorization Facts
-
-The `fct` fields MUST contain arbitrary facts and proofs of knowledge. The `fct` field MUST be a list of nodes conforming to [UCAN Facts] schema.
-
-#### Authorization Nonce
-
-The OPTIONAL `nnc` field MAY be set to arbitrary string. The `nnc` field MUST corresponds to [UCAN nonce].
-
-#### Authorization Time
-
-The `nbf` field is OPTIONAL. When omitted, authorization MUST be treated as valid beginning from the Unix epoch. If the `nbf` time is in the future at the validation time, the authorization MUST be treated as invalid.
-
-### Example Permit in [DAG-JSON]
+### Example Authorization in [DAG-JSON]
 
 ```json
 {
-  "v": "0.9.1",
-  "iss": "did:mailto:web.mail:alice",
-  "aud": "did:key:z6Mkk89bC3JrVqKie71YEcc5M1SMVxuCgNx6zLZ8SYJsxALi",
-  "att": [
-    {
-      "can": "store/*",
-      "with": "space://did:key:z6MktafZTREjJkvV5mfJxcLpNBoVPwDLhTuMg9ng7dY4zMAL"
-    },
-    {
-      "can": "store/list",
-      "with": "space://did:key:z6MkffDZCkCTWreg8868fG1FGFogcJj5X6PY93pPcWDn9bob"
+  "bafyreifer23oxeyamllbmrfkkyvcqpujevuediffrpvrxmgn736f4fffui": {
+    "v": "0.9.1",
+    "iss": "did:mailto:web.mail:alice",
+    "aud": "did:key:z6Mkk89bC3JrVqKie71YEcc5M1SMVxuCgNx6zLZ8SYJsxALi",
+    "att": [
+      {
+        "can": "store/*",
+        "with": "space://did:key:z6MktafZTREjJkvV5mfJxcLpNBoVPwDLhTuMg9ng7dY4zMAL"
+      }
+    ],
+    "exp": null,
+    "s": {
+      "/": {
+        "bytes": "gKADAA"
+      }
     }
-  ],
-  "exp": 1685602800,
-  "fct": []
+  }
 }
 ```
 
-## Authorization
-
-An [account] MAY delegate requested capabilities to an [agent] by creating a delegation with a [DKIM signature]. Alternatively [principal] handling authorization request could carry out an out-of-bound authorization flow using a trusted [oracle] so that user could approve all or some of the requested capabilities and issue a delegation attesting to the fact.
-
 ## Authorization Session
 
-An authorization session is UCAN delegation from an [authority] to the [agent]. It represents an attestation issued by trusted third party _(like an [oracle])_ that [account] holder has authorized specific delegation (`nb.proof` field)
+An authorization session is a UCAN delegation from the [authority] to the [agent]. It is an attestation issued by a trusted third party _(such as an [oracle])_ indicating that the [account] holder has authorized a specific delegation (specified by the `nb.proof` field).
 
-Session CAN be used with both [DKIM Signed] and Session signed proofs, as it simply attests that [authority] has checked specific delegation from [account] is authentic.
+The session CAN be used with delegations from an [account] signed by either [DKIM Signature] or [Authorization Session Signature], as it only confirms that the [authority] has verified the authenticity of the specific delegation from the [account].
+
+> ⚠️ Note that this does not imply that the delegation has been verified to not escalate any capabilities. The validator is simply informed that the UCAN signature is valid.
 
 ### Schema
 
@@ -295,40 +236,35 @@ Session MUST be issued by the [authority] or a trusted [oracle]. Issuing [oracle
 
 #### Session Audience
 
-Session MUST be delegated to an [agent] that is the same [principal] as audience (`aud`) of the proof been attested.
+The [agent] to whom the session is delegated MUST be the same [principal] as the audience (`aud`) of the attested proof.
 
 #### Session Proof
 
-The `nb.proof` MUST [link] to the [UCAN] delegation from [account] to the [agent].
+The `nb.proof` field MUST be a [link] to the UCAN delegation that specifies the delegation of granted capabilities from the [account] to the [agent].
 
 #### Session Context
 
-The `with` field MUST be set to the DID of the [authority], implying that session MAY be issued only by [oracle] to whom [authority] delegated `./update` capability.
+The value of the `with` field MUST be the DID of the [authority], indicating that ONLY an [oracle] with the delegated `ucan/attest` capability from the [authority] can issue the session.
 
 ### Session Example
 
-> Proof that `did:mailto:web.mail:alice` has authorized `did:key:zAgent` to excercise `store/*` capabilities with `did:key:zAlice`.
+> Proof that `did:mailto:web.mail:alice` has delegated `did:key:zAgent` the `store/*` capability.
 
 ```json
 {
   "bafyreiat7z45tiyt52ju4h576xrmcmovkjl7ax22m5ndjij56ht4hqabba": {
     "v": "0.9.1",
-    "iss": "did:key:z6MkrZ1r5XBFZjBU34qyD8fueMbMRkKw17BZaq2ivKFjnz2z",
+    "iss": "did:web:web3.storage",
     "aud": "did:key:z6Mkk89bC3JrVqKie71YEcc5M1SMVxuCgNx6zLZ8SYJsxALi",
     "att": [
       {
+        "with": "did:web:web3.storage",
         "can": "ucan/attest",
         "nb": {
           "proof": {
             "/": "bafyreifer23oxeyamllbmrfkkyvcqpujevuediffrpvrxmgn736f4fffui"
           }
         },
-        "with": "did:web:web3.storage"
-      }
-    ],
-    "prf": [
-      {
-        "/": "bafyreibsisg5agttkynykz4jqjhq6xfeipsrevlfxzepcmafe6ucfraxly"
       }
     ],
     "exp": null,
@@ -337,56 +273,20 @@ The `with` field MUST be set to the DID of the [authority], implying that sessio
         "bytes": "7aEDQBj34uAed7Mup+aVCTKuUtcKWwJtzMZ5yPA6tptMrcRrbE3o7uHKG/wBqF+OKJYGY7epQOV+OUuzseZvXuJN2QI"
       }
     }
-  },
-  "bafyreibsisg5agttkynykz4jqjhq6xfeipsrevlfxzepcmafe6ucfraxly": {
-    "v": "0.9.1",
-    "iss": "did:web:web3.storage",
-    "aud": "did:key:z6MkrZ1r5XBFZjBU34qyD8fueMbMRkKw17BZaq2ivKFjnz2z",
-    "att": [
-      {
-        "can": "./update",
-        "with": "did:web:web3.storage"
-      }
-    ],
-    "prf": [],
-    "exp": null,
-    "s": {
-      "/": {
-        "bytes": "7aEDQPhRaOAFHq+R2px8hOnaFenFmTvQn9gfGaGTZcaQ0mAaVpw4G/14+h3ApFo264BkLw62ACqQv5OF8eq5667NvQU"
-      }
-    }
-  },
-  "bafyreifer23oxeyamllbmrfkkyvcqpujevuediffrpvrxmgn736f4fffui": {
-    "v": "0.9.1",
-    "iss": "did:mailto:web.mail:alice",
-    "aud": "did:key:z6Mkk89bC3JrVqKie71YEcc5M1SMVxuCgNx6zLZ8SYJsxALi",
-    "att": [
-      {
-        "can": "store/*",
-        "with": "space://did:key:z6MktafZTREjJkvV5mfJxcLpNBoVPwDLhTuMg9ng7dY4zMAL"
-      },
-      {
-        "can": "store/list",
-        "with": "space://did:key:z6MkffDZCkCTWreg8868fG1FGFogcJj5X6PY93pPcWDn9bob"
-      }
-    ],
-    "exp": 1685602800,
-    "fct": []
   }
 }
 ```
 
 ### Session Scope
 
-Authorization session apply only to the UCANs that link to it in their [proofs]s. Sessions are subject to UCAN [time bounds] and [revocations][ucan revocation]. Only UCANs meeting standard [principal alignment] requirement are covered the session.
+Authorization sessions only apply to UCANs that have a [proof] linking to them. They are subject to UCAN [time bounds] and [revocation]s. The session only covers UCANs that meet the standard [principal alignment] requirement.
 
 [`did:mailto`]: https://github.com/ucan-wg/did-mailto/
 [`did:key`]: https://w3c-ccg.github.io/did-method-key/
 [ucan]: https://github.com/ucan-wg/spec/
 [principal alignment]: https://github.com/ucan-wg/spec/blob/main/README.md#62-principal-alignment
-[ucan revocation]: https://github.com/ucan-wg/spec/#28-revocation
+[revocation]: https://github.com/ucan-wg/spec/#28-revocation
 [time bounds]: https://github.com/ucan-wg/spec/#322-time-bounds
-[proofs]: https://github.com/ucan-wg/spec/#327-proof-of-delegation
 [principal]: https://github.com/ucan-wg/spec/#321-principals
 [agent]:#agent
 [account]:#account
@@ -395,17 +295,10 @@ Authorization session apply only to the UCANs that link to it in their [proofs]s
 [sudo]:https://en.wikipedia.org/wiki/Sudo
 [link]:https://ipld.io/docs/schemas/features/links/
 [IPLD schema]:https://ipld.io/docs/schemas/
-[UCAN-IPLD]:https://github.com/ucan-wg/ucan-ipld/
-[account granting authorization]:#account-granting-authorization
-[authorization request]:#authorization-request
-[agent requesting authorization]:#agent-requesting-authorization
-[UCAN Capability]:https://github.com/ucan-wg/ucan-ipld/#22-capability
-[UCAN Facts]:https://github.com/ucan-wg/ucan-ipld/#23-fact
-[UCAN Nonce]:https://github.com/ucan-wg/spec/#323-nonce
 [superuser]:https://en.wikipedia.org/wiki/Superuser
-[permit]:#authorization-permit
 [DAG-JSON]:https://ipld.io/specs/codecs/dag-json/spec/
 
 [Protocol Labs]:https://protocol.ai/
 [Irakli Gozalishvili]:https://github.com/Gozala
 [DKIM Signature]:./w3-account.md#domainkeys-identified-mail-dkim-signature
+[Authorization Session Signature]:./w3-account.md#authorization-session-signature
