@@ -56,8 +56,6 @@ namespace
 namespaces
 UnixFS
 repo
-
-# actually correct
 reimagine
 invocable
 roundtrip
@@ -72,11 +70,27 @@ AuthorityAn
 validSession
 keyThe
 DKIM-Signature
-
-# wut
+ABNF
 HeaderTypeDescriptionRequiredCardinalityEntrypoint
 UCANNoZero
 UCANYesOneMapping
 HeaderTypeDescriptionRequiredCardinalityEntry
 OperationCapabilities
 5GiB
+w3
+PKI
+onboarding
+NameDescriptionAccountPrincipal
+AgentPrincipal
+implementers
+DomainKeys
+DKIM
+RFC6376
+UTF-8
+UCAN-IPLD
+DAG-JSON
+installationOraclePrincipal
+flowAuthorityPrincipal
+capabilitiesVerifierComponent
+Verifier
+sudo
