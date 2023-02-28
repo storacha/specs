@@ -85,3 +85,12 @@ AgentPrincipal
 implementers
 DomainKeys
 DKIM
+RFC6376
+UTF-8
+UCAN-IPLD
+DAG-JSON
+installationOraclePrincipal
+flowAuthorityPrincipal
+capabilitiesVerifierComponent
+Verifier
+sudo

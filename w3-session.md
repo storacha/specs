@@ -32,9 +32,8 @@ To address this, we propose an alternative method for delegating capabilities fr
 
 There are several roles that agents in the authorization flow may assume:
 
-| Name        | Description                                                                                                                                    |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
----------------------------------------------------------------- |
+| Name        | Description |
+| ----------- | ----------- |
 | Account    | [Principal] identified by memorable identifier like [`did:mailto`]. |
 | Agent       | [Principal] identified by [`did:key`] identifier, representing a user in some application installation |
 | Oracle      | [Principal], entrusted by [Authority] to carry out out-of-bound authorization flow |
