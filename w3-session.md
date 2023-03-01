@@ -297,7 +297,7 @@ Authorization sessions only apply to UCANs that have a [proof] linking to them. 
 [superuser]:https://en.wikipedia.org/wiki/Superuser
 [DAG-JSON]:https://ipld.io/specs/codecs/dag-json/spec/
 
-[w3account]:./w3-account/w3-account.md
+[w3account]:./w3-account.md
 [Protocol Labs]:https://protocol.ai/
 [Irakli Gozalishvili]:https://github.com/Gozala
 [DKIM Signature]:./w3-account.md#domainkeys-identified-mail-dkim-signature
