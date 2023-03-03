@@ -1,6 +1,6 @@
-# storage.service Specifications
+# w3up Specifications
 
-> This repository contains the specs for the .storage Protocol and associated subsystems.
+> This repository contains the specs for the w3up Protocol and associated subsystems, which describe a system for verifiably uploading data using user-owned identity. It's used by associated w3up repos like [w3protocol](https://github.com/web3-storage/w3protocol) (reference implementation), [w3up-client](https://github.com/web3-storage/w3up-client), [w3cli](https://github.com/web3-storage/w3cli), and [w3ui](https://github.com/web3-storage/w3ui), and is built on more general protocols like [IPFS](https://docs.ipfs.tech/), [IPLD](https://ipld.io/docs/), and [UCAN](https://github.com/ucan-wg/spec/).
 
 ## Understanding the meaning of the spec badges and their life cycle
 
