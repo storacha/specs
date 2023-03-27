@@ -94,3 +94,10 @@ flowAuthorityPrincipal
 capabilitiesVerifierComponent
 Verifier
 sudo
+Filecoin
+Storefront
+capabilty
+commPs
+dag-cbor
+NameDescriptionStorefrontPrincipal
+w3upAuthorityPrincipal
