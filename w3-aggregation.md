@@ -56,7 +56,7 @@ A Storefront is the entry point for user/application data into web3. It will act
 
 ### Authorization
 
-Broker MUST have an authorization mechanism for allowed Storefront principals (e.g. web3.storage). Either by out-of-bound exchange of information or through a well defined API. In other words, broker can authorize invocations from `did:web:web3.storage` by validating signature from did. This way, it allows web3.storage to rotate keys without having too coordinate that with the broker.
+Broker MUST have an authorization mechanism for allowed Storefront principals (e.g. web3.storage). Either by out-of-bound exchange of information or through a well defined API. In other words, broker can authorize invocations from `did:web:web3.storage` by validating signature from did. This way, it allows web3.storage to rotate keys without having to coordinate with the broker.
 
 ### Storefront offers broker an aggregate
 
@@ -250,7 +250,7 @@ If offered aggregate is invalid, details on failing commPs are also reported:
   "ran": "bafy...invocation",
   "out": {
     "error": {
-      "status": "denied",
+      "status": "rejected",
       "cause": [{
         "commP": "commP",
         "reason": "reasonCode",
@@ -272,7 +272,7 @@ If offered aggregate is invalid, details on failing commPs are also reported:
 type Aggregate =
   { "status": "queued", link: Link } |
   { "status": "accepted", link: Link } |
-  { "status": "denied", link: Link }
+  { "status": "rejected", link: Link }
 
 type AggregateCapability enum {
   AggregateOffer "aggregate/offer"
