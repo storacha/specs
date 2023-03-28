@@ -66,7 +66,7 @@ Note that this can be done out of band with presentation of a delegation signatu
 
 ## Deal creation
 
-When a Storefront has enough content to fulfill an aggregate (each broker might have different requirements), a Filecoin deal for an aggregate SHALL be requested by a `aggregate/submit` invocations. Deal negotiations with Filecoin Storage Providers will be handled out off band. Therefore, Broker should generate a receipt to acknowledge received request. This receipt contains an [effect](https://github.com/ucan-wg/invocation/#7-effect) to be performed (`.fx` field pointing to another task) that will eventually get a receipt with either `ok` or `error`.
+When a Storefront has enough content to fulfill an aggregate (each broker might have different requirements), a Filecoin deal for an aggregate SHALL be requested by a `aggregate/submit` invocations. Deal negotiations with Filecoin Storage Providers will be handled out off band. Therefore, Broker should generate a receipt to acknowledge received request. This receipt MUST contain a followup task in the (`.fx.join` field) that is run when submitted request is processed which MAY succeed (if aggregate was accepted) or fail (e.g. if aggregated was  determined to be invalid). Result of the subsequent task CAN be looked up using it's receipt.
 
 ```mermaid
 sequenceDiagram
@@ -107,7 +107,7 @@ A Filecoin broker Authority MAY delegate capabilities to any Storefront principa
 {
   "iss": "did:web:spade.storage",
   "aud": "did:web:web3.storage",
-  "att": [{"with": "did:web:spade.storage", "can": "aggregate/*" }],
+  "att": [{"with": "did:web:web3.storage", "can": "aggregate/*" }],
   "exp": null,
   "sig": "..."
 }
@@ -124,7 +124,7 @@ A Storefront principal can invoke a capabilty to submit an aggregate ready for d
   "iss": "did:web:web3.storage",
   "aud": "did:web:spade.storage",
   "att": [{
-    "with": "did:web:spade.storage",
+    "with": "did:web:web3.storage",
     "can": "aggregate/submit",
     "nb": {
       "link": "bagy...aggregate",
@@ -152,7 +152,7 @@ This capability is invoked to submit a request to a broker service when an aggre
 }
 ```
 
-A receipt will be generated to acknowledge the received request. This receipt contains an [effect](https://github.com/ucan-wg/invocation/#7-effect) to be performed (`.fx` field pointing to another task) that will eventually get a receipt with either `ok` or `error`.
+A receipt will be generated to acknowledge the received request. This receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with an aggregate)
 
 ```json
 {
@@ -180,9 +180,9 @@ Open questions:
 - can we get a `commP` of the aggregate with `commP` of every CAR that is part of it?
 - perhaps the `nb` should also include the `commP` of the aggregate?
 
-### `aggregate/deals`
+### `aggregate/get`
 
-A Storefront principal can invoke a capabilty to submit an aggregate ready for deals.
+A Storefront principal can invoke a capability to get state of the accepted aggregate.
 
 > `did:web:web3.storage` invokes capability from `did:web:spade.storage`
 
@@ -191,8 +191,8 @@ A Storefront principal can invoke a capabilty to submit an aggregate ready for d
   "iss": "did:web:web3.storage",
   "aud": "did:web:spade.storage",
   "att": [{
-    "with": "did:web:spade.storage",
-    "can": "aggregate/deals",
+    "with": "did:web:web3.storage",
+    "can": "aggregate/get",
     "nb": {
       "link": "bagy...aggregate",
     }
@@ -201,7 +201,6 @@ A Storefront principal can invoke a capabilty to submit an aggregate ready for d
     "iss": "did:web:spade.storage",
     "aud": "did:web:web3.storage",
     "att": [{ "with": "did:web:spade.storage", "can": "aggregate/*" }],
-    "exp": null,
     "sig": "..."
   ],
   "sig": "..."
@@ -262,7 +261,7 @@ A successful deal receipt will include the details of the deal:
 }
 ```
 
-If a deal fails, the failing commPs will be reported:
+If offered aggregate is invalid, details on failing commPs are reported:
 
 ```json
 {
