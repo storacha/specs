@@ -69,6 +69,7 @@ sequenceDiagram
 
     Storefront->>Authority: invoke `aggregate/offer`
     Note left of Authority: Request offer to be queued
+    Authority-->>Storefront: receipt issued
 ```
 
 ### Broker queues the offer
@@ -77,26 +78,16 @@ Once broker successfully gets an offer, the offer gets queued for review. A rece
 
 This receipt MUST contain a follow up task in the (`.fx.join` field) that is run when submitted request is processed. It MAY succeed (if aggregate was accepted) or fail (if aggregated was  determined to be invalid). The result of the subsequent task CAN be looked up using its receipt.
 
-```mermaid
-sequenceDiagram
-    participant Authority as 🌐<br/><br/>did:web:spade.storage
-    participant Storefront as 🌐<br/><br/>did:web:web3.storage
-
-    Storefront->>Authority: invoke `aggregate/offer`
-    Note left of Storefront: Queueing offer
-    Authority-->>Storefront: receipt issued
-```
-
 ### Broker reviews and handles the offer
 
 When a broker pops the offer from the queue, the offer details MUST be retrievable. With the offer details, the broker MAY interact with available Filecoin Storage Providers, in order to establish a previously determined number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of `aggregate/offer` state from `queued` into `accepted` or `denied`.
 
 ```mermaid
 sequenceDiagram
-    participant Authority as 🌐<br/><br/>did:web:spade.storage
     participant Storefront as 🌐<br/><br/>did:web:web3.storage
+    participant Authority as 🌐<br/><br/>did:web:spade.storage
 
-    Note left of Storefront: Review and handle offer async
+    Note right of Storefront: Review and handle offer async
     Authority-->>Storefront: receipt issued
 ```
 
@@ -157,6 +148,8 @@ This capability is invoked to submit a request to a broker service when an aggre
   "src": ["https://.../bag(...).car"]
 }
 ```
+
+In addition, the calculated `commP` of the entire aggregate and the total size of every CAR within it is provided for convenience and consistency with the dag-cbor blocks.
 
 A receipt will be generated to acknowledge the received request. This receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with an aggregate)
 
