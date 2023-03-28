@@ -80,7 +80,7 @@ This receipt MUST contain a follow up task in the (`.fx.join` field) that is run
 
 ### Broker reviews and handles the offer
 
-When a broker pops the offer from the queue, the offer details MUST be retrievable. With the offer details, the broker MAY interact with available Filecoin Storage Providers, in order to establish a previously determined number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of `aggregate/offer` state from `queued` into `accepted` or `denied`.
+When a broker dequeues the offer from the queue, the offer details MUST be retrievable. With the offer details, the broker will interact with available Filecoin Storage Providers, in order to establish a previously determined number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of `aggregate/offer` state from `queued` into `accepted` or `denied`.
 
 ```mermaid
 sequenceDiagram
