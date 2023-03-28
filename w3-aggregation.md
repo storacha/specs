@@ -221,23 +221,15 @@ When a broker receives an `aggregate/submit` invocation from a Storefront Princi
 
 Once this invocation is executed, a receipt is generated with the result of the operation.
 
-A successful deal receipt will include the details of the deal:
+Accepted aggregate receipt will provide aggregate status info:
 
 ```json
 {
-  "ran": "bafy...invocation",
+  "ran": "bafy...review",
   "out": {
     "ok": {
-      "dealId": 142334312,
-      "storageProvider": "f07...",
-      "status": "Active",
-      "pieceCid": "bag...",
-      "dataCid": "bafy...",
-      "dataModelSelector": "Links/...",
-      "activation": "2023-04-13T01:58:00+00:00",
-      "expiration": "2024-09-05T01:58:00+00:00",
-      "created": "2023-04-11T17:57:30.522198+00:00",
-      "updated": "2024-04-12T03:42:26.928993+00:00"
+       "status": "accepted",
+       "link": "bafy...aggregate"
     }
   },
   "fx": {
@@ -256,7 +248,8 @@ If offered aggregate is invalid, details on failing commPs are reported:
   "ran": "bafy...invocation",
   "out": {
     "error": {
-      "parts": [{
+      "status": "denied",
+      "cause": [{
         "commP": "commP",
         "reason": "reasonCode",
       }],
