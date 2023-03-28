@@ -5,10 +5,14 @@
 ## Editors
 
 - [Vasco Santos], [Protocol Labs]
+- [Irakli Gozalishvili], [Protocol Labs]
+- [Alan Shaw], [Protocol Labs]
 
 ## Authors
 
 - [Vasco Santos], [Protocol Labs]
+- [Irakli Gozalishvili], [Protocol Labs]
+- [Alan Shaw], [Protocol Labs]
 
 # Abstract
 
@@ -48,34 +52,55 @@ A Component of the [authority] that performs UCAN validation
 
 ## Overview
 
-A Storefront is the entry point for user/application data into the web3. It will act on behalf of users to move data around into different storage points. One of the key storage presences may be Filecoin Storage Providers.
+A Storefront is the entry point for user/application data into web3. It will act on behalf of users to move data around into different storage points. One of the key storage presences may be Filecoin Storage Providers.
 
 ### Authorization
 
-Broker MUST have an authorization mechanism for allowed Storefront principals (e.g. web3.storage). Either by out-of-bound exchange of information or through a well defined API. In other words, broker can authorize invocations from `did:web:web3.storage` by validating signature from did. This way, if it would allow web3.storage to rotate keys without having too coordinate that with broker.
+Broker MUST have an authorization mechanism for allowed Storefront principals (e.g. web3.storage). Either by out-of-bound exchange of information or through a well defined API. In other words, broker can authorize invocations from `did:web:web3.storage` by validating signature from did. This way, it allows web3.storage to rotate keys without having too coordinate that with the broker.
 
 ### Storefront offers broker an aggregate
 
-When a Storefront has enough content to fulfill an aggregate (each broker might have different requirements), a Filecoin deal for an aggregate SHALL be requested by a `aggregate/submit` invocations. Deal negotiations with Filecoin Storage Providers will be handled out off band. Therefore, Broker should generate a receipt to acknowledge received request. This receipt MUST contain a followup task in the (`.fx.join` field) that is run when submitted request is processed which MAY succeed (if aggregate was accepted) or fail (e.g. if aggregated was  determined to be invalid). Result of the subsequent task CAN be looked up using it's receipt.
+When a Storefront has enough content to fulfill an aggregate (each broker MAY have different requirements), a Filecoin deal for an aggregate SHALL be requested by a `aggregate/offer` invocations. Deal negotiations with Filecoin Storage Providers will be handled out off band. Broker SHOULD generate a receipt to acknowledge the received request.
 
 ```mermaid
 sequenceDiagram
     participant Storefront as 🌐<br/><br/>did:web:web3.storage
     participant Authority as 🌐<br/><br/>did:web:spade.storage
 
-    Storefront->>Authority: invoke `aggregate/submit`
-    Note left of Authority: Prepare for deal
-    Authority-->>Storefront: receipt
-    Note left of Authority: Land deal in Filecoin
+    Storefront->>Authority: invoke `aggregate/offer`
+    Note left of Authority: Request offer to be queued
 ```
 
 ### Broker queues the offer
 
-TODO
+Once broker successfuly gets an offer, the offer gets queued for review. A receipt is created to proof the transition of `aggregate/offer` state from `null` into `queued`.
+
+This receipt MUST contain a follow up task in the (`.fx.join` field) that is run when submitted request is processed. It MAY succeed (if aggregate was accepted) or fail (if aggregated was  determined to be invalid). The result of the subsequent task CAN be looked up using its receipt.
+
+```mermaid
+sequenceDiagram
+    participant Authority as 🌐<br/><br/>did:web:spade.storage
+    participant Storefront as 🌐<br/><br/>did:web:web3.storage
+
+    Storefront->>Authority: invoke `aggregate/offer`
+    Note left of Storefront: Queueing offer
+    Authority-->>Storefront: receipt issued
+```
 
 ### Broker reviews and handles the offer
 
-TODO
+When a broker pops the offer from the queue, the offer details MUST be retrievable. With the offer details, the broker MAY interact with available Filecoin Storage Providers, in order to establish a previously determined number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handlded or not. A receipt is created to proof the transition of `aggregate/offer` state from `queued` into `accepted` or `denied`.
+
+```mermaid
+sequenceDiagram
+    participant Authority as 🌐<br/><br/>did:web:spade.storage
+    participant Storefront as 🌐<br/><br/>did:web:web3.storage
+
+    Note left of Storefront: Review and handle offer async
+    Authority-->>Storefront: receipt issued
+```
+
+Once offer is accepted broker takes care of arranging and renewing deals.
 
 ### Storefront can query state of the aggregate deals
 
@@ -93,27 +118,11 @@ participant Storefront as 🌐<br/><br/>did:web:web3.storage
 
 This section describes the capabilities that form the w3 aggregation protocol, along with the details relevant for invoking capabilities with a service provider.
 
-In this document, we will be looking at `spade.storage` as an implementer of the `aggregate` and `deals/*` protocol.
+In this document, we will be looking at `spade.storage` as an implementer of the `aggregate/*` and `offer/*` protocol.
 
-### `aggregate/*`
+### `aggregate/offer`
 
-A Filecoin broker Authority MAY delegate capabilities to any Storefront principal.
-
-> `did:web:spade.storage` delegates `aggregate/*` capabilities to `did:web:web3.storage`
-
-```json
-{
-  "iss": "did:web:spade.storage",
-  "aud": "did:web:web3.storage",
-  "att": [{"with": "did:web:web3.storage", "can": "aggregate/*" }],
-  "exp": null,
-  "sig": "..."
-}
-```
-
-### `aggregate/submit`
-
-A Storefront principal can invoke a capabilty to submit an aggregate ready for deals.
+A Storefront principal can invoke a capabilty to submit an aggregate ready for offers.
 
 > `did:web:web3.storage` invokes capability from `did:web:spade.storage`
 
@@ -123,7 +132,7 @@ A Storefront principal can invoke a capabilty to submit an aggregate ready for d
   "aud": "did:web:spade.storage",
   "att": [{
     "with": "did:web:web3.storage",
-    "can": "aggregate/submit",
+    "can": "aggregate/offer",
     "nb": {
       "offer": {
         "link": "bagy...aggregate",
@@ -170,11 +179,11 @@ A receipt will be generated to acknowledge the received request. This receipt MU
 
 Open questions:
 
-- can we get a `commP` of the aggregate with `commP` of every CAR that is part of it?
+- can we get `commP` of the aggregate with `commP` of every CAR that is part of it?
 
 ### `aggregate/get`
 
-A Storefront principal can invoke a capability to get state of the accepted aggregate.
+A Storefront principal can invoke a capability to get state of an accepted aggregate.
 
 > `did:web:web3.storage` invokes capability from `did:web:spade.storage`
 
@@ -189,19 +198,14 @@ A Storefront principal can invoke a capability to get state of the accepted aggr
       "commP": "commP...",
     }
   }],
-  "prf": [
-    "iss": "did:web:spade.storage",
-    "aud": "did:web:web3.storage",
-    "att": [{ "with": "did:web:spade.storage", "can": "aggregate/*" }],
-    "sig": "..."
-  ],
+  "prf": [],
   "sig": "..."
 }
 ```
 
-### `deal/offer`
+### `offer/review`
 
-When a broker receives an `aggregate/submit` invocation from a Storefront Principal, an [Effect](https://github.com/ucan-wg/invocation/#7-effect) for this submission is created with multiple fork tasks to be performed asynchronously.
+When a broker receives an `aggregate/offer` invocation from a Storefront Principal, an [Effect](https://github.com/ucan-wg/invocation/#7-effect) for this submission is created with join task to be performed asynchronously.
 
 ```json
 {
@@ -209,7 +213,7 @@ When a broker receives an `aggregate/submit` invocation from a Storefront Princi
   "aud": "did:web:web3.storage",
   "att": [{
     "with": "did:web:spade.storage",
-    "can": "deal/offer",
+    "can": "offer/review",
     "nb": {
       "commP": "commP",
     }
@@ -219,9 +223,7 @@ When a broker receives an `aggregate/submit` invocation from a Storefront Princi
 }
 ```
 
-Once this invocation is executed, a receipt is generated with the result of the operation.
-
-Accepted aggregate receipt will provide aggregate status info:
+Once this invocation is executed, a receipt is generated with the status of the task updated. Accepted aggregate receipt will provide aggregate status info:
 
 ```json
 {
@@ -241,7 +243,7 @@ Accepted aggregate receipt will provide aggregate status info:
 }
 ```
 
-If offered aggregate is invalid, details on failing commPs are reported:
+If offered aggregate is invalid, details on failing commPs are also reported:
 
 ```json
 {
@@ -264,6 +266,66 @@ If offered aggregate is invalid, details on failing commPs are reported:
 }
 ```
 
+### Schema
+
+```ipldsch
+type Aggregate =
+  { "status": "queued", link: Link } |
+  { "status": "accepted", link: Link } |
+  { "status": "denied", link: Link }
+
+type AggregateCapability enum {
+  AggregateOffer "aggregate/offer"
+  AggregateGet "aggregate/get"
+} representation inline {
+  discriminantKey "can"
+}
+
+type AggregateGet struct {
+  with StorefrontDID
+  nb SucceedAggregateRef
+}
+
+type SucceedAggregateRef struct {
+  commP string
+}
+
+type AggregateRef struct {
+  link &AggregateCAR
+}
+
+type AggregateOffer struct {
+  with StorefrontDID
+  nb AggregateOfferDetail
+}
+
+type AggregateOfferDetail struct {
+  offer: Offer
+}
+
+type Offer {
+  link &AggregateCAR
+  src [URL]
+  size number
+  commP string
+}
+
+type StorefrontDID string
+type URL string
+type AggregateCAR any
+type OfferCapability union {
+  OfferReview "offer/review"
+} representation inline {
+  discriminantKey "can"
+}
+
+type OfferReview struct {
+  with BrokerDID nb AggregateRef
+}
+
+type BrokerDID string
+```
+
 [`did:web`]: https://w3c-ccg.github.io/did-method-web/
 [UCAN]: https://github.com/ucan-wg/spec/
 [principal]: https://github.com/ucan-wg/spec/#321-principals
@@ -271,3 +333,5 @@ If offered aggregate is invalid, details on failing commPs are reported:
 
 [Protocol Labs]:https://protocol.ai/
 [Vasco Santos]:https://github.com/vasco-santos
+[Irakli Gozalishvili]:https://github.com/Gozala
+[Alan Shaw]:https://github.com/alanshaw
