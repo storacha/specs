@@ -196,6 +196,38 @@ A Storefront principal can invoke a capability to get state of an accepted aggre
 }
 ```
 
+Once this invocation is executed, a receipt is generated with the aggregate information:
+
+```json
+{
+  "ran": "bafy...get",
+  "out": {
+    "ok": {
+      "deals": [
+        {
+          "dealId": 111,
+          "storageProvider": "f07...",
+          "status": "Active",
+          "pieceCid": "bag...",
+          "dataCid": "bafy...",
+          "dataModelSelector": "Links/...",
+          "activation": "2023-04-13T01:58:00+00:00",
+          "expiration": "2024-09-05T01:58:00+00:00",
+          "created": "2023-04-11T17:57:30.522198+00:00",
+          "updated": "2024-04-12T03:42:26.928993+00:00"
+        }
+      ]
+    },
+  },
+  "fx": {
+    "fork": []
+  },
+  "meta": {},
+  "iss": "did:web:spade.storage",
+  "prf": []
+}
+```
+
 ### `offer/review`
 
 When a broker receives an `aggregate/offer` invocation from a Storefront Principal, an [Effect](https://github.com/ucan-wg/invocation/#7-effect) for this submission is created with join task to be performed asynchronously.
