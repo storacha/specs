@@ -73,7 +73,7 @@ sequenceDiagram
 
 ### Broker queues the offer
 
-Once broker successfuly gets an offer, the offer gets queued for review. A receipt is created to proof the transition of `aggregate/offer` state from `null` into `queued`.
+Once broker successfully gets an offer, the offer gets queued for review. A receipt is created to proof the transition of `aggregate/offer` state from `null` into `queued`.
 
 This receipt MUST contain a follow up task in the (`.fx.join` field) that is run when submitted request is processed. It MAY succeed (if aggregate was accepted) or fail (if aggregated was  determined to be invalid). The result of the subsequent task CAN be looked up using its receipt.
 
@@ -89,7 +89,7 @@ sequenceDiagram
 
 ### Broker reviews and handles the offer
 
-When a broker pops the offer from the queue, the offer details MUST be retrievable. With the offer details, the broker MAY interact with available Filecoin Storage Providers, in order to establish a previously determined number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handlded or not. A receipt is created to proof the transition of `aggregate/offer` state from `queued` into `accepted` or `denied`.
+When a broker pops the offer from the queue, the offer details MUST be retrievable. With the offer details, the broker MAY interact with available Filecoin Storage Providers, in order to establish a previously determined number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of `aggregate/offer` state from `queued` into `accepted` or `denied`.
 
 ```mermaid
 sequenceDiagram
