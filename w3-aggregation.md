@@ -128,7 +128,6 @@ A Storefront principal can invoke a capabilty to submit an aggregate ready for o
       "offer": {
         "link": "bagy...aggregate",
         "size": 110101,
-        "commP": "commP...",
         "src": ["https://w3s.link/ipfs/bagy...aggregate"]
       }
     }
@@ -149,7 +148,7 @@ This capability is invoked to submit a request to a broker service when an aggre
 }
 ```
 
-In addition, the calculated `commP` of the entire aggregate and the total size of every CAR within it is provided for convenience and consistency with the dag-cbor blocks.
+A `src` with URLs to fetch the aggregate offer is provided. In addition, the total `size` of every CAR within it is provided, both for convenience and consistency with the dag-cbor blocks.
 
 A receipt will be generated to acknowledge the received request. This receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with an aggregate)
 
@@ -172,8 +171,6 @@ A receipt will be generated to acknowledge the received request. This receipt MU
 
 Open questions:
 
-- can we get `commP` of the aggregate with `commP` of every CAR that is part of it?
-
 ### `aggregate/get`
 
 A Storefront principal can invoke a capability to get state of an accepted aggregate.
@@ -188,7 +185,7 @@ A Storefront principal can invoke a capability to get state of an accepted aggre
     "with": "did:web:web3.storage",
     "can": "aggregate/get",
     "nb": {
-      "commP": "commP...",
+      "link": "bagy...aggregate",
     }
   }],
   "prf": [],
@@ -240,7 +237,7 @@ When a broker receives an `aggregate/offer` invocation from a Storefront Princip
     "with": "did:web:spade.storage",
     "can": "offer/review",
     "nb": {
-      "commP": "commP",
+      "link": "bagy...aggregate",
     }
   }],
   "prf": [],
@@ -276,6 +273,7 @@ If offered aggregate is invalid, details on failing commPs are also reported:
   "out": {
     "error": {
       "status": "rejected",
+      "link": "bafy...aggregate",
       "cause": [{
         "commP": "commP",
         "reason": "reasonCode",
@@ -312,7 +310,7 @@ type AggregateGet struct {
 }
 
 type SucceedAggregateRef struct {
-  commP string
+  link &AggregateCAR
 }
 
 type AggregateRef struct {
@@ -332,7 +330,6 @@ type Offer {
   link &AggregateCAR
   src [URL]
   size number
-  commP string
 }
 
 type StorefrontDID string
