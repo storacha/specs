@@ -76,7 +76,7 @@ sequenceDiagram
 
 Once broker successfully gets an offer, the offer gets queued for review. A receipt is created to proof the transition of `aggregate/offer` state from `null` into `queued`.
 
-This receipt MUST contain a follow up task in the (`.fx.join` field) that is run when submitted request is processed. It MAY succeed (if aggregate was accepted) or fail (if aggregated was  determined to be invalid). The result of the subsequent task CAN be looked up using its receipt.
+This receipt MUST contain a follow up task in the (`.fx.join` field) that is run when submitted request is processed. It MAY succeed (if aggregate was accepted) or fail (if aggregated was determined to be invalid). The result of the subsequent task CAN be looked up using its receipt.
 
 ### Broker reviews and handles the offer
 
@@ -126,9 +126,9 @@ A Storefront principal can invoke a capabilty to submit an aggregate ready for o
     "can": "aggregate/offer",
     "nb": {
       "offer": {
-        "link": "bagy...aggregate",
+        "link": "bafy...aggregate",
         "size": 110101,
-        "src": ["https://w3s.link/ipfs/bagy...aggregate"]
+        "src": ["https://w3s.link/ipfs/bafy...aggregate"]
       }
     }
   }],
@@ -137,15 +137,17 @@ A Storefront principal can invoke a capabilty to submit an aggregate ready for o
 }
 ```
 
-This capability is invoked to submit a request to a broker service when an aggregate is ready for a Filecoin deal. The `nb.offer.link` is the CAR CID that refers to a "Ferry" aggregate, a collection of dag-cbor blocks with format:
+This capability is invoked to submit a request to a broker service when an aggregate is ready for a Filecoin deal. The `nb.offer.link` is the DAG-CBOR CID that refers to a "Ferry" aggregate. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregate. Its format is:
 
 ```json
-{
-  "link": "bag...",
-  "size": 110101,
-  "commP": "commP...",
-  "src": ["https://.../bag(...).car"]
-}
+[
+  {
+    "link": "bag...",
+    "size": 110101,
+    "commP": "commP...",
+    "src": ["https://.../bag(...).car"]
+  } 
+]
 ```
 
 A `src` with URLs to fetch the aggregate offer is provided. In addition, the total `size` of every CAR within it is provided, both for convenience and consistency with the dag-cbor blocks.
@@ -169,8 +171,6 @@ A receipt will be generated to acknowledge the received request. This receipt MU
 }
 ```
 
-Open questions:
-
 ### `aggregate/get`
 
 A Storefront principal can invoke a capability to get state of an accepted aggregate.
@@ -185,7 +185,7 @@ A Storefront principal can invoke a capability to get state of an accepted aggre
     "with": "did:web:web3.storage",
     "can": "aggregate/get",
     "nb": {
-      "link": "bagy...aggregate",
+      "link": "bafy...aggregate",
     }
   }],
   "prf": [],
@@ -237,7 +237,7 @@ When a broker receives an `aggregate/offer` invocation from a Storefront Princip
     "with": "did:web:spade.storage",
     "can": "offer/review",
     "nb": {
-      "link": "bagy...aggregate",
+      "link": "bafy...aggregate",
     }
   }],
   "prf": [],
