@@ -246,7 +246,7 @@ Once this invocation is executed, a receipt is generated with the aggregate info
 }
 ```
 
-### `offer/review`
+### `offer/arrange`
 
 When a broker receives an `aggregate/offer` invocation from a Storefront Principal, an [Effect](https://github.com/ucan-wg/invocation/#7-effect) for this submission is created with join task to be performed asynchronously.
 
@@ -256,7 +256,7 @@ When a broker receives an `aggregate/offer` invocation from a Storefront Princip
   "aud": "did:web:web3.storage",
   "att": [{
     "with": "did:web:spade.storage",
-    "can": "offer/review",
+    "can": "offer/arrange",
     "nb": {
       "link": "bafy...aggregate",
     }
@@ -270,7 +270,7 @@ Once this invocation is executed, a receipt is generated with the status of the 
 
 ```json
 {
-  "ran": "bafy...review",
+  "ran": "bafy...arrange",
   "out": {
     "ok": {
        "link": "bafy...aggregate"
@@ -356,12 +356,12 @@ type StorefrontDID string
 type URL string
 type AggregateCAR any
 type OfferCapability union {
-  OfferReview "offer/review"
+  OfferArrange "offer/arrange"
 } representation inline {
   discriminantKey "can"
 }
 
-type OfferReview struct {
+type OfferArrange struct {
   with BrokerDID nb AggregateRef
 }
 
