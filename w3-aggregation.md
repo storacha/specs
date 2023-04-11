@@ -56,11 +56,11 @@ A Storefront is the entry point for user/application data into web3. It will act
 
 ### Authorization
 
-Broker MUST have an authorization mechanism for allowed Storefront principals (e.g. web3.storage). Either by out-of-bound exchange of information or through a well defined API. In other words, broker can authorize invocations from `did:web:web3.storage` by validating signature from did. This way, it allows web3.storage to rotate keys without having to coordinate with the broker.
+Broker MUST have an authorization mechanism for allowed Storefront principals (e.g. web3.storage). Either by out-of-bound exchange of information or through a well defined API. In other words, broker can authorize invocations from `did:web:web3.storage` by validating signature from did. This way, it allows web3.storage to rotate keys and/or re-delegate access without having to coordinate with the broker.
 
 ### Storefront offers broker an aggregate
 
-When a Storefront has enough content to fulfill an aggregate (each broker MAY have different requirements), a Filecoin deal for an aggregate SHALL be requested by a `aggregate/offer` invocations. Deal negotiations with Filecoin Storage Providers will be handled out off band. Broker SHOULD generate a receipt to acknowledge the received request.
+When a Storefront has enough content to fulfill an aggregate (each broker MAY have different requirements), a Filecoin deal for an aggregate MAY be requested by an `aggregate/offer` invocation. Deal negotiations with Filecoin Storage Providers SHOULD be handled out off band. Broker MUST acknowledge a request by issuing a signed receipt.
 
 ```mermaid
 sequenceDiagram
@@ -76,7 +76,9 @@ sequenceDiagram
 
 Once broker successfully gets an offer, the offer gets queued for review. A receipt is created to proof the transition of `aggregate/offer` state from `null` into `queued`.
 
-This receipt MUST contain a follow up task in the (`.fx.join` field) that is run when submitted request is processed. It MAY succeed (if aggregate was accepted) or fail (if aggregated was determined to be invalid). The result of the subsequent task CAN be looked up using its receipt.
+This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if aggregate was accepted) or fails (if aggregated was determined to be invalid) so that it's receipt COULD be looked up using it.
+
+> Note: Aggregator MAY have several intermediate steps and states it transitions though,  however those intentionally are not captured by this protocol, because storefront will take no action until success / failure condition is met.
 
 ### Broker reviews and handles the offer
 
