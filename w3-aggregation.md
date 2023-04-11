@@ -82,7 +82,7 @@ This receipt MUST have link to a followup task (using `.fx.join` field) that eit
 
 ### Broker reviews and handles the offer
 
-When a broker dequeues the offer from the queue, its details are retrived from the provided source URL. With the offer details, the broker will interact with available Filecoin Storage Providers, in order to establish a previously determined (out of band) number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of `aggregate/offer` state from `queued` into `accepted` or `denied`.
+When a broker dequeues the offer from the queue, its details are retrieved from the provided source URL. With the offer details, the broker will interact with available Filecoin Storage Providers, in order to establish a previously determined (out of band) number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of `aggregate/offer` state from `queued` into `accepted` or `denied`.
 
 ```mermaid
 sequenceDiagram
@@ -195,7 +195,7 @@ A receipt will be generated to acknowledge the received request. This receipt MU
 
 ### `aggregate/get`
 
-A Storefront principal can invoke a capability to get state of an accepted aggregate.
+A Storefront principal can invoke a capability to get state of a previously accepted aggregate.
 
 > `did:web:web3.storage` invokes capability from `did:web:spade.storage`
 
