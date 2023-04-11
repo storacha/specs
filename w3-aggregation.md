@@ -74,7 +74,7 @@ sequenceDiagram
 
 ### Broker queues the offer
 
-Once broker successfully gets an offer, the offer gets queued for review. A receipt is created to proof the transition of `aggregate/offer` state from `null` into `queued`.
+Once broker successfully gets an offer, the offer gets queued for review. A receipt is created to proof the transition of `aggregate/offer` state from `null` into `queued`. It is worth mentioning that if an offer is from an aggregate that is already `queued` or `complete` it is ignored.
 
 This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if aggregate was accepted) or fails (if aggregated was determined to be invalid) so that it's receipt COULD be looked up using it.
 
@@ -82,7 +82,7 @@ This receipt MUST have link to a followup task (using `.fx.join` field) that eit
 
 ### Broker reviews and handles the offer
 
-When a broker dequeues the offer from the queue, the offer details MUST be retrievable. With the offer details, the broker will interact with available Filecoin Storage Providers, in order to establish a previously determined number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of `aggregate/offer` state from `queued` into `accepted` or `denied`.
+When a broker dequeues the offer from the queue, its details are retrived from the provided source URL. With the offer details, the broker will interact with available Filecoin Storage Providers, in order to establish a previously determined (out of band) number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of `aggregate/offer` state from `queued` into `accepted` or `denied`.
 
 ```mermaid
 sequenceDiagram
@@ -93,7 +93,7 @@ sequenceDiagram
     Authority-->>Storefront: receipt issued
 ```
 
-Once offer is accepted broker takes care of arranging and renewing deals.
+Once offer gets into `accepted` state, broker takes care of renewing deals.
 
 ### Storefront can query state of the aggregate deals
 
@@ -164,10 +164,10 @@ This capability is invoked to submit a request to a broker service when an aggre
 ```json
 [
   {
-    "link": "bag...",
+    "link": "bafy...",
     "size": 110101,
     "commP": "commP...",
-    "src": ["https://.../bag(...).car"]
+    "src": ["https://.../bafy(...)"]
   } 
 ]
 ```
@@ -222,9 +222,8 @@ Once this invocation is executed, a receipt is generated with the aggregate info
   "ran": "bafy...get",
   "out": {
     "ok": {
-      "deals": [
-        {
-          "dealId": 111,
+      "deals": {
+        "111": {
           "storageProvider": "f07...",
           "status": "Active",
           "pieceCid": "bag...",
@@ -235,7 +234,7 @@ Once this invocation is executed, a receipt is generated with the aggregate info
           "created": "2023-04-11T17:57:30.522198+00:00",
           "updated": "2024-04-12T03:42:26.928993+00:00"
         }
-      ]
+      }
     },
   },
   "fx": {
@@ -267,14 +266,13 @@ When a broker receives an `aggregate/offer` invocation from a Storefront Princip
 }
 ```
 
-Once this invocation is executed, a receipt is generated with the status of the task updated. Accepted aggregate receipt will provide aggregate status info:
+Once this invocation is executed, a receipt is generated with the status of the task updated. Accepted aggregate receipt will provide aggregate offer operation info:
 
 ```json
 {
   "ran": "bafy...review",
   "out": {
     "ok": {
-       "status": "accepted",
        "link": "bafy...aggregate"
     }
   },
@@ -294,7 +292,6 @@ If offered aggregate is invalid, details on failing commPs are also reported:
   "ran": "bafy...invocation",
   "out": {
     "error": {
-      "status": "rejected",
       "link": "bafy...aggregate",
       "cause": [{
         "commP": "commP",
