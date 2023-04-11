@@ -314,10 +314,11 @@ If offered aggregate is invalid, details on failing commPs are also reported:
 ### Schema
 
 ```ipldsch
-type Aggregate =
-  { "status": "queued", link: Link } |
-  { "status": "accepted", link: Link } |
-  { "status": "rejected", link: Link }
+type Aggregate union {
+  | Link "queued"
+  | Link "status"
+  | Link "rejected"
+} representation keyed
 
 type AggregateCapability enum {
   AggregateOffer "aggregate/offer"
