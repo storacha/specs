@@ -117,6 +117,26 @@ In this document, we will be looking at `spade.storage` as an implementer of the
 
 A Storefront principal can invoke a capabilty to submit an aggregate ready for offers.
 
+```iplsch
+type AggregateOffer union {
+  Aggregate  "aggregate/offer"
+} representation inline {
+  discriminantKey "can"
+}
+
+type Offer struct {
+  with   StorefrontDID
+  offer  { CARLink: OfferDetails }
+}
+
+type struct OfferDetails {
+    size        Int
+    commP       Bytes
+    src         [URL]
+}
+
+type CARLink string
+
 > `did:web:web3.storage` invokes capability from `did:web:spade.storage`
 
 ```json
