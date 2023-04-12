@@ -136,6 +136,7 @@ type struct OfferDetails {
 }
 
 type CARLink string
+```
 
 > `did:web:web3.storage` invokes capability from `did:web:spade.storage`
 
