@@ -160,7 +160,7 @@ type CARLink string
 }
 ```
 
-This capability is invoked to submit a request to a broker service when an offer is ready for a Filecoin deal. The `nb.offer.link` is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregated deal. Its format is:
+Invoking `aggregate/offer` capability submits an offer to a broker service to arrange a Filecoin deals. The `nb.offer` representing a "Ferry" aggregate offer that is ready for a Filecoin deal. The `link` field is  the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregated deal. Its format is:
 
 ```json
 [
@@ -173,9 +173,9 @@ This capability is invoked to submit a request to a broker service when an offer
 ]
 ```
 
-A `src` with URLs to fetch the offer is provided. In addition, the total `size` of every CAR within it is provided, both for convenience and consistency with the dag-cbor blocks.
+The `src` field of each piece MUST be set to a (alphabetically sorted) list of URLs from which it can be fetched. The `size` field of each piece MUST be set to the byte size of the combined CAR files.
 
-A receipt will be generated to acknowledge the received request. This receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted offer is processed and either succeeds (implying that offer was accepted and deals will be arranged) or fail (with `error` describing a problem with an offer)
+Broker MUST issue a signed receipt to acknowledge the received request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with an aggregate).
 
 ```json
 {
