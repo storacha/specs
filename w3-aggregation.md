@@ -194,6 +194,8 @@ Broker MUST issue a signed receipt to acknowledge the received request. Issued r
 }
 ```
 
+See [`offer/arrange`](#offerarrange) section to see the subsequent task.
+
 ### `aggregate/get`
 
 A Storefront principal can invoke a capability to get state of a previously accepted offer.
