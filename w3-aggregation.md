@@ -149,9 +149,9 @@ type CARLink string
     "can": "aggregate/offer",
     "nb": {
       "offer": {
-        "link": "bafy...aggregate",
+        "link": "bafy...offer",
         "size": 110101,
-        "src": ["https://w3s.link/ipfs/bafy...aggregate"]
+        "src": ["https://w3s.link/ipfs/bafy...offer"]
       }
     }
   }],
@@ -160,7 +160,7 @@ type CARLink string
 }
 ```
 
-This capability is invoked to submit a request to a broker service when an aggregate is ready for a Filecoin deal. The `nb.offer.link` is the DAG-CBOR CID that refers to a "Ferry" aggregate. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregate. Its format is:
+This capability is invoked to submit a request to a broker service when an offer is ready for a Filecoin deal. The `nb.offer.link` is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregated deal. Its format is:
 
 ```json
 [
@@ -173,9 +173,9 @@ This capability is invoked to submit a request to a broker service when an aggre
 ]
 ```
 
-A `src` with URLs to fetch the aggregate offer is provided. In addition, the total `size` of every CAR within it is provided, both for convenience and consistency with the dag-cbor blocks.
+A `src` with URLs to fetch the offer is provided. In addition, the total `size` of every CAR within it is provided, both for convenience and consistency with the dag-cbor blocks.
 
-A receipt will be generated to acknowledge the received request. This receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with an aggregate)
+A receipt will be generated to acknowledge the received request. This receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted offer is processed and either succeeds (implying that offer was accepted and deals will be arranged) or fail (with `error` describing a problem with an offer)
 
 ```json
 {
@@ -196,7 +196,7 @@ A receipt will be generated to acknowledge the received request. This receipt MU
 
 ### `aggregate/get`
 
-A Storefront principal can invoke a capability to get state of a previously accepted aggregate.
+A Storefront principal can invoke a capability to get state of a previously accepted offer.
 
 > `did:web:web3.storage` invokes capability from `did:web:spade.storage`
 
@@ -208,7 +208,7 @@ A Storefront principal can invoke a capability to get state of a previously acce
     "with": "did:web:web3.storage",
     "can": "aggregate/get",
     "nb": {
-      "link": "bafy...aggregate",
+      "link": "bafy...offer",
     }
   }],
   "prf": [],
@@ -216,7 +216,7 @@ A Storefront principal can invoke a capability to get state of a previously acce
 }
 ```
 
-Once this invocation is executed, a receipt is generated with the aggregate information:
+Once this invocation is executed, a receipt is generated with the resulting aggregate information:
 
 ```json
 {
@@ -259,7 +259,7 @@ When a broker receives an `aggregate/offer` invocation from a Storefront Princip
     "with": "did:web:spade.storage",
     "can": "offer/arrange",
     "nb": {
-      "link": "bafy...aggregate",
+      "link": "bafy...offer",
     }
   }],
   "prf": [],
@@ -274,7 +274,7 @@ Once this invocation is executed, a receipt is generated with the status of the 
   "ran": "bafy...arrange",
   "out": {
     "ok": {
-       "link": "bafy...aggregate"
+       "link": "bafy...offer"
     }
   },
   "fx": {
@@ -293,7 +293,7 @@ If offered aggregate is invalid, details on failing commPs are also reported:
   "ran": "bafy...invocation",
   "out": {
     "error": {
-      "link": "bafy...aggregate",
+      "link": "bafy...offer",
       "cause": [{
         "commP": "commP",
         "reason": "reasonCode",
