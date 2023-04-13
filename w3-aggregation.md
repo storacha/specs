@@ -131,7 +131,7 @@ type Offer struct {
 
 type struct OfferDetails {
     size        Int
-    commP       Bytes
+    link        String
     src         [URL]
 }
 
@@ -333,11 +333,11 @@ type AggregateGet struct {
 }
 
 type SucceedAggregateRef struct {
-  link &AggregateCAR
+  link &AggregateCBOR
 }
 
 type AggregateRef struct {
-  link &AggregateCAR
+  link &AggregateCBOR
 }
 
 type AggregateOffer struct {
@@ -350,14 +350,14 @@ type AggregateOfferDetail struct {
 }
 
 type Offer {
-  link &AggregateCAR
+  link &AggregateCBOR
   src [URL]
   size number
 }
 
 type StorefrontDID string
 type URL string
-type AggregateCAR any
+type AggregateCBOR any
 type OfferCapability union {
   OfferArrange "offer/arrange"
 } representation inline {
