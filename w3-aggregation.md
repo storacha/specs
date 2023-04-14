@@ -118,24 +118,25 @@ In this document, we will be looking at `spade.storage` as an implementer of the
 A Storefront principal can invoke a capabilty to submit an aggregate ready for offers.
 
 ```iplsch
-type AggregateOffer union {
-  Aggregate  "aggregate/offer"
-} representation inline {
-  discriminantKey "can"
+type AggregateOffer struct {
+  with StorefrontDID
+  nb AggregateOfferDetail
 }
 
-type Offer struct {
-  with   StorefrontDID
-  offer  { CARLink: OfferDetails }
+type AggregateOfferDetail struct {
+  offer: OfferCBOR
 }
+
+type OfferCBOR any
 
 type struct OfferDetails {
     size        Int
-    link        String
+    archive     Archive
     src         [URL]
+    proof       Proof
 }
 
-type CARLink string
+type Offer [OfferDetails]
 ```
 
 > `did:web:web3.storage` invokes capability from `did:web:spade.storage`
@@ -145,14 +146,10 @@ type CARLink string
   "iss": "did:web:web3.storage",
   "aud": "did:web:spade.storage",
   "att": [{
-    "with": "did:web:web3.storage",
+    "with": "did:web:spade.storage",
     "can": "aggregate/offer",
     "nb": {
-      "offer": {
-        "link": "bafy...offer",
-        "size": 110101,
-        "src": ["https://w3s.link/ipfs/bafy...offer"]
-      }
+      "offer": { "/": "bafy...many-cars" } /* dag-cbor CID */
     }
   }],
   "prf": [],
@@ -160,20 +157,23 @@ type CARLink string
 }
 ```
 
-Invoking `aggregate/offer` capability submits an offer to a broker service to arrange a Filecoin deals. The `nb.offer` representing a "Ferry" aggregate offer that is ready for a Filecoin deal. The `link` field is  the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregated deal. Its format is:
+Invoking `aggregate/offer` capability submits an offer to a broker service to arrange a Filecoin deals. The `nb.offer` represents a "Ferry" aggregate offer that is ready for a Filecoin deal. Its value is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregated deal. This block MUST be included in CAR file that transports the invocation. Its format is:
 
 ```json
-[
-  {
-    "link": "bafy...",
+/* decoded offers block */
+[ {
+    "archive": { "/": "bag...file0" }, /* CAR CID */
     "size": 110101,
-    "commP": "commP...",
-    "src": ["https://.../bafy(...)"]
-  } 
+    "proof": { "/": "bag...file0" }, /* COMMP CID */
+    "src": ["https://w3s.link/ipfs/bag...file0"]
+  },
+  {
+    /* ... */
+  }
 ]
 ```
 
-The `src` field of each piece MUST be set to a (alphabetically sorted) list of URLs from which it can be fetched. The `size` field of each piece MUST be set to the byte size of the combined CAR files.
+Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. The `archive` field has the CAR cid, while the `proof` field has the required `proof` bytes by Storage Providers (for example, `commP`). The `src` field of each piece MUST be set to a (alphabetically sorted) list of URLs from which it can be fetched. The `size` field MUST be set to the byte size of the CAR file.
 
 Broker MUST issue a signed receipt to acknowledge the received request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with an aggregate).
 
@@ -346,14 +346,19 @@ type AggregateOffer struct {
 }
 
 type AggregateOfferDetail struct {
-  offer: Offer
+  offer: OfferCBOR
 }
 
-type Offer {
-  link &AggregateCBOR
-  src [URL]
-  size number
+type OfferCBOR any
+
+type struct OfferDetails {
+    size        Int
+    archive     Archive
+    src         [URL]
+    proof       Proof
 }
+
+type Offer [OfferDetails]
 
 type StorefrontDID string
 type URL string
