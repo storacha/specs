@@ -1,6 +1,6 @@
-# storage.service Specifications
+# w3up Specifications
 
-> This repository contains the specs for the .storage Protocol and associated subsystems.
+> This repository contains the specs for the w3up Protocol and associated subsystems.
 
 ## Understanding the meaning of the spec badges and their life cycle
 
