@@ -16,7 +16,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Abstract
 
-This specification describes a method of managing a [Merkle Clock](https://arxiv.org/pdf/2004.00107.pdf) via UCAN invocations. Specifically, we cover two capabilities: 
+This specification describes a method of managing a [Merkle Clock](https://arxiv.org/pdf/2004.00107.pdf) via UCAN invocations. Specifically, we cover two capabilities:
 
 1. Advancing a clock by adding a new event.
 2. Fetching the current head of the clock (the most recent event(s) as known to the clock).

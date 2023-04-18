@@ -94,3 +94,4 @@ flowAuthorityPrincipal
 capabilitiesVerifierComponent
 Verifier
 sudo
+merkle
