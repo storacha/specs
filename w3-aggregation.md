@@ -76,13 +76,13 @@ sequenceDiagram
 
 Once broker successfully gets an offer, the offer gets queued for review. A receipt is created to proof the transition of `aggregate/offer` state from `null` into `queued`. It is worth mentioning that if an offer is from an aggregate that is already `queued` or `complete` it is ignored.
 
-This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if aggregate was accepted) or fails (if aggregated was determined to be invalid) so that it's receipt COULD be looked up using it.
+This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if aggregate was added into a deal) or fails (if aggregate was determined to be invalid) so that it's receipt COULD be looked up using it.
 
-> Note: Aggregator MAY have several intermediate steps and states it transitions though,  however those intentionally are not captured by this protocol, because storefront will take no action until success / failure condition is met.
+> Note: Aggregator MAY have several intermediate steps and states it transitions through, however those intentionally are not captured by this protocol, because storefront will take no action until success / failure condition is met.
 
 ### Broker reviews and handles the offer
 
-When a broker dequeues the offer from the queue, its details are retrieved from the provided source URL. With the offer details, the broker will interact with available Filecoin Storage Providers, in order to establish a previously determined (out of band) number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of `aggregate/offer` state from `queued` into `accepted` or `denied`.
+After a broker dequeues the offer from the queue, it will interact with available Filecoin Storage Providers, in order to establish a previously determined (out of band) number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of `aggregate/offer` state from `queued` into `accepted` or `denied`.
 
 ```mermaid
 sequenceDiagram
@@ -94,6 +94,8 @@ sequenceDiagram
 ```
 
 Once offer gets into `accepted` state, broker takes care of renewing deals.
+
+It is worth pointing out that Broker might request out of bound signature to Storefront to validate the terms of a deal.
 
 ### Storefront can query state of the aggregate deals
 
@@ -124,16 +126,18 @@ type AggregateOffer struct {
 }
 
 type AggregateOfferDetail struct {
-  offer: OfferCBOR
+  offer OfferCBOR
+  commitmentProof Proof
 }
 
 type OfferCBOR any
+type Proof any
 
 type struct OfferDetails {
-    size        Int
-    archive     Archive
-    src         [URL]
-    proof       Proof
+    size Int
+    link Link
+    src [URL]
+    commitmentProof Proof
 }
 
 type Offer [OfferDetails]
@@ -149,7 +153,8 @@ type Offer [OfferDetails]
     "with": "did:web:spade.storage",
     "can": "aggregate/offer",
     "nb": {
-      "offer": { "/": "bafy...many-cars" } /* dag-cbor CID */
+      "offer": { "/": "bafy...many-cars" }, /* dag-cbor CID */
+      "commitmentProof": { "/": "commitment...cars-proof" } /* commitment proof */
     }
   }],
   "prf": [],
@@ -160,11 +165,11 @@ type Offer [OfferDetails]
 Invoking `aggregate/offer` capability submits an offer to a broker service to arrange a Filecoin deals. The `nb.offer` represents a "Ferry" aggregate offer that is ready for a Filecoin deal. Its value is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregated deal. This block MUST be included in CAR file that transports the invocation. Its format is:
 
 ```json
-/* decoded offers block */
+/* decoded offers block as OfferDetails type */
 [ {
-    "archive": { "/": "bag...file0" }, /* CAR CID */
+    "link": { "/": "bag...file0" }, /* CAR CID */
     "size": 110101,
-    "proof": { "/": "bag...file0" }, /* COMMP CID */
+    "commitmentProof": { "/": "commitment...car0" }, /* COMMP CID */
     "src": ["https://w3s.link/ipfs/bag...file0"]
   },
   {
@@ -173,7 +178,7 @@ Invoking `aggregate/offer` capability submits an offer to a broker service to ar
 ]
 ```
 
-Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. The `archive` field has the CAR CID, while the `proof` field has the required `proof` bytes by Storage Providers (for example, `commP`). The `src` field of each piece MUST be set to a (alphabetically sorted) list of URLs from which it can be fetched. The `size` field MUST be set to the byte size of the CAR file.
+Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. The `link` field has the CAR CID, while the `commitmentProof` field has the required `proof` bytes by Storage Providers (for example, `commP`). The `src` field of each piece MUST be set to a (alphabetically sorted) list of URLs from which it can be fetched. The `size` field MUST be set to the byte size of the CAR file.
 
 Broker MUST issue a signed receipt to acknowledge the received request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with an aggregate).
 
@@ -210,7 +215,7 @@ A Storefront principal can invoke a capability to get state of a previously acce
     "with": "did:web:web3.storage",
     "can": "aggregate/get",
     "nb": {
-      "link": "bafy...offer",
+      "commitmentProof": { "/": "commitment...cars-proof" } /* commitment proof */
     }
   }],
   "prf": [],
@@ -261,7 +266,7 @@ When a broker receives an `aggregate/offer` invocation from a Storefront Princip
     "with": "did:web:spade.storage",
     "can": "offer/arrange",
     "nb": {
-      "link": "bafy...offer",
+      "commitmentProof": { "/": "commitment...cars-proof" } /* commitment proof */
     }
   }],
   "prf": [],
@@ -269,14 +274,14 @@ When a broker receives an `aggregate/offer` invocation from a Storefront Princip
 }
 ```
 
-Once this invocation is executed, a receipt is generated with the status of the task updated. Accepted aggregate receipt will provide aggregate offer operation info:
+Once this invocation is executed, a receipt is generated with the result of the task. Accepted aggregate receipt looks like:
 
 ```json
 {
   "ran": "bafy...arrange",
   "out": {
     "ok": {
-       "link": "bafy...offer"
+       "commitmentProof": { "/": "commitment...cars-proof" } /* commitment proof */
     }
   },
   "fx": {
@@ -288,16 +293,16 @@ Once this invocation is executed, a receipt is generated with the status of the 
 }
 ```
 
-If offered aggregate is invalid, details on failing commPs are also reported:
+If offered aggregate is invalid, details on failing commitmentProofs are also reported:
 
 ```json
 {
   "ran": "bafy...invocation",
   "out": {
     "error": {
-      "link": "bafy...offer",
+      "commitmentProof": { "/": "commitment...cars-proof" } /* commitment proof */
       "cause": [{
-        "commP": "commP",
+        "commitmentProof": { "/": "commitment...car0" },
         "reason": "reasonCode",
       }],
     },
@@ -333,11 +338,11 @@ type AggregateGet struct {
 }
 
 type SucceedAggregateRef struct {
-  link &AggregateCBOR
+  commitmentProof Proof
 }
 
 type AggregateRef struct {
-  link &AggregateCBOR
+  commitmentProof Proof
 }
 
 type AggregateOffer struct {
@@ -346,23 +351,27 @@ type AggregateOffer struct {
 }
 
 type AggregateOfferDetail struct {
-  offer: OfferCBOR
+  offer OfferCBOR
+  commitmentProof Proof
 }
 
 type OfferCBOR any
+type Proof any
 
 type struct OfferDetails {
-    size        Int
-    archive     Archive
-    src         [URL]
-    proof       Proof
+    size Int
+    link Link
+    src [URL]
+    commitmentProof Proof
 }
 
 type Offer [OfferDetails]
 
 type StorefrontDID string
 type URL string
-type AggregateCBOR any
+type OfferCBOR any
+type Proof any
+
 type OfferCapability union {
   OfferArrange "offer/arrange"
 } representation inline {
