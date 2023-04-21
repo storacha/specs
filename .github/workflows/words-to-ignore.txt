@@ -101,3 +101,4 @@ commPs
 dag-cbor
 NameDescriptionStorefrontPrincipal
 w3upAuthorityPrincipal
+commitmentProofs
