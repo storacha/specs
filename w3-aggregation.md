@@ -56,11 +56,11 @@ A Storefront is the entry point for user/application data into web3. It will act
 
 ### Authorization
 
-Broker MUST have an authorization mechanism for allowed Storefront principals (e.g. web3.storage). Either by out-of-bound exchange of information or through a well defined API. In other words, broker can authorize invocations from `did:web:web3.storage` by validating signature from did. This way, it allows web3.storage to rotate keys and/or re-delegate access without having to coordinate with the broker.
+Broker MUST have an authorization mechanism for allowed Storefront principals (e.g. web3.storage). Either by out-of-band exchange of information or through a well defined API. In other words, a broker can authorize invocations from `did:web:web3.storage` by validating the signature is from the DID. This way, it allows web3.storage to rotate keys and/or re-delegate access without having to coordinate with the broker.
 
 ### Storefront offers broker an aggregate
 
-When a Storefront has enough content to fulfill an aggregate (each broker MAY have different requirements), a Filecoin deal for an aggregate MAY be requested by an `aggregate/offer` invocation. Deal negotiations with Filecoin Storage Providers SHOULD be handled out off band. Broker MUST acknowledge a request by issuing a signed receipt.
+When a Storefront has enough content to fulfill an aggregate (each broker MAY have different requirements), a Filecoin deal for an aggregate MAY be requested by an `aggregate/offer` invocation. Deal negotiations with Filecoin Storage Providers SHOULD be handled out-of-band. A broker MUST acknowledge a request by issuing a signed receipt.
 
 ```mermaid
 sequenceDiagram
@@ -72,17 +72,17 @@ sequenceDiagram
     Authority-->>Storefront: receipt issued
 ```
 
-### Broker queues the offer
+### Broker queues the aggregate
 
-Once broker successfully gets an offer, the offer gets queued for review. A receipt is created to proof the transition of `aggregate/offer` state from `null` into `queued`. It is worth mentioning that if an offer is from an aggregate that is already `queued` or `complete` it is ignored.
+Once a broker successfully receives the offer of an aggregate, the aggregate gets queued for review. A receipt is created to proof the transition of the offered aggregate state from `null` into `queued`. It is worth mentioning that if an offer is for an aggregate that is already `queued` or `complete` it is ignored.
 
-This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if aggregate was added into a deal) or fails (if aggregate was determined to be invalid) so that it's receipt COULD be looked up using it.
+This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if the aggregate was added into a deal) or fails (if the aggregate was determined to be invalid) so that it's receipt COULD be looked up using it.
 
 > Note: Aggregator MAY have several intermediate steps and states it transitions through, however those intentionally are not captured by this protocol, because storefront will take no action until success / failure condition is met.
 
-### Broker reviews and handles the offer
+### Broker reviews and handles the aggregate
 
-After a broker dequeues the offer from the queue, it will interact with available Filecoin Storage Providers, in order to establish a previously determined (out of band) number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of `aggregate/offer` state from `queued` into `accepted` or `denied`.
+After a broker dequeues the aggregate, it will interact with available Filecoin Storage Providers, in order to establish a previously determined (out of band) number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of the aggregate state from `queued` into `accepted` or `rejected`.
 
 ```mermaid
 sequenceDiagram
@@ -93,9 +93,9 @@ sequenceDiagram
     Authority-->>Storefront: receipt issued
 ```
 
-Once offer gets into `accepted` state, broker takes care of renewing deals.
+If the aggregate reaches the `accepted` state, the broker takes care of renewing deals.
 
-It is worth pointing out that Broker might request out of bound signature to Storefront to validate the terms of a deal.
+The broker MAY request an out of bound signature from the Storefront to validate the terms of a deal.
 
 ### Storefront can query state of the aggregate deals
 
@@ -117,7 +117,7 @@ In this document, we will be looking at `spade.storage` as an implementer of the
 
 ### `aggregate/offer`
 
-A Storefront principal can invoke a capabilty to submit an aggregate ready for offers.
+A Storefront principal can invoke a capabilty to offer an aggregate that is ready to be included in Filecoin deal(s).
 
 ```iplsch
 type AggregateOffer struct {
@@ -162,11 +162,12 @@ type Offer [OfferDetails]
 }
 ```
 
-Invoking `aggregate/offer` capability submits an offer to a broker service to arrange a Filecoin deals. The `nb.offer` represents a "Ferry" aggregate offer that is ready for a Filecoin deal. Its value is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregated deal. This block MUST be included in CAR file that transports the invocation. Its format is:
+Invoking `aggregate/offer` capability submits an aggregate to a broker service for inclusion in one or more Filecoin deals. The `nb.offer` field represents a "Ferry" aggregate offer that is ready for a Filecoin deal. Its value is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregated deal. This block MUST be included in the CAR file that transports the invocation. Its format is:
 
 ```json
-/* decoded offers block as OfferDetails type */
-[ {
+/* offers block as OfferDetails type, encoded as DAG-JSON (for readability) */
+[
+  {
     "link": { "/": "bag...file0" }, /* CAR CID */
     "size": 110101,
     "commitmentProof": { "/": "commitment...car0" }, /* COMMP CID */
@@ -180,7 +181,7 @@ Invoking `aggregate/offer` capability submits an offer to a broker service to ar
 
 Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. The `link` field has the CAR CID, while the `commitmentProof` field has the required `proof` bytes by Storage Providers (for example, `commP`). The `src` field of each piece MUST be set to a (alphabetically sorted) list of URLs from which it can be fetched. The `size` field MUST be set to the byte size of the CAR file.
 
-Broker MUST issue a signed receipt to acknowledge the received request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with an aggregate).
+Broker MUST issue a signed receipt to acknowledge the received request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with the aggregate).
 
 ```json
 {
