@@ -179,7 +179,7 @@ Invoking `aggregate/offer` capability submits an aggregate to a broker service f
 ]
 ```
 
-Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. The `link` field has the CAR CID, while the `commitmentProof` field has the required `proof` bytes by Storage Providers (for example, `commP`). The `src` field of each piece MUST be set to a (alphabetically sorted) list of URLs from which it can be fetched. The `size` field MUST be set to the byte size of the CAR file.
+Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. The `link` field has the CAR CID, while the `commitmentProof` field has the required `proof` bytes by Storage Providers (for example, `commP`). The `size` field MUST be set to the byte size of the CAR file. The `src` field of each piece MUST be set to a (alphabetically sorted) list of URLs from which it can be fetched. Note that `src` field is optional and can be provided in a different part of the flow such as when deal is signed or through a previously agreed API.
 
 Broker MUST issue a signed receipt to acknowledge the received request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with the aggregate).
 
@@ -362,7 +362,7 @@ type Proof any
 type struct OfferDetails {
     size Int
     link Link
-    src [URL]
+    src? [URL]
     commitmentProof Proof
 }
 
