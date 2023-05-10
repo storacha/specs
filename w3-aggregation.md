@@ -31,7 +31,7 @@ There are several roles in the authorization flow:
 | Name        | Description |
 | ----------- | ----------- |
 | Storefront | [Principal] identified by [`did:web`] identifier, representing a storage aggregator like w3up |
-| Authority   | [Principal] that represents service provider that executes invoked capabilities |
+| Authority   | [Principal] that represents the service provider that executes invoked capabilities |
 | Verifier   | Component of the [authority] that performs UCAN validation |
 
 ### Storefront
@@ -56,7 +56,7 @@ A Storefront is the entry point for user/application data into web3. It will act
 
 ### Authorization
 
-Broker MUST have an authorization mechanism for allowed Storefront principals (e.g. web3.storage). Either by out-of-band exchange of information or through a well defined API. In other words, a broker can authorize invocations from `did:web:web3.storage` by validating the signature is from the DID. This way, it allows web3.storage to rotate keys and/or re-delegate access without having to coordinate with the broker.
+Broker MUST have an authorization mechanism for allowed Storefront principals (e.g. web3.storage). Either by out-of-band exchange of information or through a well defined API. For example, a broker can authorize invocations from `did:web:web3.storage` by validating the signature is from the DID. This way, it allows web3.storage to rotate keys and/or re-delegate access without having to coordinate with the broker.
 
 ### Storefront offers broker an aggregate
 
