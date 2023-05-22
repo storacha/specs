@@ -95,3 +95,11 @@ capabilitiesVerifierComponent
 Verifier
 sudo
 merkle
+Filecoin
+Storefront
+capabilty
+commPs
+dag-cbor
+NameDescriptionStorefrontPrincipal
+w3upAuthorityPrincipal
+commitmentProofs
