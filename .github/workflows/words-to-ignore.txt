@@ -94,6 +94,7 @@ flowAuthorityPrincipal
 capabilitiesVerifierComponent
 Verifier
 sudo
+merkle
 Filecoin
 Storefront
 capabilty
