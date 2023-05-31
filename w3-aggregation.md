@@ -150,7 +150,7 @@ type Offer [OfferDetails]
   "iss": "did:web:web3.storage",
   "aud": "did:web:spade.storage",
   "att": [{
-    "with": "did:web:spade.storage",
+    "with": "did:web:web3.storage",
     "can": "aggregate/offer",
     "nb": {
       "offer": { "/": "bafy...many-cars" }, /* dag-cbor CID */
