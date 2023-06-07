@@ -127,7 +127,7 @@ type AggregateOffer struct {
 
 type AggregateOfferDetail struct {
   offer OfferCBOR
-  segment Proof
+  segment Link
 }
 
 type OfferCBOR any
@@ -344,11 +344,11 @@ type AggregateGet struct {
 }
 
 type SucceedAggregateRef struct {
-  segment Proof
+  segment Link
 }
 
 type AggregateRef struct {
-  segment Proof
+  segment Link
 }
 
 type AggregateOffer struct {
@@ -358,7 +358,7 @@ type AggregateOffer struct {
 
 type AggregateOfferDetail struct {
   offer OfferCBOR
-  segment Proof
+  segment Link
 }
 
 type OfferCBOR any
@@ -379,7 +379,6 @@ type Offer [ContentPiece]
 type StorefrontDID string
 type URL string
 type OfferCBOR any
-type Proof any
 
 type OfferCapability union {
   OfferArrange "offer/arrange"
