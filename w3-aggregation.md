@@ -127,20 +127,23 @@ type AggregateOffer struct {
 
 type AggregateOfferDetail struct {
   offer OfferCBOR
-  commitmentProof Proof
+  segment Proof
 }
 
 type OfferCBOR any
-type Proof any
 
-type struct OfferDetails {
-    size Int
-    link Link
-    src [URL]
-    commitmentProof Proof
+type Piece {
+  size Int
+  link Link
 }
 
-type Offer [OfferDetails]
+type struct ContentPiece {
+  piece Piece
+  link Link
+  src? [URL]
+}
+
+type Offer [ContentPiece]
 ```
 
 > `did:web:web3.storage` invokes capability from `did:web:spade.storage`
@@ -154,7 +157,7 @@ type Offer [OfferDetails]
     "can": "aggregate/offer",
     "nb": {
       "offer": { "/": "bafy...many-cars" }, /* dag-cbor CID */
-      "commitmentProof": { "/": "commitment...cars-proof" } /* commitment proof */
+      "segment": { "/": "commitment...cars-proof" } /* commitment proof */
     }
   }],
   "prf": [],
@@ -165,12 +168,14 @@ type Offer [OfferDetails]
 Invoking `aggregate/offer` capability submits an aggregate to a broker service for inclusion in one or more Filecoin deals. The `nb.offer` field represents a "Ferry" aggregate offer that is ready for a Filecoin deal. Its value is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregated deal. This block MUST be included in the CAR file that transports the invocation. Its format is:
 
 ```json
-/* offers block as OfferDetails type, encoded as DAG-JSON (for readability) */
+/* offers block as ContentPiece type, encoded as DAG-JSON (for readability) */
 [
   {
     "link": { "/": "bag...file0" }, /* CAR CID */
-    "size": 110101,
-    "commitmentProof": { "/": "commitment...car0" }, /* COMMP CID */
+    "piece": {
+      "link": { "/": "commitment...car0" }, /* COMMP CID */
+      "size": 110101,
+    },
     "src": ["https://w3s.link/ipfs/bag...file0"]
   },
   {
@@ -179,7 +184,7 @@ Invoking `aggregate/offer` capability submits an aggregate to a broker service f
 ]
 ```
 
-Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. The `link` field has the CAR CID, while the `commitmentProof` field has the required `proof` bytes by Storage Providers (for example, `commP`). The `size` field MUST be set to the byte size of the CAR file. The `src` field of each piece MUST be set to a (alphabetically sorted) list of URLs from which it can be fetched. Note that `src` field is optional and can be provided in a different part of the flow such as when deal is signed or through a previously agreed API.
+Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. The `link` field has the CAR CID, while the `piece` field has the `proof` required by Storage Providers (for example, `commP`). The `src` field of each piece MUST be set to a (alphabetically sorted) list of URLs from which it can be fetched. Note that `src` field is optional and can be provided in a different part of the flow such as when deal is signed or through a previously agreed API.
 
 Broker MUST issue a signed receipt to acknowledge the received request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with the aggregate).
 
@@ -216,7 +221,7 @@ A Storefront principal can invoke a capability to get state of a previously acce
     "with": "did:web:web3.storage",
     "can": "aggregate/get",
     "nb": {
-      "commitmentProof": { "/": "commitment...cars-proof" } /* commitment proof */
+      "segment": { "/": "commitment...cars-proof" } /* commitment proof */
     }
   }],
   "prf": [],
@@ -267,7 +272,7 @@ When a broker receives an `aggregate/offer` invocation from a Storefront Princip
     "with": "did:web:spade.storage",
     "can": "offer/arrange",
     "nb": {
-      "commitmentProof": { "/": "commitment...cars-proof" } /* commitment proof */
+      "segment": { "/": "commitment...cars-proof" } /* commitment proof */
     }
   }],
   "prf": [],
@@ -282,7 +287,7 @@ Once this invocation is executed, a receipt is generated with the result of the 
   "ran": "bafy...arrange",
   "out": {
     "ok": {
-       "commitmentProof": { "/": "commitment...cars-proof" } /* commitment proof */
+       "segment": { "/": "commitment...cars-proof" } /* commitment proof */
     }
   },
   "fx": {
@@ -294,16 +299,16 @@ Once this invocation is executed, a receipt is generated with the result of the 
 }
 ```
 
-If offered aggregate is invalid, details on failing commitmentProofs are also reported:
+If offered aggregate is invalid, details on failing pieces are also reported:
 
 ```json
 {
   "ran": "bafy...invocation",
   "out": {
     "error": {
-      "commitmentProof": { "/": "commitment...cars-proof" } /* commitment proof */
+      "segment": { "/": "commitment...cars-proof" }, /* commitment proof */
       "cause": [{
-        "commitmentProof": { "/": "commitment...car0" },
+        "piece": { "/": "commitment...car0" },
         "reason": "reasonCode",
       }],
     },
@@ -339,11 +344,11 @@ type AggregateGet struct {
 }
 
 type SucceedAggregateRef struct {
-  commitmentProof Proof
+  segment Proof
 }
 
 type AggregateRef struct {
-  commitmentProof Proof
+  segment Proof
 }
 
 type AggregateOffer struct {
@@ -353,20 +358,23 @@ type AggregateOffer struct {
 
 type AggregateOfferDetail struct {
   offer OfferCBOR
-  commitmentProof Proof
+  segment Proof
 }
 
 type OfferCBOR any
-type Proof any
 
-type struct OfferDetails {
-    size Int
-    link Link
-    src? [URL]
-    commitmentProof Proof
+type Piece {
+  size Int
+  link Link
 }
 
-type Offer [OfferDetails]
+type struct ContentPiece {
+    piece Piece
+    link Link
+    src? [URL]
+}
+
+type Offer [ContentPiece]
 
 type StorefrontDID string
 type URL string
