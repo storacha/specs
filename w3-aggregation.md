@@ -120,30 +120,33 @@ In this document, we will be looking at `spade-proxy.web3.storage` as an impleme
 A Storefront principal can invoke a capabilty to offer an aggregate that is ready to be included in Filecoin deal(s).
 
 ```iplsch
-type AggregateOffer struct {
-  with StorefrontDID
-  nb AggregateOfferDetail
-}
+# Segment a set of Piece CIDs
+# @see https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0058.md
+type Segment [&Piece]
 
-type AggregateOfferDetail struct {
-  offer OfferCBOR
-  segment Link
-}
-
-type OfferCBOR any
+type Offer [ContentPiece]
 
 type Piece {
-  size Int
+  # Size in nodes. For BLS12-381 (capacity 254 bits), must be >= 16. (16 * 8 = 128)
+  size Int # todo: does this make sense for segment?
   link Link
 }
 
 type struct ContentPiece {
   piece Piece
   link Link
-  src? [URL]
+  src optional [URL]
 }
 
-type Offer [ContentPiece]
+type AggregateOffer struct {
+  with StorefrontDID
+  nb AggregateOfferDetail
+}
+
+type AggregateOfferDetail struct {
+  offer &Offer
+  segment Segment
+}
 ```
 
 > `did:web:web3.storage` invokes capability from `did:web:spade.storage`
@@ -157,7 +160,10 @@ type Offer [ContentPiece]
     "can": "aggregate/offer",
     "nb": {
       "offer": { "/": "bafy...many-cars" }, /* dag-cbor CID */
-      "segment": { "/": "commitment...cars-proof" } /* commitment proof */
+      "segment": {
+        "link": { "/": "commitment...cars-proof" },
+        "size": 10102020203013342343
+      } /* commitment proof */
     }
   }],
   "prf": [],
@@ -184,7 +190,7 @@ Invoking `aggregate/offer` capability submits an aggregate to a broker service f
 ]
 ```
 
-Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. The `link` field has the CAR CID, while the `piece` field has the `proof` required by Storage Providers (for example, `commP`). The `src` field of each piece MUST be set to a (alphabetically sorted) list of URLs from which it can be fetched. Note that `src` field is optional and can be provided in a different part of the flow such as when deal is signed or through a previously agreed API.
+Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. The `link` field has the CAR CID of the content, while the `piece` field has the corresponding Filecoin `piece` info required by Storage Providers . The `src` field of each piece MUST be set to a (alphabetically sorted) list of URLs from which it can be fetched. Note that `src` field is optional and can be provided in a different part of the flow such as when deal is signed or through a previously agreed API.
 
 Broker MUST issue a signed receipt to acknowledge the received request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with the aggregate).
 
@@ -327,7 +333,7 @@ If offered aggregate is invalid, details on failing pieces are also reported:
 ```ipldsch
 type Aggregate union {
   | Link "queued"
-  | Link "status"
+  | Link "accepted"
   | Link "rejected"
 } representation keyed
 
@@ -338,9 +344,24 @@ type AggregateCapability enum {
   discriminantKey "can"
 }
 
+type OfferCapability union {
+  OfferArrange "offer/arrange"
+} representation inline {
+  discriminantKey "can"
+}
+
+type AggregateOffer struct {
+  with StorefrontDID
+  nb AggregateOfferDetail
+}
+
 type AggregateGet struct {
   with StorefrontDID
   nb SucceedAggregateRef
+}
+
+type OfferArrange struct {
+  with BrokerDID nb AggregateRef
 }
 
 type SucceedAggregateRef struct {
@@ -351,44 +372,31 @@ type AggregateRef struct {
   segment Link
 }
 
-type AggregateOffer struct {
-  with StorefrontDID
-  nb AggregateOfferDetail
-}
-
 type AggregateOfferDetail struct {
-  offer OfferCBOR
-  segment Link
+  offer &Offer
+  segment Segment
 }
-
-type OfferCBOR any
 
 type Piece {
-  size Int
+  # Size in nodes. For BLS12-381 (capacity 254 bits), must be >= 16. (16 * 8 = 128)
+  size Int # todo: does this make sense for segment?
   link Link
 }
 
 type struct ContentPiece {
-    piece Piece
-    link Link
-    src? [URL]
+  piece Piece
+  link Link
+  src optional [URL]
 }
+
+# Segment a set of Piece CIDs
+# @see https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0058.md
+type Segment [&Piece]
 
 type Offer [ContentPiece]
 
 type StorefrontDID string
 type URL string
-type OfferCBOR any
-
-type OfferCapability union {
-  OfferArrange "offer/arrange"
-} representation inline {
-  discriminantKey "can"
-}
-
-type OfferArrange struct {
-  with BrokerDID nb AggregateRef
-}
 
 type BrokerDID string
 ```
