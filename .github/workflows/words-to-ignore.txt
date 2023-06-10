@@ -103,3 +103,7 @@ dag-cbor
 NameDescriptionStorefrontPrincipal
 w3upAuthorityPrincipal
 commitmentProofs
+CARv2
+MultiIndex
+varint
+multihash
