@@ -26,7 +26,7 @@ An unsigned varint of `0x0402` at the "Index offset" byte position or more typic
 
 The format allows multiple CARv2 indexes to be grouped together in a single index, and takes the following form:
 
-```
+```sh
 | 0x0402 | count (uint32) | car-multihash | carv2-index | car-multihash | carv2-index | ... |
 ```
 
