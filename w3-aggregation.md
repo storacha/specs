@@ -113,7 +113,7 @@ participant Storefront as 🌐<br/><br/>did:web:web3.storage
 
 This section describes the capabilities that form the w3 aggregation protocol, along with the details relevant for invoking capabilities with a service provider.
 
-In this document, we will be looking at `spade.storage` as an implementer of the `aggregate/*` and `offer/*` protocol.
+In this document, we will be looking at `spade-proxy.web3.storage` as an implementer of the `aggregate/*` and `offer/*` protocol.
 
 ### `aggregate/offer`
 
