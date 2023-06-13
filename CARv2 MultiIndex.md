@@ -27,12 +27,12 @@ An unsigned varint of `0x0402` at the "Index offset" byte position or more typic
 The format allows multiple CARv2 indexes to be grouped together in a single index, and takes the following form:
 
 ```sh
-| 0x0402 | count (uint32) | car-multihash | carv2-index | car-multihash | carv2-index | ... |
+| 0x0402 | count (varint) | car-multihash | carv2-index | car-multihash | carv2-index | ... |
 ```
 
 Immediately following the codec:
 
-1. `count` - the number of CAR indexes contained in this multi index.
+1. `count` - a varint that specifies the number of CAR indexes contained in this multi index.
 2. `car-multihash`- the [multihash](https://github.com/multiformats/multihash) of the CAR file that contains the following blocks.
 3. `carv2-index` - a CARv2 index ([IndexSorted](https://ipld.io/specs/transport/car/carv2/#format-0x0400-indexsorted), [MultihashIndexSorted](https://ipld.io/specs/transport/car/carv2/#format-0x0401-multihashindexsorted) or other CARv2 index, including identifying codec i.e. `0x0400`, `0x0401` etc.).
 4. Repeat from 2, for as many times as the `count` specifies.
