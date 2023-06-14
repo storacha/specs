@@ -120,22 +120,20 @@ In this document, we will be looking at `spade-proxy.web3.storage` as an impleme
 A Storefront principal can invoke a capabilty to offer an aggregate that is ready to be included in Filecoin deal(s).
 
 ```iplsch
-# Segment a set of Piece CIDs
-# @see https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0058.md
-type Segment [&Piece]
-
 type Offer [ContentPiece]
 
-type Piece {
-  # Size in nodes. For BLS12-381 (capacity 254 bits), must be >= 16. (16 * 8 = 128)
-  size Int # todo: does this make sense for segment?
-  link Link
-}
-
 type struct ContentPiece {
-  piece Piece
+  piece PieceInfo
+  # CAR Cid for convenience usage to get CAR details as needed (e.g. source URL)
   link Link
   src optional [URL]
+}
+
+# https://github.com/filecoin-project/go-state-types/blob/1e6cf0d47cdda75383ef036fc2725d1cf51dbde8/abi/piece.go#L47-L50
+type PieceInfo {
+  # Size in nodes. For BLS12-381 (capacity 254 bits), must be >= 16. (16 * 8 = 128)
+  size Int
+  link Link
 }
 
 type AggregateOffer struct {
@@ -144,8 +142,10 @@ type AggregateOffer struct {
 }
 
 type AggregateOfferDetail struct {
+  # Contains each individual piece within Aggregate piece
   offer &Offer
-  segment Segment
+  # Piece as Aggregate of CARs with padding
+  piece PieceInfo
 }
 ```
 
@@ -159,11 +159,11 @@ type AggregateOfferDetail struct {
     "with": "did:web:web3.storage",
     "can": "aggregate/offer",
     "nb": {
-      "offer": { "/": "bafy...many-cars" }, /* dag-cbor CID */
-      "segment": {
-        "link": { "/": "commitment...cars-proof" },
+      "offer": { "/": "bafy...many-cars" }, /* dag-cbor CID with offer content */
+      "piece": {
+        "link": { "/": "commitment...aggregate-proof" },
         "size": 10102020203013342343
-      } /* commitment proof */
+      } /* commitment proof for aggregate */
     }
   }],
   "prf": [],
@@ -227,7 +227,7 @@ A Storefront principal can invoke a capability to get state of a previously acce
     "with": "did:web:web3.storage",
     "can": "aggregate/get",
     "nb": {
-      "segment": { "/": "commitment...cars-proof" } /* commitment proof */
+      "pieceLink": { "/": "commitment...aggregate-proof" } /* commitment proof */
     }
   }],
   "prf": [],
@@ -278,7 +278,7 @@ When a broker receives an `aggregate/offer` invocation from a Storefront Princip
     "with": "did:web:spade.storage",
     "can": "offer/arrange",
     "nb": {
-      "segment": { "/": "commitment...cars-proof" } /* commitment proof */
+      "pieceLink": { "/": "commitment...aggregate-proof" } /* commitment proof */
     }
   }],
   "prf": [],
@@ -293,7 +293,7 @@ Once this invocation is executed, a receipt is generated with the result of the 
   "ran": "bafy...arrange",
   "out": {
     "ok": {
-       "segment": { "/": "commitment...cars-proof" } /* commitment proof */
+       "pieceLink": { "/": "commitment...aggregate-proof" } /* commitment proof */
     }
   },
   "fx": {
@@ -312,7 +312,7 @@ If offered aggregate is invalid, details on failing pieces are also reported:
   "ran": "bafy...invocation",
   "out": {
     "error": {
-      "segment": { "/": "commitment...cars-proof" }, /* commitment proof */
+      "pieceLink": { "/": "commitment...aggregate-proof" }, /* commitment proof */
       "cause": [{
         "piece": { "/": "commitment...car0" },
         "reason": "reasonCode",
@@ -355,6 +355,13 @@ type AggregateOffer struct {
   nb AggregateOfferDetail
 }
 
+type AggregateOfferDetail struct {
+  # Contains each individual piece within Aggregate piece
+  offer &Offer
+  # Piece as Aggregate of CARs with padding
+  piece PieceInfo
+}
+
 type AggregateGet struct {
   with StorefrontDID
   nb SucceedAggregateRef
@@ -372,28 +379,21 @@ type AggregateRef struct {
   segment Link
 }
 
-type AggregateOfferDetail struct {
-  offer &Offer
-  segment Segment
-}
-
-type Piece {
-  # Size in nodes. For BLS12-381 (capacity 254 bits), must be >= 16. (16 * 8 = 128)
-  size Int # todo: does this make sense for segment?
-  link Link
-}
+type Offer [ContentPiece]
 
 type struct ContentPiece {
-  piece Piece
+  piece PieceInfo
+  # CAR Cid for convenience usage to get CAR details as needed (e.g. source URL)
   link Link
   src optional [URL]
 }
 
-# Segment a set of Piece CIDs
-# @see https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0058.md
-type Segment [&Piece]
-
-type Offer [ContentPiece]
+# https://github.com/filecoin-project/go-state-types/blob/1e6cf0d47cdda75383ef036fc2725d1cf51dbde8/abi/piece.go#L47-L50
+type PieceInfo {
+  # Size in nodes. For BLS12-381 (capacity 254 bits), must be >= 16. (16 * 8 = 128)
+  size Int
+  link Link
+}
 
 type StorefrontDID string
 type URL string
