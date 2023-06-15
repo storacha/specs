@@ -117,38 +117,9 @@ In this document, we will be looking at `spade-proxy.web3.storage` as an impleme
 
 ### `aggregate/offer`
 
-A Storefront principal can invoke a capabilty to offer an aggregate that is ready to be included in Filecoin deal(s).
+A Storefront principal can invoke a capabilty to offer an aggregate that is ready to be included in Filecoin deal(s). See [schema](#aggregateoffer-schema).
 
-```iplsch
-type Offer [ContentPiece]
-
-type struct ContentPiece {
-  piece PieceInfo
-  # CAR Cid for convenience usage to get CAR details as needed (e.g. source URL)
-  link Link
-  src optional [URL]
-}
-
-# https://github.com/filecoin-project/go-state-types/blob/1e6cf0d47cdda75383ef036fc2725d1cf51dbde8/abi/piece.go#L47-L50
-type PieceInfo {
-  # Size in nodes. For BLS12-381 (capacity 254 bits), must be >= 16. (16 * 8 = 128)
-  size Int
-  link Link
-}
-
-type AggregateOffer struct {
-  with StorefrontDID
-  nb AggregateOfferDetail
-}
-
-type AggregateOfferDetail struct {
-  # Contains each individual piece within Aggregate piece
-  offer &Offer
-  # Piece as Aggregate of CARs with padding
-  piece PieceInfo
-}
 ```
-
 > `did:web:web3.storage` invokes capability from `did:web:spade.storage`
 
 ```json
@@ -181,8 +152,7 @@ Invoking `aggregate/offer` capability submits an aggregate to a broker service f
     "piece": {
       "link": { "/": "commitment...car0" }, /* COMMP CID */
       "size": 110101,
-    },
-    "src": ["https://w3s.link/ipfs/bag...file0"]
+    }
   },
   {
     /* ... */
@@ -190,7 +160,7 @@ Invoking `aggregate/offer` capability submits an aggregate to a broker service f
 ]
 ```
 
-Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. The `link` field has the CAR CID of the content, while the `piece` field has the corresponding Filecoin `piece` info required by Storage Providers . The `src` field of each piece MUST be set to a (alphabetically sorted) list of URLs from which it can be fetched. Note that `src` field is optional and can be provided in a different part of the flow such as when deal is signed or through a previously agreed API.
+Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. The `link` field has the CAR CID of the content, while the `piece` field has the corresponding Filecoin `piece` info required by Storage Providers. Out of band, Storefront will provide to Storage Providers a `src` HTTP URL to each CAR file in the offer.
 
 Broker MUST issue a signed receipt to acknowledge the received request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with the aggregate).
 
@@ -215,7 +185,7 @@ See [`offer/arrange`](#offerarrange) section to see the subsequent task.
 
 ### `aggregate/get`
 
-A Storefront principal can invoke a capability to get state of a previously accepted offer.
+A Storefront principal can invoke a capability to get state of a previously accepted offer. See [schema](#aggregateget-schema).
 
 > `did:web:web3.storage` invokes capability from `did:web:spade.storage`
 
@@ -268,7 +238,7 @@ Once this invocation is executed, a receipt is generated with the resulting aggr
 
 ### `offer/arrange`
 
-When a broker receives an `aggregate/offer` invocation from a Storefront Principal, an [Effect](https://github.com/ucan-wg/invocation/#7-effect) for this submission is created with join task to be performed asynchronously.
+When a broker receives an `aggregate/offer` invocation from a Storefront Principal, an [Effect](https://github.com/ucan-wg/invocation/#7-effect) for this submission is created with join task to be performed asynchronously. See [schema](#offerarrange-schema).
 
 ```json
 {
@@ -328,7 +298,9 @@ If offered aggregate is invalid, details on failing pieces are also reported:
 }
 ```
 
-### Schema
+## Schema
+
+### Base types
 
 ```ipldsch
 type Aggregate union {
@@ -350,6 +322,19 @@ type OfferCapability union {
   discriminantKey "can"
 }
 
+type AggregateRef struct {
+  pieceLink Link
+}
+
+type StorefrontDID string
+type URL string
+
+type BrokerDID string
+```
+
+### `aggregate/offer` schema
+
+```ipldsch
 type AggregateOffer struct {
   with StorefrontDID
   nb AggregateOfferDetail
@@ -362,30 +347,12 @@ type AggregateOfferDetail struct {
   piece PieceInfo
 }
 
-type AggregateGet struct {
-  with StorefrontDID
-  nb SucceedAggregateRef
-}
-
-type OfferArrange struct {
-  with BrokerDID nb AggregateRef
-}
-
-type SucceedAggregateRef struct {
-  segment Link
-}
-
-type AggregateRef struct {
-  segment Link
-}
-
 type Offer [ContentPiece]
 
 type struct ContentPiece {
   piece PieceInfo
   # CAR Cid for convenience usage to get CAR details as needed (e.g. source URL)
   link Link
-  src optional [URL]
 }
 
 # https://github.com/filecoin-project/go-state-types/blob/1e6cf0d47cdda75383ef036fc2725d1cf51dbde8/abi/piece.go#L47-L50
@@ -394,11 +361,23 @@ type PieceInfo {
   size Int
   link Link
 }
+```
 
-type StorefrontDID string
-type URL string
+### `aggregate/get` schema
 
-type BrokerDID string
+```ipldsch
+type AggregateGet struct {
+  with StorefrontDID
+  nb AggregateRef
+}
+```
+
+### `offer/arrange` schema
+
+```ipldsch
+type OfferArrange struct {
+  with BrokerDID nb AggregateRef
+}
 ```
 
 [`did:web`]: https://w3c-ccg.github.io/did-method-web/
