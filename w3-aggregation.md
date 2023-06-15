@@ -119,7 +119,6 @@ In this document, we will be looking at `spade-proxy.web3.storage` as an impleme
 
 A Storefront principal can invoke a capabilty to offer an aggregate that is ready to be included in Filecoin deal(s). See [schema](#aggregateoffer-schema).
 
-```
 > `did:web:web3.storage` invokes capability from `did:web:spade.storage`
 
 ```json
