@@ -144,14 +144,11 @@ A Storefront principal can invoke a capabilty to offer an aggregate that is read
 Invoking `aggregate/offer` capability submits an aggregate to a broker service for inclusion in one or more Filecoin deals. The `nb.offer` field represents a "Ferry" aggregate offer that is ready for a Filecoin deal. Its value is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregated deal. This block MUST be included in the CAR file that transports the invocation. Its format is:
 
 ```json
-/* offers block as ContentPiece type, encoded as DAG-JSON (for readability) */
+/* offers block as PieceInfo type, encoded as DAG-JSON (for readability) */
 [
   {
-    "link": { "/": "bag...file0" }, /* CAR CID */
-    "piece": {
-      "link": { "/": "commitment...car0" }, /* COMMP CID */
-      "size": 110101,
-    }
+    "link": { "/": "commitment...car0" }, /* COMMP CID */
+    "size": 110101,
   },
   {
     /* ... */
@@ -159,7 +156,7 @@ Invoking `aggregate/offer` capability submits an aggregate to a broker service f
 ]
 ```
 
-Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. The `link` field has the CAR CID of the content, while the `piece` field has the corresponding Filecoin `piece` info required by Storage Providers. Out of band, Storefront will provide to Storage Providers a `src` HTTP URL to each CAR file in the offer.
+Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. It includes an array of Filecoin `piece` info required by Storage Providers. Out of band, Storefront will provide to Storage Providers a `src` HTTP URL to each CAR file in the offer.
 
 Broker MUST issue a signed receipt to acknowledge the received request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with the aggregate).
 
@@ -346,13 +343,7 @@ type AggregateOfferDetail struct {
   piece PieceInfo
 }
 
-type Offer [ContentPiece]
-
-type struct ContentPiece {
-  piece PieceInfo
-  # CAR Cid for convenience usage to get CAR details as needed (e.g. source URL)
-  link Link
-}
+type Offer [PieceInfo]
 
 # https://github.com/filecoin-project/go-state-types/blob/1e6cf0d47cdda75383ef036fc2725d1cf51dbde8/abi/piece.go#L47-L50
 type PieceInfo {
