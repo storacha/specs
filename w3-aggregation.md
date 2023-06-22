@@ -181,7 +181,7 @@ See [`offer/arrange`](#offerarrange) section to see the subsequent task.
 
 ### `aggregate/get`
 
-A Storefront principal can invoke a capability to get state of a previously accepted offer. See [schema](#aggregateget-schema).
+A Storefront principal can query state of accepted aggregate by invoking `aggregate/get` capability. See [schema](#aggregateget-schema).
 
 > `did:web:web3.storage` invokes capability from `did:web:spade.storage`
 
@@ -193,7 +193,7 @@ A Storefront principal can invoke a capability to get state of a previously acce
     "with": "did:web:web3.storage",
     "can": "aggregate/get",
     "nb": {
-      "pieceLink": { "/": "commitment...aggregate-proof" } /* commitment proof */
+      "subject": { "/": "commitment...aggregate-proof" } /* commitment proof */
     }
   }],
   "prf": [],
