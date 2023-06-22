@@ -299,12 +299,6 @@ If offered aggregate is invalid, details on failing pieces are also reported:
 ### Base types
 
 ```ipldsch
-type Aggregate union {
-  | Link "queued"
-  | Link "accepted"
-  | Link "rejected"
-} representation keyed
-
 type AggregateCapability enum {
   AggregateOffer "aggregate/offer"
   AggregateGet "aggregate/get"
@@ -320,6 +314,10 @@ type OfferCapability union {
 
 type AggregateRef struct {
   pieceLink Link
+}
+
+type SubjectRef struct {
+  subject Link
 }
 
 type StorefrontDID string
@@ -358,7 +356,7 @@ type PieceInfo {
 ```ipldsch
 type AggregateGet struct {
   with StorefrontDID
-  nb AggregateRef
+  nb SubjectRef
 }
 ```
 
@@ -366,7 +364,8 @@ type AggregateGet struct {
 
 ```ipldsch
 type OfferArrange struct {
-  with BrokerDID nb AggregateRef
+  with BrokerDID
+  nb AggregateRef
 }
 ```
 
