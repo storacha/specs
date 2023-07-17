@@ -132,7 +132,7 @@ A Storefront principal can invoke a capabilty to offer an aggregate that is read
       "offer": { "/": "bafy...many-cars" }, /* dag-cbor CID with offer content */
       "piece": {
         "link": { "/": "commitment...aggregate-proof" },
-        "size": 10102020203013342343
+        "height": 4 /* height of the perfect binary tree for the aggregate */
       } /* commitment proof for aggregate */
     }
   }],
@@ -141,14 +141,16 @@ A Storefront principal can invoke a capabilty to offer an aggregate that is read
 }
 ```
 
-Invoking `aggregate/offer` capability submits an aggregate to a broker service for inclusion in one or more Filecoin deals. The `nb.offer` field represents a "Ferry" aggregate offer that is ready for a Filecoin deal. Its value is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregated deal. This block MUST be included in the CAR file that transports the invocation. Its format is:
+Invoking `aggregate/offer` capability submits an aggregate to a broker service for inclusion in one or more Filecoin deals. The `nb.piece` field represents the proof of the `piece` to be offered for the deal. It contains the proof CID `piece.link` together with the `piece.height` of the perfect binary tree computed for this aggregate. The `height` can be used to derive the leaf count (`2 ** height`), which can then be used to derive the `size` of the piece (`leafCount * Node.Size` where `Node.Size` is 32).
+
+The `nb.offer` field represents a "Ferry" aggregate offer that is ready for a Filecoin deal. Its value is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregated deal. This block MUST be included in the CAR file that transports the invocation. Its format is:
 
 ```json
-/* offers block as PieceInfo type, encoded as DAG-JSON (for readability) */
+/* offers block as an adapted PieceInfo type (with tree `height` instead of `size`), encoded as DAG-JSON (for readability) */
 [
   {
     "link": { "/": "commitment...car0" }, /* COMMP CID */
-    "size": 110101,
+    "height": 110101, /* height of the perfect binary tree for the piece */
   },
   {
     /* ... */
@@ -343,10 +345,13 @@ type AggregateOfferDetail struct {
 
 type Offer [PieceInfo]
 
+# Adapted from `PieceInfo` type in filecoin
 # https://github.com/filecoin-project/go-state-types/blob/1e6cf0d47cdda75383ef036fc2725d1cf51dbde8/abi/piece.go#L47-L50
+# Uses `height` field instead of `size`. `height` field can be used to derive `leafCount` and consequently `size`, while
+# allowing the usage of smaller numbers instead of `bigint`.
 type PieceInfo {
-  # Size in nodes. For BLS12-381 (capacity 254 bits), must be >= 16. (16 * 8 = 128)
-  size Int
+  # Height of the perfect binary tree for the piece 
+  height Int
   link Link
 }
 ```
