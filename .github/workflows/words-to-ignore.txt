@@ -103,3 +103,10 @@ dag-cbor
 NameDescriptionStorefrontPrincipal
 w3upAuthorityPrincipal
 commitmentProofs
+w3upBrokerPrincipal
+filecoin
+spadeAgencyPrincipal
+Fil
+Ucanto
+ucanto
+natively
