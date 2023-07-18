@@ -183,7 +183,7 @@ Provider MUST response with raw bytes of the signature.
 
 ## HTTP Interface
 
-Given that some actors (e.g. Spade) do not support UCANs natively they are not able to send signed invocations. As compromise protocol implementer is RECOMMENDED to expose plain HTTP API that tradeoffs some security for convenience of interop.
+Given that some actors (e.g. Spade) do not support UCANs natively they are not able to send signed invocations. As compromise protocol implementer is RECOMMENDED to expose plain HTTP API that trade-offs some security for convenience of interop.
 
 Implementation MUST expose HTTP POST endpoint that accepts `application/vnd.ucan.cbor` requests with CBOR encoded as payload. These requests MUST provide `Authorization: Bearer` header with a UCAN delegation authorizing a request. Receiving principal MUST derive invocation from the provided `Authorization` and set invoked capability `nb` field to decoded CBOR block of the payload. Receiving principal MUST execute received capability and encode result of the invocation as an HTTP response.
 
@@ -205,7 +205,7 @@ _Storefront_ (w3up) MAY delegate unconstrained `deal/sign` UCAN capability to th
 
 _Agency_ could also re-delegate same unconstrained `deal/sign` UCAN capability to the _Agency_ (spade-proxy) allowing it to sign any deals.
 
-This tradeoffs increased security for convenience.
+This trade-offs increased security for convenience.
 
 [spade]:https://github.com/ribasushi/spade
 [`did:web`]: https://w3c-ccg.github.io/did-method-web/
