@@ -143,7 +143,7 @@ A Storefront principal can invoke a capabilty to offer an aggregate that is read
 
 Invoking `aggregate/offer` capability submits an aggregate to a broker service for inclusion in one or more Filecoin deals. The `nb.piece` field represents the proof of the `piece` to be offered for the deal. It contains the proof CID `piece.link` together with the `piece.height` of the perfect binary tree computed for this aggregate. The `height` can be used to derive the leaf count (`2 ** height`), which can then be used to derive the `size` of the piece (`leafCount * Node.Size` where `Node.Size` is 32).
 
-The `nb.offer` field represents a "Ferry" aggregate offer that is ready for a Filecoin deal. Its value is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the CAR files to include in the aggregated deal. This block MUST be included in the CAR file that transports the invocation. Its format is:
+The `nb.offer` field represents a "Ferry" aggregate offer that is ready for a Filecoin deal. Its value is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the pieces to include in the aggregated deal. This array MUST be sorted in the exact same order as they were used to compute the aggregate piece CID. This block MUST be included in the CAR file that transports the invocation. Its format is:
 
 ```json
 /* offers block as an adapted PieceInfo type (with tree `height` instead of `size`), encoded as DAG-JSON (for readability) */
