@@ -44,7 +44,7 @@ A _Broker_ is a type of [principal] identified that arranges deals for the aggre
 
 All the filecoin deals need to be signed by a Fil wallet, in order to avoid passing private keys to wallet _Storefront_ could delegate a capability to a sign a deal to a _Broker_ instead.
 
-Here we propose set of UCAN capabilities that can be invoked by authorized actors (like _Broker_) to sign deals such deals.
+Here we propose set of UCAN capabilities that can be invoked by authorized actors (like _Agency_ or a _Broker_) to sign deals on behalf of the delegate (_Storefront_).
 
 ## IPLD Schema
 
@@ -64,7 +64,7 @@ type Sign struct {
 # We use capital case letters because that the way go likes them
 type DealProposal struct {
   PieceCID              &Piece
-  PieceSize             PieceSize
+  PieceSize             PaddedPieceSize
   VerifiedDeal          bool
   # Signer wallet (f0) address
   Client                Address
@@ -179,7 +179,7 @@ export type SignError =
 
 Broker can invoke `deal/sign` capability with `DealProposal` in (`nb` field). Storefront MUST encode supplied `DealProposal` (`nb` field) into a CBOR block and then sign it with a wallet private key.
 
-Provider MUST response with raw bytes of the signature.
+Provider MUST respond with raw bytes of the signature.
 
 ## HTTP Interface
 
@@ -187,7 +187,7 @@ Given that some actors (e.g. Spade) do not support UCANs natively they are not a
 
 Implementation MUST expose HTTP POST endpoint that accepts `application/vnd.ucan.cbor` requests with CBOR encoded as payload. These requests MUST provide `Authorization: Bearer` header with a UCAN delegation authorizing a request. Receiving principal MUST derive invocation from the provided `Authorization` and set invoked capability `nb` field to decoded CBOR block of the payload. Receiving principal MUST execute received capability and encode result of the invocation as an HTTP response.
 
-> Above HTTP interface could be utilize by spade to obtain signatures from w3up without having to proxy them through UCAN proxy.
+> Above HTTP interface could be utilized by spade to obtain signatures from w3up without having to proxy them through UCAN proxy.
 
 ## Interaction Flow
 
@@ -195,7 +195,7 @@ Implementation MUST expose HTTP POST endpoint that accepts `application/vnd.ucan
 
 _Storefront_ (w3up) MAY delegate `deal/sign` UCAN capability to the _Agency_ (spade-proxy) and specify `Piece` and `Size` fields of the submitted aggregate.
 
-_Agency_ (spade-proxy) could also re-delegate that capability to the _Agency_ (spade) allowing it to request signature directly from _Storefront_ front.
+_Agency_ (spade-proxy) could also re-delegate that capability to the _Broker_ (spade) allowing it to request signature directly from _Storefront_ (w3up).
 
 > ℹ️ Since ♠️ Spade does not support UCANs (yet), _Agency_ could instead create an invocation UCAN and pass it on to Spade so it could be used by spade as a plain, but short lived, JWT token for signing that specific deal.
 
@@ -203,7 +203,7 @@ _Agency_ (spade-proxy) could also re-delegate that capability to the _Agency_ (s
 
 _Storefront_ (w3up) MAY delegate unconstrained `deal/sign` UCAN capability to the _Agency_ (spade-proxy). By leaving out `Piece` and `Size` fields it will authorize it to sign any deals.
 
-_Agency_ could also re-delegate same unconstrained `deal/sign` UCAN capability to the _Agency_ (spade-proxy) allowing it to sign any deals.
+_Agency_ (spade-proxy) could also re-delegate same unconstrained `deal/sign` UCAN capability to the _Broker_ (spade) allowing it to sign any deals.
 
 This trade-offs increased security for convenience.
 
