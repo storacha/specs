@@ -314,6 +314,7 @@ type PieceRef struct {
 type StorefrontDID string
 type URL string
 type BrokerDID string
+# from a fr32-sha2-256-trunc254-padded-binary-tree multihash
 type PieceCid Link
 ```
 
