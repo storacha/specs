@@ -130,7 +130,11 @@ A Storefront principal can invoke a capabilty to offer an aggregate that is read
     "can": "aggregate/offer",
     "nb": {
       "offer": { "/": "bafy...many-cars" }, /* dag-cbor CID with offer content */
-      "piece": { "/": "commitment...aggregate-proof" } /* commitment proof for aggregate */
+      "piece": { "/": "commitment...aggregate-proof" }, /* commitment proof for aggregate */
+      "deal": {
+        "client": "f1....wq",
+        "label": "deal-label"
+      }
     }
   }],
   "prf": [],
@@ -138,9 +142,11 @@ A Storefront principal can invoke a capabilty to offer an aggregate that is read
 }
 ```
 
-Invoking `aggregate/offer` capability submits an aggregate to a broker service for inclusion in one or more Filecoin deals. The `nb.piece` field represents the proof of the `piece` to be offered for the deal. It is a CID with its piece size encoded.
+Invoking `aggregate/offer` capability submits an aggregate to a broker service for inclusion in one or more Filecoin deals.
 
-The `nb.offer` field represents a "Ferry" aggregate offer that is ready for a Filecoin deal. Its value is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the pieces to include in the aggregated deal. This array MUST be sorted in the exact same order as they were used to compute the aggregate piece CID. This block MUST be included in the CAR file that transports the invocation. Its format is:
+The `nb.piece` field represents the proof of the `piece` to be offered for the deal. It is a CID with its piece size encoded. In addition, a Filecoin `nb.deal` contains the necessary fields for a Filecoin Deal proposal. More specifically, it MUST include signer wallet address `nb.deal.wallet` and MAY include an arbitrary `nb.deal.label` chosen by the client.
+
+Finally, the `nb.offer` field represents a "Ferry" aggregate offer that is ready for a Filecoin deal. Its value is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the pieces to include in the aggregated deal. This array MUST be sorted in the exact same order as they were used to compute the aggregate piece CID. This block MUST be included in the CAR file that transports the invocation. Its format is:
 
 ```json
 /* offers block as an array of piece CIDs, encoded as DAG-JSON (for readability) */
@@ -331,9 +337,21 @@ type AggregateOfferDetail struct {
   offer &Offer
   # Piece as Aggregate of CARs with padding
   piece PieceCid
+  # Fields to create a contract with a Storage Provider for aggregate
+  deal DealProposal
 }
 
 type Offer [PieceCid]
+
+# @see https://github.com/filecoin-project/go-state-types/blob/ff2ed169ff566458f2acd8b135d62e8ca27e7d0c/builtin/v9/market/deal.go#L201-L221
+# A subset of the deal proposal items required by broker to facilitate the contract to be created
+type DealProposal struct {
+  # Signer wallet (f0) address
+  client                Address
+  # Label is an arbitrary client chosen label to apply to the deal
+  label                 DealLabel
+}
+
 ```
 
 ### `aggregate/get` schema
