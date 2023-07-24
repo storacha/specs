@@ -130,10 +130,7 @@ A Storefront principal can invoke a capabilty to offer an aggregate that is read
     "can": "aggregate/offer",
     "nb": {
       "offer": { "/": "bafy...many-cars" }, /* dag-cbor CID with offer content */
-      "piece": {
-        "link": { "/": "commitment...aggregate-proof" },
-        "height": 4 /* height of the perfect binary tree for the aggregate */
-      } /* commitment proof for aggregate */
+      "piece": { "/": "commitment...aggregate-proof" } /* commitment proof for aggregate */
     }
   }],
   "prf": [],
@@ -141,20 +138,16 @@ A Storefront principal can invoke a capabilty to offer an aggregate that is read
 }
 ```
 
-Invoking `aggregate/offer` capability submits an aggregate to a broker service for inclusion in one or more Filecoin deals. The `nb.piece` field represents the proof of the `piece` to be offered for the deal. It contains the proof CID `piece.link` together with the `piece.height` of the perfect binary tree computed for this aggregate. The `height` can be used to derive the leaf count (`2 ** height`), which can then be used to derive the `size` of the piece (`leafCount * Node.Size` where `Node.Size` is 32).
+Invoking `aggregate/offer` capability submits an aggregate to a broker service for inclusion in one or more Filecoin deals. The `nb.piece` field represents the proof of the `piece` to be offered for the deal. It is a CID with its piece size encoded.
 
 The `nb.offer` field represents a "Ferry" aggregate offer that is ready for a Filecoin deal. Its value is the DAG-CBOR CID that refers to a "Ferry" offer. It encodes a dag-cbor block with an array of entries representing all the pieces to include in the aggregated deal. This array MUST be sorted in the exact same order as they were used to compute the aggregate piece CID. This block MUST be included in the CAR file that transports the invocation. Its format is:
 
 ```json
-/* offers block as an adapted PieceInfo type (with tree `height` instead of `size`), encoded as DAG-JSON (for readability) */
+/* offers block as an array of piece CIDs, encoded as DAG-JSON (for readability) */
 [
-  {
-    "link": { "/": "commitment...car0" }, /* COMMP CID */
-    "height": 110101, /* height of the perfect binary tree for the piece */
-  },
-  {
-    /* ... */
-  }
+  { "/": "commitment...car0" }, /* COMMP CID */
+  { "/": "commitment...car1" }, /* COMMP CID */
+  /* ... */
 ]
 ```
 
@@ -195,7 +188,7 @@ A Storefront principal can query state of accepted aggregate by invoking `aggreg
     "with": "did:web:web3.storage",
     "can": "aggregate/get",
     "nb": {
-      "subject": { "/": "commitment...aggregate-proof" } /* commitment proof */
+      "piece": { "/": "commitment...aggregate-proof" } /* commitment proof */
     }
   }],
   "prf": [],
@@ -246,7 +239,7 @@ When a broker receives an `aggregate/offer` invocation from a Storefront Princip
     "with": "did:web:spade.storage",
     "can": "offer/arrange",
     "nb": {
-      "pieceLink": { "/": "commitment...aggregate-proof" } /* commitment proof */
+      "piece": { "/": "commitment...aggregate-proof" } /* commitment proof */
     }
   }],
   "prf": [],
@@ -261,7 +254,7 @@ Once this invocation is executed, a receipt is generated with the result of the 
   "ran": "bafy...arrange",
   "out": {
     "ok": {
-       "pieceLink": { "/": "commitment...aggregate-proof" } /* commitment proof */
+       "piece": { "/": "commitment...aggregate-proof" } /* commitment proof */
     }
   },
   "fx": {
@@ -280,7 +273,7 @@ If offered aggregate is invalid, details on failing pieces are also reported:
   "ran": "bafy...invocation",
   "out": {
     "error": {
-      "pieceLink": { "/": "commitment...aggregate-proof" }, /* commitment proof */
+      "piece": { "/": "commitment...aggregate-proof" }, /* commitment proof */
       "cause": [{
         "piece": { "/": "commitment...car0" },
         "reason": "reasonCode",
@@ -314,18 +307,15 @@ type OfferCapability union {
   discriminantKey "can"
 }
 
-type AggregateRef struct {
-  pieceLink Link
-}
-
-type SubjectRef struct {
-  subject Link
+type PieceRef struct {
+  piece PieceCid
 }
 
 type StorefrontDID string
 type URL string
-
 type BrokerDID string
+# from a fr32-sha2-256-trunc254-padded-binary-tree multihash
+type PieceCid Link
 ```
 
 ### `aggregate/offer` schema
@@ -340,20 +330,10 @@ type AggregateOfferDetail struct {
   # Contains each individual piece within Aggregate piece
   offer &Offer
   # Piece as Aggregate of CARs with padding
-  piece PieceInfo
+  piece PieceCid
 }
 
-type Offer [PieceInfo]
-
-# Adapted from `PieceInfo` type in filecoin
-# https://github.com/filecoin-project/go-state-types/blob/1e6cf0d47cdda75383ef036fc2725d1cf51dbde8/abi/piece.go#L47-L50
-# Uses `height` field instead of `size`. `height` field can be used to derive `leafCount` and consequently `size`, while
-# allowing the usage of smaller numbers instead of `bigint`.
-type PieceInfo {
-  # Height of the perfect binary tree for the piece 
-  height Int
-  link Link
-}
+type Offer [PieceCid]
 ```
 
 ### `aggregate/get` schema
@@ -361,7 +341,7 @@ type PieceInfo {
 ```ipldsch
 type AggregateGet struct {
   with StorefrontDID
-  nb SubjectRef
+  nb PieceRef
 }
 ```
 
@@ -370,7 +350,7 @@ type AggregateGet struct {
 ```ipldsch
 type OfferArrange struct {
   with BrokerDID
-  nb AggregateRef
+  nb PieceRef
 }
 ```
 
