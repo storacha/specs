@@ -28,9 +28,9 @@ There are several roles in the authorization flow:
 
 | Name        | Description |
 | ----------- | ----------- |
-| Storefront | [Principal] identified by [`did:web`] identifier, representing a storage aggregator like w3up |
-| Authority   | [Principal] that represents the service provider that executes invoked capabilities |
-| Verifier   | Component of the [authority] that performs UCAN validation |
+| Storefront | [Principal] identified by [`did:web`] identifier, representing a storage API like web3.storage |
+| Aggregator | [Principal] identified by [`did:web`] identifier, representing a storage aggregator like w3filecoin |
+| Broker     | [Principal] that arranges filecoin deals with storage providers like spade |
 
 ### Storefront
 
@@ -38,43 +38,80 @@ A _Storefront_ is a type of [principal] identified by a [`did:web`] identifier.
 
 A Storefront facilitates data storage services to applications and users, getting the requested data stored into Filecoin deals asynchronously.
 
-### Authority
+### Aggregator
 
-_Authority_ is a [principal] that executes invoked capabilities.
+An _Aggregator_ is a type of [principal] identified by a [`did:web`] identifier.
 
-### Verifier
+An Aggregator facilitates data storage into Filecoin deals by aggregating smaller data (Filecoin Pieces) into a larger piece that can effectively be stored with a Filecoin Storage Provider.
 
-A Component of the [authority] that performs UCAN validation
+### Broker
+
+A _Broker_ is a type of [principal] identified that arranges deals for the aggregates submitted by _Storefront_.
 
 # Protocol
 
 ## Overview
 
-A Storefront is the entry point for user/application data into web3. It will act on behalf of users to move data around into different storage points. One of the key storage presences may be Filecoin Storage Providers.
+A Storefront is the entry point for user/application data into web3. It will act on behalf of users to move data around into different storage points. One of the key storage presences may be Filecoin Storage Providers. Storefront is able to ingest files of arbitrary sizes, while Storage Providers are looking for storing larger pieces, rather than small pieces. Accordingly, the aggregator is responsible for aggregating multiple smaller pieces into a bigger one that can be stored by Storage Providers.
 
 ### Authorization
 
-Broker MUST have an authorization mechanism for allowed Storefront principals (e.g. web3.storage). Either by out-of-band exchange of information or through a well defined API. For example, a broker can authorize invocations from `did:web:web3.storage` by validating the signature is from the DID. This way, it allows web3.storage to rotate keys and/or re-delegate access without having to coordinate with the broker.
+Broker MUST have an authorization mechanism for allowed Storefront principals (e.g. web3.storage). Either by out of band exchange of information or through a well defined API. For example, a broker can authorize invocations from `did:web:filecoin.web3.storage` by validating the signature is from the DID. This way, it allows web3.storage to rotate keys and/or re-delegate access without having to coordinate with the broker.
 
-### Storefront offers broker an aggregate
+### Storefront receives and verifies a piece
 
-When a Storefront has enough content to fulfill an aggregate (each broker MAY have different requirements), a Filecoin deal for an aggregate MAY be requested by an `aggregate/offer` invocation. Deal negotiations with Filecoin Storage Providers SHOULD be handled out-of-band. A broker MUST acknowledge a request by issuing a signed receipt.
+When a Storefront's user (agent) intends to store a given content into a Filecoin Storage Provider, its proof SHOULD be computed (commonly known as Filecoin Piece) by the client and added to the Storefront. The aggregator MAY decide to verify the piece before submitting it to be aggregated, depending on a out of band trust model.
+
+```mermaid
+sequenceDiagram
+    participant Agent as 🌐<br/><br/>did:key:abc...
+    participant Storefront as 🌐<br/><br/>did:web:web3.storage
+
+    Agent->>Storefront: invoke `piece/add`
+    Note left of Storefront: Request piece to be added
+    Storefront-->>Agent: receipt issued
+    Note left of Storefront: `piece/verify` might be invoked
+```
+
+### Storefront offers a piece to aggregate
+
+Once a Storefront receives a valid piece, it MAY be offered for aggregation, so that it makes its way into a Storage Provider. Aggregation MAY be handled asynchronously, therefore the Aggregator MUST acknowledge a request by issuing a signed receipt.
 
 ```mermaid
 sequenceDiagram
     participant Storefront as 🌐<br/><br/>did:web:web3.storage
-    participant Authority as 🌐<br/><br/>did:web:spade.storage
+    participant Aggregator as 🌐<br/><br/>did:web:filecoin.web3.storage
 
-    Storefront->>Authority: invoke `aggregate/offer`
-    Note left of Authority: Request offer to be queued
-    Authority-->>Storefront: receipt issued
+    Storefront->>Aggregator: invoke `piece/offer`
+    Note left of Aggregator: Request piece to be aggregated
+    Aggregator-->>Storefront: receipt issued
+```
+
+### Aggregator queues the piece
+
+Once an Aggregator successfully receives a piece offer, the piece gets queued for aggregation. A receipt is created to proof the transition of the offered aggregate state from `null` into `queued`. It is worth mentioning that if an offer is for a piece that is already `queued` or `computed` it is ignored.
+
+This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if the piece was added into an aggregate) or fails, so that its receipt COULD be looked up using it.
+
+### Aggregator offers broker an aggregate
+
+When the Aggregator has enough content to fulfill an aggregate (each broker MAY have different requirements), a Filecoin deal for an aggregate MAY be requested by an `aggregate/offer` invocation. Deal negotiations with Filecoin Storage Providers MAY be handled out of band. A broker MUST acknowledge a request by issuing a signed receipt.
+
+```mermaid
+sequenceDiagram
+    participant Aggregator as 🌐<br/><br/>did:web:filecoin.web3.storage
+    participant Broker as 🌐<br/><br/>did:web:spade.storage
+
+    Aggregator->>Broker: invoke `aggregate/offer`
+    Note left of Broker: Request offer to be queued
+    Broker-->>Aggregator: receipt issued
 ```
 
 ### Broker queues the aggregate
 
-Once a broker successfully receives the offer of an aggregate, the aggregate gets queued for review. A receipt is created to proof the transition of the offered aggregate state from `null` into `queued`. It is worth mentioning that if an offer is for an aggregate that is already `queued` or `complete` it is ignored.
+Once a Broker successfully receives the offer of an aggregate, the aggregate gets queued for review. A receipt is created to proof the transition of the offered aggregate state from `null` into `queued`. It is worth mentioning that if an offer is for an aggregate that is already `queued` or `complete` it is ignored.
 
-This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if the aggregate was added into a deal) or fails (if the aggregate was determined to be invalid) so that it's receipt COULD be looked up using it.
+This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if the aggregate was added into a deal) or fails (if the aggregate was determined to be invalid) so that its receipt COULD be looked up using it.
 
 > Note: Aggregator MAY have several intermediate steps and states it transitions through, however those intentionally are not captured by this protocol, because storefront will take no action until success / failure condition is met.
 
@@ -84,11 +121,11 @@ After a broker dequeues the aggregate, it will interact with available Filecoin 
 
 ```mermaid
 sequenceDiagram
-    participant Storefront as 🌐<br/><br/>did:web:web3.storage
-    participant Authority as 🌐<br/><br/>did:web:spade.storage
+    participant Aggregator as 🌐<br/><br/>did:web:filecoin.web3.storage
+    participant Broker as 🌐<br/><br/>did:web:spade.storage
 
-    Note right of Storefront: Review and handle offer async
-    Authority-->>Storefront: receipt issued
+    Note right of Aggregator: Review and handle offer async
+    Broker-->>Aggregator: receipt issued
 ```
 
 If the aggregate reaches the `accepted` state, the broker takes care of renewing deals.
@@ -101,30 +138,243 @@ Storefront users MAY want to check details about deals from the content they pre
 
 ```mermaid
 sequenceDiagram
-participant Storefront as 🌐<br/><br/>did:web:web3.storage
-    participant Authority as 🌐<br/><br/>did:web:spade.storage
+participant Storefront as 🌐<br/><br/>did:web:filecoin.web3.storage
+    participant Broker as 🌐<br/><br/>did:web:spade.storage
 
-    Storefront->>Authority: invoke `aggregate/get`
+    Storefront->>Broker: invoke `aggregate/get`
 ```
 
 ## Capabilities
 
 This section describes the capabilities that form the w3 aggregation protocol, along with the details relevant for invoking capabilities with a service provider.
 
-In this document, we will be looking at `spade-proxy.web3.storage` as an implementer of the `aggregate/*` and `offer/*` protocol.
+In this document, we will be exposing capabilities implemented by Storefront `web3.storage`, Aggregator `filecoin.web3.storage` and Broker `spade-proxy.web3.storage`.
 
-### `aggregate/offer`
+### `piece/add`
 
-A Storefront principal can invoke a capabilty to offer an aggregate that is ready to be included in Filecoin deal(s). See [schema](#aggregateoffer-schema).
+An agent principal can invoke a capability to add a piece to upcoming Filecoin deal(s) with a Storage provider. See [schema](#pieceadd-schema).
 
-> `did:web:web3.storage` invokes capability from `did:web:spade.storage`
+> `did:key:abc...` invokes capability from `did:web:web3.storage`
+
+```json
+{
+  "iss": "did:key:abc...",
+  "aud": "did:web:web3.storage",
+  "att": [{
+    "with": "did:key:abc...",
+    "can": "piece/add",
+    "nb": {
+      "link": { "/": "bag..." }, /* CID of CAR file previously added to resource space */
+      "piece": { "/": "commitment...car" } /* commitment proof for piece */
+    }
+  }],
+  "prf": [],
+  "sig": "..."
+}
+```
+
+Storefront MUST issue a signed receipt to acknowledge the received request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted piece is verified and either succeeds (implying that piece was valid) or fails (with `error` describing a problem with the piece).
+
+```json
+{
+  "ran": "bafy...invocation",
+  "out": {
+    "ok": {
+      "status": "queued-for-verification"
+    }
+  },
+  "fx": {
+    "join": { "/": "bafy...dequeu-verification" }
+  },
+  "meta": {},
+  "iss": "did:web:web3.storage",
+  "prf": []
+}
+```
+
+See [`piece/verify`](#pieceverify) section to see the subsequent task.
+
+### `piece/verify`
+
+When a storefront principal receives a `piece/add` invocation from an agent, an [Effect](https://github.com/ucan-wg/invocation/#7-effect) for verifying the computed piece is created with join task to be performed asynchronously. See [schema](#pieceverify-schema).
 
 ```json
 {
   "iss": "did:web:web3.storage",
-  "aud": "did:web:spade.storage",
+  "aud": "did:web:web3.storage",
   "att": [{
     "with": "did:web:web3.storage",
+    "can": "piece/verify",
+    "nb": {
+      "link": { "/": "bag..." }, /* CID of CAR file previously added to resource space */
+      "piece": { "/": "commitment...car" } /* commitment proof for piece */
+    }
+  }],
+  "prf": [],
+  "sig": "..."
+}
+```
+
+Once this invocation is executed, a receipt MUST be generated with the result of the task. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when piece is queued for aggregation and either succeeds (implying that piece was queued for being offered) or fails (with `error` describing the problem).
+
+Accepted piece receipt looks like:
+
+```json
+{
+  "ran": "bafy...invocation",
+  "out": {
+    "ok": {
+      "piece": { "/": "commitment...car" }, /* commitment proof for piece */
+      "status": "queued-for-offer"
+    }
+  },
+  "fx": {
+    "join": { "/": "bafy...dequeue-piece" }
+  },
+  "meta": {},
+  "iss": "did:web:web3.storage",
+  "prf": []
+}
+```
+
+See [`piece/offer`](#pieceoffer) section to see the subsequent task.
+
+If the added piece is invalid, details on failing reason is also reported:
+
+```json
+{
+  "ran": "bafy...invocation",
+  "out": {
+    "error": {
+      "piece": { "/": "commitment...car" }, /* commitment proof for piece */
+      "reason": "reasonCode",
+    },
+  },
+  "fx": {
+    "fork": []
+  },
+  "meta": {},
+  "iss": "did:web:web3.storage",
+  "prf": []
+}
+```
+
+### `piece/offer`
+
+A storefront principal can invoke a capability to offer a piece to be aggregated for upcoming Filecoin deal(s). See [schema](#pieceoffer-schema).
+
+> `did:web:web3.storage` invokes capability from `did:web:filecoin.web3.storage`
+
+```json
+{
+  "iss": "did:web:web3.storage",
+  "aud": "did:web:filecoin.web3.storage",
+  "att": [{
+    "with": "did:web:web3.storage",
+    "can": "piece/offer",
+    "nb": {
+      "piece": { "/": "commitment...car" }, /* commitment proof for piece */
+      "provider": "did:web:free.web3.storage", /* provider associated with space where content was added */
+    }
+  }],
+  "prf": [],
+  "sig": "..."
+}
+```
+
+Aggregator MUST issue a signed receipt when piece is verified. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when piece is added to an aggregate and either succeeds (implying that aggregate was queued for being offered) or fails (with `error` describing the problem).
+
+```json
+{
+  "ran": "bafy...invocation",
+  "out": {
+    "ok": {
+      "status": "queued-for-aggregate"
+    }
+  },
+  "fx": {
+    "join": { "/": "bafy...dequeue" }
+  },
+  "meta": {},
+  "iss": "did:web:filecoin.web3.storage",
+  "prf": []
+}
+```
+
+See [`aggregate/arrange`](#aggregatearrange) section to see the subsequent task.
+
+### `aggregate/arrange`
+
+When an Aggregator principal receives a `piece/offer` invocation from a Storefront Principal, an [Effect](https://github.com/ucan-wg/invocation/#7-effect) for this submission is created with join task to be performed asynchronously. See [schema](#aggregatearrange-schema).
+
+```json
+{
+  "iss": "did:web:filecoin.web3.storage",
+  "aud": "did:web:web3.storage",
+  "att": [{
+    "with": "did:web:filecoin.web3.storage",
+    "can": "aggregate/arrange",
+    "nb": {
+      "aggregate": { "/": "commitment...aggregate-proof" }, /* commitment proof */
+      "piece": { "/": "commitment...piece-proof" } /* commitment proof */
+    }
+  }],
+  "prf": [],
+  "sig": "..."
+}
+```
+
+Once this invocation is executed, a receipt is generated with the result of the task. Arranged aggregate for piece receipt looks like:
+
+```json
+{
+  "ran": "bafy...arrange",
+  "out": {
+    "ok": {
+       "aggregate": { "/": "commitment...aggregate-proof" } /* commitment proof */
+    }
+  },
+  "fx": {
+    "join": { "/": "bafy...dequeue-deal" }
+  },
+  "meta": {},
+  "iss": "did:web:filecoin.web3.storage",
+  "prf": []
+}
+```
+
+If offered piece is invalid, details on failing pieces are also reported:
+
+```json
+{
+  "ran": "bafy...invocation",
+  "out": {
+    "error": {
+      "piece": { "/": "commitment...car" }, /* commitment proof for piece */
+      "reason": "reasonCode",
+    },
+  },
+  "fx": {
+    "fork": []
+  },
+  "meta": {},
+  "iss": "did:web:web3.storage",
+  "prf": []
+}
+```
+
+### `aggregate/offer`
+
+An aggregator principal can invoke a capabilty to offer an aggregate that is ready to be included in Filecoin deal(s). See [schema](#aggregateoffer-schema).
+
+> `did:web:filecoin.web3.storage` invokes capability from `did:web:spade.storage`
+
+```json
+{
+  "iss": "did:web:filecoin.web3.storage",
+  "aud": "did:web:spade.storage",
+  "att": [{
+    "with": "did:web:filecoin.web3.storage",
     "can": "aggregate/offer",
     "nb": {
       "offer": { "/": "bafy...many-cars" }, /* dag-cbor CID with offer content */
@@ -176,14 +426,14 @@ See [`offer/arrange`](#offerarrange) section to see the subsequent task.
 
 A Storefront principal can query state of accepted aggregate by invoking `aggregate/get` capability. See [schema](#aggregateget-schema).
 
-> `did:web:web3.storage` invokes capability from `did:web:spade.storage`
+> `did:web:filecoin.web3.storage` invokes capability from `did:web:spade.storage`
 
 ```json
 {
-  "iss": "did:web:web3.storage",
+  "iss": "did:web:filecoin.web3.storage",
   "aud": "did:web:spade.storage",
   "att": [{
-    "with": "did:web:web3.storage",
+    "with": "did:web:filecoin.web3.storage",
     "can": "aggregate/get",
     "nb": {
       "piece": { "/": "commitment...aggregate-proof" } /* commitment proof */
@@ -227,12 +477,12 @@ Once this invocation is executed, a receipt is generated with the resulting aggr
 
 ### `offer/arrange`
 
-When a broker receives an `aggregate/offer` invocation from a Storefront Principal, an [Effect](https://github.com/ucan-wg/invocation/#7-effect) for this submission is created with join task to be performed asynchronously. See [schema](#offerarrange-schema).
+When a broker receives an `aggregate/offer` invocation from an Aggregator Principal, an [Effect](https://github.com/ucan-wg/invocation/#7-effect) for this submission is created with join task to be performed asynchronously. See [schema](#offerarrange-schema).
 
 ```json
 {
   "iss": "did:web:spade.storage",
-  "aud": "did:web:web3.storage",
+  "aud": "did:web:filecoin.web3.storage",
   "att": [{
     "with": "did:web:spade.storage",
     "can": "offer/arrange",
@@ -292,7 +542,16 @@ If offered aggregate is invalid, details on failing pieces are also reported:
 ### Base types
 
 ```ipldsch
+type PieceCapability enum {
+  PieceAdd "piece/add"
+  PieceVerify "piece/verify"
+  PieceOffer "piece/offer"
+} representation inline {
+  discriminantKey "can"
+}
+
 type AggregateCapability enum {
+  AggregateArrange "aggregate/arrange"
   AggregateOffer "aggregate/offer"
   AggregateGet "aggregate/get"
 } representation inline {
@@ -309,11 +568,78 @@ type PieceRef struct {
   piece PieceCid
 }
 
-type StorefrontDID string
 type URL string
+type AgentDID string
+type StorefrontDID string
+type AggregatorDID string
 type BrokerDID string
 # from a fr32-sha2-256-trunc254-padded-binary-tree multihash
 type PieceCid Link
+type CarCid Link
+```
+
+### `piece/add` schema
+
+```ipldsch
+type PieceAdd struct {
+  with AgentDID
+  nb PieceAddDetail
+}
+
+type PieceAddDetail struct {
+  # link of the stored CAR file associated with this piece
+  link CarCid
+  # Piece as Filecoin Piece with padding
+  piece PieceCid
+}
+```
+
+### `piece/verify` schema
+
+```ipldsch
+type PieceVerify struct {
+  with StorefrontDID
+  nb PieceVerifyDetail
+}
+
+type PieceVerifyDetail struct {
+  # link of the stored CAR file associated with this piece
+  link CarCid
+  # Piece as Filecoin Piece with padding
+  piece PieceCid
+}
+```
+
+### `piece/offer` schema
+
+```ipldsch
+type PieceOffer struct {
+  with StorefrontDID
+  nb PieceOfferDetail
+}
+
+type PieceOfferDetail struct {
+  # Piece as Filecoin Piece with padding
+  piece PieceCid
+  # Provider associated with space where content was added 
+  provider string
+}
+```
+
+### `aggregate/arrange` schema
+
+```ipldsch
+type AggregateArrange struct {
+  with BrokerDID
+  nb AggregateArrangeDetail
+}
+
+type AggregateArrangeDetail struct {
+  # Piece as Filecoin Piece with padding
+  piece PieceCid
+  # Piece as Aggregate of CARs with padding
+  aggregate PieceCid
+}
 ```
 
 ### `aggregate/offer` schema
@@ -355,7 +681,6 @@ type OfferArrange struct {
 [`did:web`]: https://w3c-ccg.github.io/did-method-web/
 [UCAN]: https://github.com/ucan-wg/spec/
 [principal]: https://github.com/ucan-wg/spec/#321-principals
-[authority]:#authority
 
 [Protocol Labs]:https://protocol.ai/
 [Vasco Santos]:https://github.com/vasco-santos

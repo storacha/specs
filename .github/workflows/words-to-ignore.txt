@@ -110,3 +110,5 @@ Fil
 Ucanto
 ucanto
 natively
+storageAggregatorPrincipal
+w3filecoinBrokerPrincipal
