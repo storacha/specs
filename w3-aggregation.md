@@ -46,13 +46,13 @@ An Aggregator facilitates data storage into Filecoin deals by aggregating smalle
 
 ### Broker
 
-A _Broker_ is a type of [principal] identified that arranges deals for the aggregates submitted by _Storefront_.
+A _Broker_ is a type of [principal] that arranges deals for the aggregates submitted by _Storefront_.
 
 # Protocol
 
 ## Overview
 
-A Storefront is the entry point for user/application data into web3. It will act on behalf of users to move data around into different storage points. One of the key storage presences may be Filecoin Storage Providers. Storefront is able to ingest files of arbitrary sizes, while Storage Providers are looking for storing larger pieces, rather than small pieces. Accordingly, the aggregator is responsible for aggregating multiple smaller pieces into a bigger one that can be stored by Storage Providers.
+A Storefront is the entry point for user/application data into web3. It will act on behalf of users and move data around into different storage points. One of the key storage presences may be Filecoin Storage Providers. Storefront is able to ingest files of arbitrary sizes, while Storage Providers are looking for storing larger pieces, rather than small pieces. Accordingly, the aggregator is responsible for aggregating multiple smaller pieces into a bigger one that can be stored by Storage Providers.
 
 ### Authorization
 
