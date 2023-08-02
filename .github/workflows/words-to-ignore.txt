@@ -112,4 +112,5 @@ ucanto
 natively
 storageAggregatorPrincipal
 w3filecoinBrokerPrincipal
-spadeChainPrincipal
+SpadeChainPrincipal
+NOP
