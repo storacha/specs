@@ -30,7 +30,7 @@ There are several roles in the authorization flow:
 | ----------- | ----------- |
 | Storefront  | [Principal] identified by [`did:web`] identifier, representing a storage API like web3.storage |
 | Aggregator  | [Principal] identified by `did:key` identifier, representing a storage aggregator like w3filecoin |
-| Broker      | [Principal] identified by `did:key` identifier that arranges filecoin deals with storage providers like spade |
+| Broker      | [Principal] identified by `did:key` identifier that arranges filecoin deals with storage providers. e.g. Spade |
 | Chain       | [Principal] identified by `did:key` identifier that tracks the filecoin chain |
 
 ### Storefront
@@ -67,9 +67,9 @@ Broker MUST have an authorization mechanism for allowed Storefront principals (e
 
 When a Storefront's user (agent) intends to store a given content into a Filecoin Storage Provider, its proof SHOULD be computed (commonly known as Filecoin Piece) by the client and added to the Storefront. Note that Storefront MAY decide to compute the piece without waiting for an Agent to store received content into a Filecoin deal, or verify the agent claimed one. Storefront MUST acknowledge a request by issuing a signed receipt.
 
-Once a Storefront receives the offer of a piece by an agent, the piece gets queued for verification. A receipt is created to proof the transition of the added piece state from `null` into `queued` for verification. It is worth mentioning that if an offer is for a piece that is already `queued` or `accepted`, it has no effect.
+Once a Storefront receives the offer of a piece by an agent, the piece gets queued for verification. A receipt is created to proof the transition of the added piece state from `null` into `queued` for verification. It is worth mentioning that if an offer is for a piece that is already `queued` or `accepted`, it is a nop.
 
-This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if the piece was accepted) or fails, so that its receipt COULD be looked up using it.
+This receipt MUST have a link to a followup task (using `.fx.join` field) that either succeeds (if the piece was accepted) or fails, so that its receipt MAY be looked up using it.
 
 After a storefront dequeues the piece and verifies it, a receipt is created to proof the transition of the aggregate state from `queued` into `accepted` or `rejected`. This receipt MUST have link to a followup task (using `.fx.join` field) with `piece/add`.
 
@@ -91,11 +91,11 @@ sequenceDiagram
 
 Once a Storefront receives a valid piece, it MAY be offered for aggregation, so that it makes its way into a Storage Provider. Aggregation MAY be handled asynchronously, therefore the Aggregator MUST acknowledge a request by issuing a signed receipt.
 
-Once an Aggregator successfully receives a piece offer, the piece gets queued for aggregation. A receipt is created to proof the transition of the offered aggregate state from `null` into `queued`. It is worth mentioning that if an offer is for a piece that is already `queued` or `accepted`, it has no effect.
+Once an Aggregator successfully receives a piece offer, the piece gets queued for aggregation. A receipt is created to prove the transition of the offered aggregate state from `null` into `queued`. It is worth mentioning that if an offer is for a piece that is already `queued` or `accepted`, it is a nop.
 
-This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if the piece was added into an aggregate) or fails, so that its receipt COULD be looked up using it.
+This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if the piece was added into an aggregate) or fails, so that its receipt MAY be looked up using it.
 
-After an aggregator dequeues the piece, it will be included into an aggregate to be offered for Storage Providers. A receipt is created to proof the transition of the aggregate state from `queued` into `accepted` or `rejected`. If successful, a inclusion proof should also be provided.
+After an aggregator dequeues the piece, it will be included into an aggregate to be offered for Storage Providers. A receipt is created to proof the transition of the aggregate state from `queued` into `accepted` or `rejected`. If successful, a inclusion proof MUST also be provided.
 
 ```mermaid
 sequenceDiagram
@@ -115,7 +115,7 @@ sequenceDiagram
 
 When the Aggregator has enough content to fulfill an aggregate (each broker MAY have different requirements), a Filecoin deal for an aggregate MAY be requested by an `aggregate/offer` invocation. Deal negotiations with Filecoin Storage Providers MAY be handled out of band. Broker MUST acknowledge a request by issuing a signed receipt.
 
-Once a Broker successfully receives the offer of an aggregate, the aggregate gets queued for deals with Storage Providers. A receipt is created to proof the transition of the offered aggregate state from `null` into `queued`. It is worth mentioning that if an offer is for an aggregate that is already `queued` or `accepted`, it has no effect.
+Once a Broker successfully receives the offer of an aggregate, the aggregate gets queued for deals with Storage Providers. A receipt is created to proof the transition of the offered aggregate state from `null` into `queued`. It is worth mentioning that if an offer is for an aggregate that is already `queued` or `accepted`, it is a nop.
 
 This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if the aggregate was added into a deal) or fails (if the aggregate was determined to be invalid) so that its receipt COULD be looked up using it.
 
