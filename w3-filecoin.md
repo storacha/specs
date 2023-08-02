@@ -1,4 +1,4 @@
-# CAR Aggregation Protocol
+# W3 Filecoin Protocol
 
 ![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
 
@@ -80,7 +80,6 @@ sequenceDiagram
 
     Agent->>Storefront: invoke `filecoin/add`<br>with:`did:key:aSpace`
     Note left of Storefront: Request piece to be added to filecoin deal
-    Storefront->>Storefront: invoke `filecoin/add`<br>with:`did:key:filecoinQueue`
     activate Storefront
     Storefront-->>Agent: receipt issued as `queued`
     Storefront->>Storefront: invoke `filecoin/add`<br>with:`did:web:web3.storage`
@@ -105,7 +104,6 @@ sequenceDiagram
 
     Storefront->>Aggregator: invoke `piece/add`<br>with:`did:web:web3.storage`
     Note left of Aggregator: Request piece to be included in aggregate
-    Aggregator->>Aggregator: invoke `piece/add`<br>with:`did:key:pieceQueue`
     activate Aggregator
     Aggregator-->>Storefront: receipt issued as `queued`
     Aggregator->>Aggregator: invoke `piece/add`<br>with:`did:key:agg...`
@@ -132,7 +130,6 @@ sequenceDiagram
 
     Aggregator->>Broker: invoke `aggregate/add`<br>with:`did:key:agg...`
     Note left of Broker: Request aggregate to be queued for deal proposal
-    Broker->>Broker: invoke `aggregate/add`<br>with:`did:key:aggregateQueue`
     activate Broker
     Broker-->>Aggregator: receipt issued as `queued`
     Broker->>Broker: invoke `aggregate/add`<br>with:`did:key:brk...`
