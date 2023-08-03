@@ -280,7 +280,8 @@ A storefront principal can invoke a capability to offer a piece to be aggregated
     "can": "piece/add",
     "nb": {
       "piece": { "/": "commitment...car" }, /* commitment proof for piece */
-      "group": "did:web:free.web3.storage", /* grouping for joining segments together into an aggregate */
+      "space": "did:web:web3.storage",      /* space where all segments are joined together */
+      "group": "did:web:free.web3.storage", /* grouping of joining segments into an aggregate */
     }
   }],
   "prf": [],
@@ -320,7 +321,8 @@ When piece request to be added is dequeued, aggregator should invoke `piece/add`
     "can": "piece/add",
     "nb": {
       "piece": { "/": "commitment...car" }, /* commitment proof for piece */
-      "group": "did:web:free.web3.storage", /* grouping for joining segments together into an aggregate */
+      "space": "did:web:web3.storage",      /* space where all segments are joined together */
+      "group": "did:web:free.web3.storage", /* grouping of joining segments into an aggregate */
     }
   }],
   "prf": [],
@@ -612,7 +614,9 @@ type PieceAdd struct {
 type PieceAddDetail struct {
   # Piece as Filecoin Piece with padding
   piece PieceCid
-  # grouping for joining segments together into an aggregate
+  # space where all segments are joined together
+  space string
+  # grouping for joining segments into an aggregate (subset of space)
   group string
 }
 ```
