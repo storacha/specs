@@ -280,7 +280,7 @@ A storefront principal can invoke a capability to offer a piece to be aggregated
     "can": "piece/add",
     "nb": {
       "piece": { "/": "commitment...car" }, /* commitment proof for piece */
-      "space": "did:web:web3.storage",      /* space where all segments are joined together */
+      "storefront": "did:web:web3.storage", /* storefront responsible for invocation */
       "group": "did:web:free.web3.storage", /* grouping of joining segments into an aggregate */
     }
   }],
@@ -614,8 +614,8 @@ type PieceAdd struct {
 type PieceAddDetail struct {
   # Piece as Filecoin Piece with padding
   piece PieceCid
-  # space where all segments are joined together
-  space string
+  # storefront responsible for invocation
+  storefront string
   # grouping for joining segments into an aggregate (subset of space)
   group string
 }
