@@ -252,7 +252,6 @@ If the added piece is invalid, details on failing reason is also reported:
   "ran": "bafy...invocation",
   "out": {
     "error": {
-      "piece": { "/": "commitment...car" }, /* commitment proof for piece */
       "reason": "reasonCode",
     },
   },
@@ -355,7 +354,6 @@ If offered piece is invalid, reason is also reported:
   "ran": "bafy...invocation",
   "out": {
     "error": {
-      "piece": { "/": "commitment...car" }, /* commitment proof for piece */
       "reason": "reasonCode",
     },
   },
