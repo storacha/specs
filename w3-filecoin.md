@@ -61,13 +61,13 @@ A Storefront is web2 to web3 bridge. It ingests user/application data through a 
 
 ### Authorization
 
-Out-of-band registered Storefronts MUST use UCAN based authotization mechanisms to interact with Aggregators, Dealers and Chain Trackers. In the future protocol for registering Storefronts might be introduced.
+Out-of-band registered Storefronts MUST use UCAN based authorization mechanisms to interact with Aggregators, Dealers and Chain Trackers. In the future protocol for registering Storefronts might be introduced.
 
 For example, an Aggregator can authorize invocations from `did:web:web3.storage` by validating the signature is from the DID. This way, it allows web3.storage to rotate keys and/or re-delegate access without having to coordinate with the Aggregator.
 
 ### Storefront receives a Filecoin piece
 
-The Storefront MUST submit content for aggregation by it's piece CID (CommP) that MAY be computed from content by a trusted actor. Storefront MUST provide a capability that can be used to submit a piece to be replicated by (Filecoin) Storage Providers. It may be invoked by Storefront client or delegated to a hired third party, ether way Storefront MUST acknowledge request by issuing a signed receipt. Storefront MAY decide to verify submitted piece prior to aggregation. Storefront MAY also operate trusted actor that computes and submits pieces on content upload.
+The Storefront MUST submit content for aggregation by it's piece CID that MAY be computed from content by a trusted actor. Storefront MUST provide a capability that can be used to submit a piece to be replicated by (Filecoin) Storage Providers. It may be invoked by Storefront client or delegated to a hired third party, ether way Storefront MUST acknowledge request by issuing a signed receipt. Storefront MAY decide to verify submitted piece prior to aggregation. Storefront MAY also operate trusted actor that computes and submits pieces on content upload.
 
 Once a Storefront receives the offer for a piece, it is queued for verification. A receipt is issued to proof the transition of the added piece state from `null` into `queued` for verification.
 
@@ -248,7 +248,7 @@ Storefront MUST issue a signed receipt to communicate the response for the reque
 }
 ```
 
-See [`piece/add`](#pieceadd) section to see the subsequent task.
+See [`aggregate/add`](#aggregateadd) section to see the subsequent task.
 If the added piece is invalid, details on failing reason is also reported:
 
 ```json
