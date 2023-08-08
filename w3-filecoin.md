@@ -43,7 +43,8 @@ A Storefront facilitates data storage services to applications and users, gettin
 
 An _Aggregator_ is a type of [principal] identified by a `did:key` identifier.
 
-An Aggregator facilitates data storage into Filecoin deals by aggregating smaller data (Filecoin Pieces) into a larger piece that can effectively be stored with a Filecoin Storage Provider.
+An Aggregator facilitates data storage into Filecoin deals by aggregating smaller data (Filecoin Pieces) into a larger piece that can effectively be stored with a Filecoin Storage Provider using [Verifiable Data Aggregation
+](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0058.md).
 
 ### Dealer
 
@@ -342,7 +343,8 @@ Aggregator MUST issue a signed receipt with the result of the task. Arranged agg
   "out": {
     "ok": {
         "piece": { "/": "commitment...car" }, /* commitment proof for piece */
-        "aggregate": { "/": "commitment...aggregate-proof" } /* commitment proof */
+        "aggregate": { "/": "commitment...aggregate-proof" }, /* commitment proof */
+        "path": "path-between-root-aggregate-and-piece"
     }
   },
   "meta": {},
