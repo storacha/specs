@@ -380,10 +380,8 @@ An aggregator principal can invoke a capabilty to add an aggregate that is ready
     "nb": {
       "pieces": { "/": "bafy...many-cars" }, /* dag-cbor CID with content pieces */
       "aggregate": { "/": "bafk...aggregate-proof" }, /* commitment proof for aggregate */
-      "deal": {
-        "tenantId": "did:web:web3.storage",
-        "label": "deal-label"
-      }
+      "storefront": "did:web:web3.storage", /* storefront responsible for invocation */
+      "label": "deal-label"
     }
   }],
   "prf": [],
@@ -634,15 +632,10 @@ type DealAddDetail struct {
   # Piece as Aggregate of CARs with padding
   aggregate PieceCid
   # Fields to create a contract with a Storage Provider for aggregate
-  deal DealProposal
-}
-
-# @see https://github.com/filecoin-project/go-state-types/blob/ff2ed169ff566458f2acd8b135d62e8ca27e7d0c/builtin/v9/market/deal.go#L201-L221
-# A subset of the deal proposal items required by broker to facilitate the contract to be created
-type DealProposal struct {
-  # identifier of the tenant that added pieces for the aggregate
-  tenantId string
+  # storefront responsible for invocation
+  storefront string
   # Label is an arbitrary client chosen label to apply to the deal
+  # @see https://github.com/filecoin-project/go-state-types/blob/ff2ed169ff566458f2acd8b135d62e8ca27e7d0c/builtin/v9/market/deal.go#L201-L221
   label string
 }
 
