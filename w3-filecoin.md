@@ -70,11 +70,11 @@ For example, an Aggregator can authorize invocations from `did:web:web3.storage`
 
 The Storefront MUST submit content for aggregation by it's piece CID that MAY be computed from content by a trusted actor. Storefront MUST provide a capability that can be used to submit a piece to be replicated by (Filecoin) Storage Providers. It may be invoked by Storefront client or delegated to a hired third party, ether way Storefront MUST acknowledge request by issuing a signed receipt. Storefront MAY decide to verify submitted piece prior to aggregation. Storefront MAY also operate trusted actor that computes and submits pieces on content upload.
 
-Once a Storefront receives the offer for a piece, it is queued for verification. A receipt is issued to proof the transition of the added piece state from `null` into `queued` for verification.
+Once a Storefront receives the offer for a piece, it is pending for verification. A receipt is issued to proof the transition of the added piece state from `uninitialized` into `pending` for verification.
 
-This receipt MUST have a link to a followup task (using `.fx.join` field) that either succeeds (if the piece was accepted) or fails, so that its receipt MAY be looked up using it. If offered piece is already `queued` or `accepted` state does not change and receipt capturing current state is issued instead.
+This receipt MUST have a link to a followup task (using `.fx.join` field) that either succeeds (if the piece was handled) or fails, so that its receipt MAY be looked up using it. If offered piece is already `pending` or `done` state does not change and receipt capturing current state is issued instead.
 
-After a storefront dequeues the piece and verifies it, a receipt is created to proof the transition of the aggregate state from `queued` into `accepted` or `rejected`. This receipt MUST have link to a followup task (using `.fx.join` field) with `piece/add`.
+After a storefront dequeues the piece and verifies it, a receipt is created to proof the transition of the aggregate state from `pending` into `done`. This receipt MUST have link to a followup task (using `.fx.join` field) with `piece/add`.
 
 ```mermaid
 sequenceDiagram
@@ -84,7 +84,7 @@ sequenceDiagram
     Agent->>Storefront: invoke `filecoin/add`<br>with:`did:key:aSpace`
     Note left of Storefront: Request piece to be added to filecoin deal
     activate Storefront
-    Storefront-->>Agent: receipt issued as `queued`
+    Storefront-->>Agent: receipt issued as `pending`
     Storefront->>Storefront: invoke `filecoin/add`<br>with:`did:web:web3.storage`
     deactivate Storefront
     Storefront-->>Agent: receipt issued<br>fx: `piece/add`
@@ -94,13 +94,13 @@ sequenceDiagram
 
 Storefront SHOULD propagate submitted pieces into Filecoin Storage Providers by forwarding them to an aggregator.
 
-The Aggregator MUST queue offered pieces for an aggregation and issue a signed receipt proving that submitted piece has been `queued`. Issued receipt MUST link to a followup task (using `.fx.join` field) that either succeeds with inclusion proof (if the piece was included into an aggregate) or fail, in order to allow state lookup by its receipt.
+The Aggregator MUST queue offered pieces for an aggregation and issue a signed receipt proving that submitted piece has been `pending`. Issued receipt MUST link to a followup task (using `.fx.join` field) that either succeeds with inclusion proof (if the piece was included into an aggregate) or fail, in order to allow state lookup by its receipt.
 
 If piece submitted by Storefront has already been queued, receipt with the same result and effect MUST be issued.
 
 > Pieces across Storefronts SHOULD not be deduplicated.
 
-After an aggregator dequeues the piece and includes it into an aggregate, it MUST issue a receipt with a piece inclusion proof, transition state of the submitted piece from `queued` into `accepted` or `rejected`.
+After an aggregator dequeues the piece and includes it into an aggregate, it MUST issue a receipt with a piece inclusion proof, transition state of the submitted piece from `pending` into `done`.
 
 ```mermaid
 sequenceDiagram
@@ -110,7 +110,7 @@ sequenceDiagram
     Storefront->>Aggregator: invoke `piece/add`<br>with:`did:web:web3.storage`
     Note left of Aggregator: Request piece to be included in aggregate
     activate Aggregator
-    Aggregator-->>Storefront: receipt issued as `queued`
+    Aggregator-->>Storefront: receipt issued as `pending`
     Aggregator->>Aggregator: invoke `piece/add`<br>with:`did:key:agg...`
     deactivate Aggregator
     Aggregator-->>Storefront: receipt issued <br>with inclusion proof
@@ -120,11 +120,11 @@ sequenceDiagram
 
 When the Aggregator has enough content pieces to build a qualified aggregate (dealers MAY impose different requirements), it MUST submit a Filecoin deal for the aggregate to a Dealer using `deal/offer` invocation. Dealer MUST issue signed receipt acknowledging submission, actual deal negotiation with Filecoin Storage Providers MAY carry out of band.
 
-Once a Dealer receives an aggregate offer it is queued for negotiations with Storage Providers. Issued receipt is a proofs transition of the (offered aggregate) state from `null` into `queued`. If Dealer receives request with an aggregate already in pipeline it MUST simply reissue receipt with a same result and effects as the original request.
+Once a Dealer receives an aggregate offer it is queued for negotiations with Storage Providers. Issued receipt is a proofs transition of the (offered aggregate) state from `uninitialized` into `pending`. If Dealer receives request with an aggregate already in pipeline it MUST simply reissue receipt with a same result and effects as the original request.
 
 Issued receipt MUST link to a followup task (using `.fx.join` field) that either succeeds (if the aggregate deal made it into Filecoin chain) or fails (e.g. if Storage Provider failed to replicate and reported an error) so that its receipt COULD be looked up by it.
 
-After a Dealer dequeues the aggregate, it will interact with available Filecoin Storage Providers, in order to establish a previously determined (out of band) number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of the aggregate state from `queued` into `accepted` or `rejected`.
+After a Dealer dequeues the aggregate, it will interact with available Filecoin Storage Providers, in order to establish a previously determined (out of band) number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of the aggregate state from `pending` into `done`.
 
 > Note: Dealer MAY have several intermediate steps and states it transitions through, however those intentionally are not captured by this protocol, because storefront will take no action until success / failure condition is met.
 
@@ -136,13 +136,11 @@ sequenceDiagram
     Aggregator->>Dealer: invoke `aggregate/add`<br>with:`did:key:agg...`
     Note left of Dealer: Request aggregate to be queued for deal proposal
     activate Dealer
-    Dealer-->>Aggregator: receipt issued as `queued`
+    Dealer-->>Aggregator: receipt issued as `pending`
     Dealer->>Dealer: invoke `aggregate/add`<br>with:`did:key:brk...`
     deactivate Dealer
-    Dealer-->>Aggregator: receipt issued with `accepted` or `rejected`
+    Dealer-->>Aggregator: receipt issued with `done`
 ```
-
-If the aggregate reaches the `accepted` state, the dealer takes care of renewing deals.
 
 The Dealer MAY request an out of bound signature from the Storefront to validate the terms of a deal.
 
@@ -195,8 +193,7 @@ Storefront MUST issue a signed receipt to acknowledge the received request. Issu
   "ran": "bafy...invocation",
   "out": {
     "ok": {
-      "piece": { "/": "bafk...commp" }, /* commitment proof for piece */
-      "status": "queued"
+      "piece": { "/": "bafk...commp" } /* commitment proof for piece */
     }
   },
   "fx": {
@@ -208,7 +205,7 @@ Storefront MUST issue a signed receipt to acknowledge the received request. Issu
 }
 ```
 
-When piece request to be added is dequeued & verified storefront MUST invoke `filecoin/add` with own DID propagating piece through the pipeline and signaling that submitted piece was accepted.
+When piece request to be added is dequeued & verified storefront MUST invoke `filecoin/add` with own DID propagating piece through the pipeline and signaling that submitted piece was handled.
 
 > `did:web:web3.storage` invokes capability from `did:web:web3.storage`
 
@@ -236,8 +233,7 @@ Storefront MUST issue a signed receipt to communicate the response for the reque
   "ran": "bafy...invocation",
   "out": {
     "ok": {
-      "piece": { "/": "bafk...commp" }, /* commitment proof for piece */
-      "status": "accepted"
+      "piece": { "/": "bafk...commp" } /* commitment proof for piece */
     }
   },
   "fx": {
@@ -300,9 +296,7 @@ Aggregator MUST issue a signed receipt to acknowledge the received request. Issu
 {
   "ran": "bafy...invocation",
   "out": {
-    "ok": {
-      "status": "queued"
-    }
+    "ok": {}
   },
   "fx": {
     "join": { "/": "bafy...dequeue" }
@@ -414,15 +408,13 @@ Finally, The `nb.offer` field represents a "Ferry" aggregate offer that is ready
 
 Each entry of the decoded offers block, has all the necessary information for a Storage Provider to fetch and store a CAR file. It includes an array of Filecoin `piece` info required by Storage Providers.
 
-Dealer MUST issue a signed receipt to acknowledge the received request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was accepted and deals will be arranged) or fail (with `error` describing a problem with the aggregate).
+Dealer MUST issue a signed receipt to acknowledge the received request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is run when submitted aggregate is processed and either succeeds (implying that aggregate was handled and deals will be arranged) or fail (with `error` describing a problem with the aggregate).
 
 ```json
 {
   "ran": "bafy...invocation",
   "out": {
-    "ok": {
-      "status": "queued"
-    }
+    "ok": {}
   },
   "fx": {
     "join": { "/": "bafy...dequeue" }
@@ -499,7 +491,7 @@ If offered aggregate is invalid, details on failing pieces are also reported:
 
 ### `chain-tracker/info`
 
-A Storefront principal can query state of accepted aggregate by invoking `chain-tracker/info` capability.
+A Storefront principal can query state of an aggregate by invoking `chain-tracker/info` capability.
 
 > `did:web:web3.storage` invokes capability from `did:key:chain-tracker...`
 
