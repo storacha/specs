@@ -499,7 +499,7 @@ A Storefront principal can query state of an aggregate by invoking `chain-tracke
   "aud": "did:web:chain-tracker...",
   "att": [{
     "with": "did:web:web3.storage",
-    "can": "chain/info",
+    "can": "chain-tracker/info",
     "nb": {
       "piece": { "/": "commitment...aggregate-proof" } /* commitment proof */
     }
