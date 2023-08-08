@@ -57,7 +57,7 @@ A _Chain_ is a type of [principal] identified by a `did:key` that tracks the fil
 
 ## Overview
 
-A Storefront is the entry point for user/application data into web3. It will act on behalf of users and move data around into different storage points. One of the key storage presences may be Filecoin Storage Providers. Storefront is able to ingest files of arbitrary sizes, while Storage Providers are looking for storing larger pieces, rather than small pieces. Accordingly, the aggregator is responsible for aggregating multiple smaller pieces into a bigger one that can be stored by Storage Providers.
+A Storefront is web2 to web3 bridge. In ingests user/application data through a conventional web2 interface and replicates it across various storage systems, including Filecoin Storage Providers. Content supplied to a Storefront can be of arbitrary size, while (Filecoin) Storage Providers demand large (>= 16GiB) content pieces.  To align supply and demand requirements, the aggregator accumulates supplied content pieces into a larger verifiable aggregate pieces per [FRC-0058](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0058.md) that can be stored by Storage Providers.
 
 ### Authorization
 
@@ -65,9 +65,9 @@ Broker MUST have an authorization mechanism for allowed Storefront principals (e
 
 ### Storefront receives a Filecoin piece
 
-When a Storefront's user (agent) intends to store a given content into a Filecoin Storage Provider, its proof SHOULD be computed (commonly known as Filecoin Piece) by the client and added to the Storefront. Note that Storefront MAY decide to compute the piece without waiting for an Agent to store received content into a Filecoin deal, or verify the agent claimed one. Storefront MUST acknowledge a request by issuing a signed receipt.
+The Storefront MUST submit content for aggregation by it's piece CID (CommP) that MAY be computed from content by a trusted actor. Storefront MUST provide a capability that can be used to submit a piece to be replicated by (Filecoin) Storage Providers. It may be invoked by Storefront client or delegated to a hired third party, ether way Storefront MUST acknowledge request by issuing a signed receipt. Storefront MAY decide to verify submitted piece prior to aggregation. Storefront MAY also operate trusted actor that computes and submits pieces on content upload.
 
-Once a Storefront receives the offer of a piece by an agent, the piece gets queued for verification. A receipt is created to proof the transition of the added piece state from `null` into `queued` for verification. It is worth mentioning that if an offer is for a piece that is already `queued` or `accepted`, it is a NOP.
+Once a Storefront receives the offer for a piece, it is queued for verification. A receipt is issued to proof the transition of the added piece state from `null` into `queued` for verification. If offered piece is already `queued` or `accepted` state does not change and receipt capturing current state is issued.
 
 This receipt MUST have a link to a followup task (using `.fx.join` field) that either succeeds (if the piece was accepted) or fails, so that its receipt MAY be looked up using it.
 
@@ -89,13 +89,15 @@ sequenceDiagram
 
 ### Storefront offers a piece to aggregate
 
-Once a Storefront receives a valid piece, it MAY be offered for aggregation, so that it makes its way into a Storage Provider. Aggregation MAY be handled asynchronously, therefore the Aggregator MUST acknowledge a request by issuing a signed receipt.
+Storefront SHOULD propagate submitted pieces into Filecoin Storage Providers by forwarding them to an aggregator.
 
-Once an Aggregator successfully receives a piece offer, the piece gets queued for aggregation. A receipt is created to prove the transition of the offered aggregate state from `null` into `queued`. It is worth mentioning that if an offer is for a piece that is already `queued` or `accepted`, it is a NOP.
+The Aggregator MUST queue offered pieces for an aggregation and issue a signed receipt proving that submitted piece has been `queued`. Issued receipt MUST link to a followup task (using `.fx.join` field) that either succeeds with inclusion proof (if the piece was included into an aggregate) or fail, in order to allow state lookup by its receipt.
 
-This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if the piece was added into an aggregate) or fails, so that its receipt MAY be looked up using it.
+If piece submitted by Storefront has already been queued, receipt with the same result and effect MUST be issued.
 
-After an aggregator dequeues the piece, it will be included into an aggregate to be offered for Storage Providers. A receipt is created to proof the transition of the aggregate state from `queued` into `accepted` or `rejected`. If successful, a inclusion proof MUST also be provided.
+> Pieces across Storefronts SHOULD not be deduplicated.
+
+After an aggregator dequeues the piece and includes it into an aggregate, it MUST issue a receipt with a piece inclusion proof, transition state of the submitted piece from `queued` into `accepted` or `rejected`.
 
 ```mermaid
 sequenceDiagram
@@ -113,11 +115,11 @@ sequenceDiagram
 
 ### Aggregator offers broker an aggregate
 
-When the Aggregator has enough content to fulfill an aggregate (each broker MAY have different requirements), a Filecoin deal for an aggregate MAY be requested by an `aggregate/offer` invocation. Deal negotiations with Filecoin Storage Providers MAY be handled out of band. Broker MUST acknowledge a request by issuing a signed receipt.
+When the Aggregator has enough content pieces to build a qualified aggregate (brokers MAY impose different requirements), it MUST submit a Filecoin deal for the aggregate to a Broker using `deal/offer` invocation. Broker MUST issue signed receipt acknowledging submission, actual deal negotiation with Filecoin Storage Providers MAY carry out of band. 
 
-Once a Broker successfully receives the offer of an aggregate, the aggregate gets queued for deals with Storage Providers. A receipt is created to proof the transition of the offered aggregate state from `null` into `queued`. It is worth mentioning that if an offer is for an aggregate that is already `queued` or `accepted`, it is a NOP.
+Once a Broker receives an aggregate offer it is queued for negotiations with Storage Providers. Issued receipt is a proofs transition of the (offered aggregate) state from `null` into `queued`. If Broker receives request with an aggregate already in pipeline it MUST simply reissue receipt with a same result and effects as the original request.
 
-This receipt MUST have link to a followup task (using `.fx.join` field) that either succeeds (if the aggregate was added into a deal) or fails (if the aggregate was determined to be invalid) so that its receipt COULD be looked up using it.
+Issued receipt MUST link to a followup task (using `.fx.join` field) that either succeeds (if the aggregate deal made it into Filecoin chain) or fails (e.g. if Storage Provider failed to replicate and reported an error) so that its receipt COULD be looked up by it.
 
 After a broker dequeues the aggregate, it will interact with available Filecoin Storage Providers, in order to establish a previously determined (out of band) number of deals. Depending on storage providers availability, as well as the content present in the offer, the aggregate MAY be handled or not. A receipt is created to proof the transition of the aggregate state from `queued` into `accepted` or `rejected`.
 
@@ -162,20 +164,20 @@ In this document, we will be exposing capabilities implemented by Storefront `we
 
 ### `filecoin/add`
 
-An agent principal can invoke a capability to add a piece to upcoming Filecoin deal(s) with a Storage provider. See [schema](#filecoinadd-schema).
+An agent principal can invoke a capability to add a piece to be included in a Filecoin deal(s) with a Storage providers. See [schema](#filecoinadd-schema).
 
-> `did:key:abc...` invokes capability from `did:web:web3.storage`
+> `did:key:zAlice` invokes capability from `did:web:web3.storage`
 
 ```json
 {
-  "iss": "did:key:abc...",
+  "iss": "did:key:zAlice",
   "aud": "did:web:web3.storage",
   "att": [{
-    "with": "did:key:abc...",
+    "with": "did:key:zAlice",
     "can": "filecoin/add",
     "nb": {
-      "content": { "/": "bag..." }, /* CID of file previously added to resource space */
-      "piece": { "/": "commitment...car" } /* commitment proof for piece */
+      "content": { "/": "bag...car" }, /* CID of file previously added to resource space */
+      "piece": { "/": "bafk...commp" } /* commitment proof for piece */
     }
   }],
   "prf": [],
@@ -190,7 +192,7 @@ Storefront MUST issue a signed receipt to acknowledge the received request. Issu
   "ran": "bafy...invocation",
   "out": {
     "ok": {
-      "piece": { "/": "commitment...car" }, /* commitment proof for piece */
+      "piece": { "/": "bafk...commp" }, /* commitment proof for piece */
       "status": "queued"
     }
   },
@@ -203,7 +205,7 @@ Storefront MUST issue a signed receipt to acknowledge the received request. Issu
 }
 ```
 
-When piece request to be added is dequeued, storefront should invoke `filecoin/add` to store it.
+When piece request to be added is dequeued & verified storefront MUST invoke `filecoin/add` with own DID propagating piece through the pipeline and signaling that submitted piece was accepted.
 
 > `did:web:web3.storage` invokes capability from `did:web:web3.storage`
 
@@ -215,8 +217,8 @@ When piece request to be added is dequeued, storefront should invoke `filecoin/a
     "with": "did:web:web3.storage",
     "can": "filecoin/add",
     "nb": {
-      "content": { "/": "bag..." }, /* CID of file previously added to resource space */
-      "piece": { "/": "commitment...car" } /* commitment proof for piece */
+      "content": { "/": "bag...car" }, /* CID of file previously added to resource space */
+      "piece": { "/": "bafk...commp" } /* commitment proof for piece */
     }
   }],
   "prf": [],
@@ -224,14 +226,14 @@ When piece request to be added is dequeued, storefront should invoke `filecoin/a
 }
 ```
 
-Storefront MUST issue a signed receipt to communicate the response for the request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that is invoked to get a piece into an aggregate.
+Storefront MUST issue a signed receipt to communicate the response for the request. Issued receipt MUST contain an [effect](https://github.com/ucan-wg/invocation/#7-effect) with a subsequent task (`.fx.join` field) that submits piece for an aggregation.
 
 ```json
 {
   "ran": "bafy...invocation",
   "out": {
     "ok": {
-      "piece": { "/": "commitment...car" }, /* commitment proof for piece */
+      "piece": { "/": "bafk...commp" }, /* commitment proof for piece */
       "status": "accepted"
     }
   },
@@ -252,7 +254,8 @@ If the added piece is invalid, details on failing reason is also reported:
   "ran": "bafy...invocation",
   "out": {
     "error": {
-      "reason": "reasonCode",
+      "name": "InvalidPieceCID",
+      "message": "...."
     },
   },
   "fx": {
@@ -278,7 +281,7 @@ A storefront principal can invoke a capability to offer a piece to be aggregated
     "with": "did:web:web3.storage",
     "can": "piece/add",
     "nb": {
-      "piece": { "/": "commitment...car" }, /* commitment proof for piece */
+      "piece": { "/": "bafk...commp" }, /* commitment proof for piece */
       "storefront": "did:web:web3.storage", /* storefront responsible for invocation */
       "group": "did:web:free.web3.storage", /* grouping of joining segments into an aggregate */
     }
@@ -377,8 +380,8 @@ An aggregator principal can invoke a capabilty to add an aggregate that is ready
     "with": "did:web:filecoin.web3.storage",
     "can": "aggregate/add",
     "nb": {
-      "offer": { "/": "bafy...many-cars" }, /* dag-cbor CID with offer content */
-      "piece": { "/": "commitment...aggregate-proof" }, /* commitment proof for aggregate */
+      "pieces": { "/": "bafy...many-cars" }, /* dag-cbor CID with content pieces */
+      "aggregate": { "/": "bafk...aggregate-proof" }, /* commitment proof for aggregate */
       "deal": {
         "tenantId": "web3.storage",
         "label": "deal-label"
@@ -458,7 +461,6 @@ Broker MUST issue a signed receipt with the result of the task. Arranged aggrega
   "ran": "bafy...invocation",
   "out": {
     "ok": {
-      "status": "accepted",
       "piece": { "/": "commitment...aggregate-proof" } /* commitment proof */
     }
   },
@@ -475,11 +477,14 @@ If offered aggregate is invalid, details on failing pieces are also reported:
   "ran": "bafy...invocation",
   "out": {
     "error": {
-      "piece": { "/": "commitment...aggregate-proof" }, /* commitment proof */
-      "cause": [{
-        "piece": { "/": "commitment...car0" },
-        "reason": "reasonCode",
-      }],
+       "name": "InvalidPiece",
+       "message": "....",
+       "aggregate": { "/": "bafk...aggregate-proof" }, /* commitment proof */
+       "cause": [{
+          "name": "InvalidPieceCID",
+          "message": "....",
+          "piece": { "/": "bafk...car0" },
+       }],
     },
   },
   "meta": {},
