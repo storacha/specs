@@ -110,3 +110,11 @@ Fil
 Ucanto
 ucanto
 natively
+storageAggregatorPrincipal
+w3filecoinDealerPrincipal
+SpadeChain
+SpadeChainPrincipal
+TrackerPrincipal
+16GiB
+NOP
+deduplicated
