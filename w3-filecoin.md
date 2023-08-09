@@ -435,12 +435,10 @@ When aggregate request to be added is dequeued, dealer should invoke `deal/add` 
     "with": "did:web:spade.storage",
     "can": "deal/add",
     "nb": {
-      "offer": { "/": "bafy...many-cars" }, /* dag-cbor CID with offer content */
-      "piece": { "/": "commitment...aggregate-proof" }, /* commitment proof for aggregate */
-      "deal": {
-        "tenantId": "web3.storage",
-        "label": "deal-label"
-      }
+      "pieces": { "/": "bafy...many-cars" }, /* dag-cbor CID with content pieces */
+      "aggregate": { "/": "bafk...aggregate-proof" }, /* commitment proof for aggregate */
+      "storefront": "did:web:web3.storage", /* storefront responsible for invocation */
+      "label": "deal-label"
     }
   }],
   "prf": [],
@@ -455,7 +453,7 @@ Dealer MUST issue a signed receipt with the result of the task. Arranged aggrega
   "ran": "bafy...invocation",
   "out": {
     "ok": {
-      "piece": { "/": "commitment...aggregate-proof" } /* commitment proof */
+      "aggregate": { "/": "commitment...aggregate-proof" } /* commitment proof */
     }
   },
   "meta": {},
