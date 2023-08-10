@@ -43,9 +43,9 @@ In other words, if an agent has a delegation for `rate-limit/*` for a given prov
 
 #### rate-limit/add
 
-Given a subject ID (eg, a`did:mailto`, a URL, a domain name, etc), set a rate limit for the entity represented by that ID. The semantics of both the subject and rate are intentionally abstract, and the service is expected to record them without much processing.
+Given a subject ID (e.g., a`did:mailto`, a URL, a domain name, etc), set a rate limit for the entity represented by that ID. The semantics of both the subject and rate are intentionally abstract, and the service is expected to record them without much processing.
 
-Consumers of rate limits are expected to query the underlying datastore where they are stored for the subjects they care about and interpret the `rate` value in a way that makes sense for their usecase.
+Consumers of rate limits are expected to query the underlying data store where they are stored for the subjects they care about and interpret the `rate` value in a way that makes sense for their use case.
 
 Returns an ID that can be used to remove this limit later.
 
@@ -87,7 +87,7 @@ export const add = capability({
 
 #### rate-limit/list
 
-Given a subject ID (eg, a`did:mailto`, a URL, a domain name, etc), list all rate limits that apply to the given subject.
+Given a subject ID (e.g., a`did:mailto`, a URL, a domain name, etc), list all rate limits that apply to the given subject.
 
 ##### inputs
 
