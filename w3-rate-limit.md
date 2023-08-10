@@ -18,9 +18,9 @@ from using their service. We describe a set of capabilities for tracking and adm
 - [Capabilities](#capabilities)
   - [`rate-limit/` namespace](#rate-limit-namespace)
     - [`rate-limit/*`](#rate-limit)
-    - [`rate-limit/add`](#ratelimitadd)
-    - [`rate-limit/remove`](#ratelimitremove)
-    - [`rate-limit/list`](#ratelimitlist)
+    - [`rate-limit/add`](#rate-limitadd)
+    - [`rate-limit/remove`](#rate-limitremove)
+    - [`rate-limit/list`](#rate-limitlist)
 
 ## Language
 
@@ -50,6 +50,7 @@ Consumers of rate limits are expected to query the underlying datastore where th
 Returns an ID that can be used to remove this limit later.
 
 ##### inputs
+
 `subject: string`
 `rate: number`
 
@@ -89,6 +90,7 @@ export const add = capability({
 Given a subject ID (eg, a`did:mailto`, a URL, a domain name, etc), list all rate limits that apply to the given subject.
 
 ##### inputs
+
 `subject: string`
 
 ##### returns
@@ -134,6 +136,7 @@ export const remove = capability({
 Given a rate limit ID (returned from `rate-limit/add` or `rate-limit/list`), remove the identified rate limit.
 
 ##### inputs
+
 `id: string`
 
 ##### returns
