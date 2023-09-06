@@ -4,11 +4,11 @@
 
 ## Editors
 
-- [Travis Vachon], [Protocol Labs]
+- [Travis Vachon](https://github.com/travis), [Protocol Labs](https://protocol.ai/)
 
 ## Authors
 
-- [Travis Vachon], [Protocol Labs]
+- [Travis Vachon](https://github.com/travis), [Protocol Labs](https://protocol.ai/)
 
 # Abstract
 
