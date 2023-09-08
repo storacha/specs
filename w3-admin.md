@@ -12,14 +12,14 @@
 
 # Abstract
 
-Storage providers in the w3 family of protocols need to be able to get information about the customers, subscriptions and "consumers" (ie, spaces) 
-they work with. The capabilities described in this document all act on the "service" resource (ie, `did:web:web3.storage`) and can be delegated
+Storage providers in the w3 family of protocols need to be able to get information about the customers, subscriptions and "consumers" (i.e., spaces)
+they work with. The capabilities described in this document all act on the "service" resource (i.e., `did:web:web3.storage`) and can be delegated
 to administrative users by creating delegations signed with the service signer's private key.
 
 - [Capabilities](#capabilities)
-  - [`consumer/get`](#consumer-get)
-  - [`customer/get`](#customer-get)
-  - [`subscription/get`](#subscription-get)
+  - [`consumer/get`](#consumerget)
+  - [`customer/get`](#customerget)
+  - [`subscription/get`](#subscriptionget)
 
 ## Language
 
@@ -29,7 +29,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ### consumer/get
 
-Get information about a consumer (ie, a space).
+Get information about a consumer (i.e., a space).
 
 #### inputs
 
