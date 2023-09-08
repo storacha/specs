@@ -20,6 +20,7 @@ to administrative users by creating delegations signed with the service signer's
   - [`consumer/get`](#consumerget)
   - [`customer/get`](#customerget)
   - [`subscription/get`](#subscriptionget)
+  - [`cid/get`](#cidget)
 
 ## Language
 
@@ -147,4 +148,26 @@ export const get = capability({
     )
   },
 })
+```
+
+### cid/get
+
+Get information about a CID. This does not return the actual data identified by the CID, just metadata our
+system tracks, e.g. the spaces the content identified by a given CID has been uploaded to and the 
+dates the uploads happened.
+
+#### inputs
+
+`cid: CID`
+
+#### returns
+
+The return type currently consists of two lists: "uploads" and "stores". These lists correspond to 
+the `upload/*` and `store/*` capabilities described in the [storage and upload protocol](./w3-store.md).
+
+```typescript
+{
+  uploads: {space: SpaceDID, insertedAt: Date}[]
+  stores: {space: SpaceDID, insertedAt: Date}[]
+}
 ```
