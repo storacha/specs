@@ -150,9 +150,9 @@ export const get = capability({
 })
 ```
 
-### cid/get
+### `root/get`
 
-Get information about a CID. This does not return the actual data identified by the CID, just metadata our
+Get information about an upload root CID. This does not return the actual data identified by the CID, just metadata our
 system tracks, e.g. the spaces the content identified by a given CID has been uploaded to and the 
 dates the uploads happened.
 
@@ -162,12 +162,32 @@ dates the uploads happened.
 
 #### returns
 
-The return type currently consists of two lists: "uploads" and "stores". These lists correspond to 
-the `upload/*` and `store/*` capabilities described in the [storage and upload protocol](./w3-store.md).
+The `uploads` property will be a list of spaces the given root CID's content has been uploaded to, along
+with the date it was uploaded.
 
 ```typescript
 {
-  uploads: {space: SpaceDID, insertedAt: Date}[]
-  stores: {space: SpaceDID, insertedAt: Date}[]
+  uploads: Array<{space: SpaceDID, insertedAt: Date}>
+}
+```
+
+### `shard/get`
+
+Get information about a shard (ie, a CAR that contains part of an upload) CID. This
+does not return the actual data identified by the CID, just metadata our system tracks,
+e.g. the spaces the CAR identified by a given CID has been stored in and the date it was stored.
+
+#### inputs
+
+`cid: CID`
+
+#### returns
+
+The `stores` property will be a list of spaces the specified shard was stored in, along with the date on
+which it was stored.
+
+```typescript
+{
+  stores: Array<{space: SpaceDID, insertedAt: Date}>
 }
 ```
