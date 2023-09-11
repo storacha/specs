@@ -27,7 +27,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Capabilities
 
-### consumer/get
+### `consumer/get`
 
 Get information about a consumer (i.e., a space).
 
@@ -52,7 +52,7 @@ Get information about a consumer (i.e., a space).
 
 #### capability definition
 
-```javascript=
+```javascript
 export const get = capability({
   can: 'consumer/get',
   with: ProviderDID,
@@ -69,7 +69,7 @@ export const get = capability({
 })
 ```
 
-### customer/get
+### `customer/get`
 
 Get information about a customer.
 
@@ -80,6 +80,7 @@ Get information about a customer.
 #### returns
 
 ```typescript
+{
   did: AccountDID
   subscriptions: string[]
 }
@@ -91,7 +92,7 @@ Get information about a customer.
 
 #### capability definition
 
-```javascript=
+```javascript
 export const get = capability({
   can: 'customer/get',
   with: ProviderDID,
@@ -108,7 +109,7 @@ export const get = capability({
 })
 ```
 
-### subscription/get
+### `subscription/get`
 
 Get information about a subscription.
 
@@ -131,7 +132,7 @@ Get information about a subscription.
 
 #### capability definition
 
-```javascript=
+```javascript
 export const get = capability({
   can: 'subscription/get',
   with: ProviderDID,
