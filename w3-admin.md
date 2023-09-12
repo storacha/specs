@@ -20,8 +20,8 @@ to administrative users by creating delegations signed with the service signer's
   - [`consumer/get`](#consumerget)
   - [`customer/get`](#customerget)
   - [`subscription/get`](#subscriptionget)
-  - [`trace/upload/add`](#traceuploadadd)
-  - [`trace/store/add`](#tracestoreadd)
+  - [`admin/upload/inspect`](#adminuploadinspect)
+  - [`admin/store/inspect`](#adminstoreinspect)
 
 ## Language
 
@@ -151,7 +151,7 @@ export const get = capability({
 })
 ```
 
-### `trace/upload/add`
+### `admin/upload/inspect`
 
 Get information about a content CID. This does not return the actual data identified by the CID, just metadata our
 system tracks, e.g. the spaces the content identified by a given CID has been uploaded to and the dates the uploads happened.
@@ -171,7 +171,7 @@ with the date it was uploaded.
 }
 ```
 
-### `trace/store/add`
+### `admin/store/inspect`
 
 Get information about a shard (i.e., a CAR that contains part of an upload) CID. This
 does not return the actual data identified by the CID, just metadata our system tracks,
