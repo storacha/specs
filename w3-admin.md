@@ -20,8 +20,8 @@ to administrative users by creating delegations signed with the service signer's
   - [`consumer/get`](#consumerget)
   - [`customer/get`](#customerget)
   - [`subscription/get`](#subscriptionget)
-  - [`root/get`](#rootget)
-  - [`shard/get`](#shardget)
+  - [`trace/upload/get`](#traceuploadget)
+  - [`trace/store/get`](#tracestoreget)
 
 ## Language
 
@@ -151,14 +151,14 @@ export const get = capability({
 })
 ```
 
-### `root/get`
+### `trace/upload/get`
 
-Get information about an upload root CID. This does not return the actual data identified by the CID, just metadata our
+Get information about a content CID. This does not return the actual data identified by the CID, just metadata our
 system tracks, e.g. the spaces the content identified by a given CID has been uploaded to and the dates the uploads happened.
 
 #### inputs
 
-`cid: CID`
+`root: CID`
 
 #### returns
 
@@ -171,7 +171,7 @@ with the date it was uploaded.
 }
 ```
 
-### `shard/get`
+### `trace/store/get`
 
 Get information about a shard (i.e., a CAR that contains part of an upload) CID. This
 does not return the actual data identified by the CID, just metadata our system tracks,
@@ -179,7 +179,7 @@ e.g. the spaces the CAR identified by a given CID has been stored in and the dat
 
 #### inputs
 
-`cid: CID`
+`link: CID`
 
 #### returns
 
