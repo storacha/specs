@@ -119,3 +119,6 @@ TrackerPrincipal
 16GiB
 NOP
 deduplicated
+AggregatorPrincipal
+w3filecoin
+DealerPrincipal
