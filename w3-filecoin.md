@@ -20,6 +20,38 @@ This spec describes a [UCAN] protocol allowing an implementer to receive an aggr
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
+# Table of Contents
+
+* [Terminology](#terminology)
+    * [Roles](#roles)
+        * [Storefront](#storefront)
+        * [Aggregator](#aggregator)
+        * [Dealer](#dealer)
+        * [Deal Tracker](#deal-tracker)
+* [Protocol](#protocol)
+    * [Overview](#overview)
+    * [Authorization](#authorization)
+    * [Capabilities](#capabilities)
+        * [Storefront Capabilities](#storefront-capabilities)
+            * [`filecoin/queue`](#filecoinqueue)
+            * [`filecoin/add`](#filecoinadd)
+        * [Aggregator Capabilities](#aggregator-capabilities)
+            * [`aggregate/queue`](#aggregatequeue)
+            * [`aggregate/add`](#aggregateadd)
+        * [Dealer Capabilities](#storefront-capabilities)
+            * [`deal/queue`](#dealqueue)
+            * [`deal/add`](#dealadd)
+        * [Deal Tracker Capabilities](#deal-tracker-capabilities)
+            * [`dealtracker/info`](#dealtrackerinfo)
+    * [Schema](#schema)
+        * [`filecoin/queue` schema](#filecoinqueue-schema)
+        * [`filecoin/add` schema](#filecoinadd-schema)
+        * [`aggregate/queue` schema](#aggregatequeue-schema)
+        * [`aggregate/add` schema](#aggregateadd-schema)
+        * [`deal/queue` schema](#dealqueue-schema)
+        * [`deal/add` schema](#dealadd-schema)
+        * [`dealtracker/info` schema](#dealtrackerinfo-schema)
+
 # Terminology
 
 ## Roles
@@ -161,7 +193,7 @@ sequenceDiagram
 
 This section describes the capabilities that form the w3 aggregation protocol, along with the details relevant for invoking capabilities with a service provider.
 
-In this document, we will be exposing capabilities implemented by Storefront `web3.storage`, Aggregator `aggregator.web3.storage` and Dealer `dealer.web3.storage`.
+In this document, we will be exposing capabilities implemented by Storefront `web3.storage`, Aggregator `aggregator.web3.storage`, Dealer `dealer.web3.storage` and Deal Tracker `dealtracker.web3.storage`.
 
 ### Storefront Capabilities
 
