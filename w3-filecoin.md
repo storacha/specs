@@ -51,7 +51,6 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
     - [`aggregate/add` schema](#aggregateadd-schema)
     - [`deal/queue` schema](#dealqueue-schema)
     - [`deal/add` schema](#dealadd-schema)
-    - [`dealtracker/info` schema](#dealtrackerinfo-schema)
 
 # Terminology
 
