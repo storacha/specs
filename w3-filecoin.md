@@ -44,6 +44,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
         * [Deal Tracker Capabilities](#deal-tracker-capabilities)
             * [`dealtracker/info`](#dealtrackerinfo)
     * [Schema](#schema)
+        * [Base types](#base-types)
         * [`filecoin/queue` schema](#filecoinqueue-schema)
         * [`filecoin/add` schema](#filecoinadd-schema)
         * [`aggregate/queue` schema](#aggregatequeue-schema)
