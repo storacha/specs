@@ -28,10 +28,10 @@ There are several roles in the authorization flow:
 
 | Name          | Description |
 | ------------- | ----------- |
-| Storefront    | [Principal] identified by a DID, representing a storage API like web3.storage |
-| Aggregator    | [Principal] identified by a DID, representing a storage aggregator like w3filecoin |
-| Dealer        | [Principal] identified by a DID, that arranges filecoin deals with storage providers. e.g. Spade |
-| Deal Tracker  | [Principal] identified by a DID, that tracks deals made by the Dealer |
+| Storefront    | [Principal] identified by a DID, representing a storage API like web3.storage. |
+| Aggregator    | [Principal] identified by a DID, representing a storage aggregator like w3filecoin. |
+| Dealer        | [Principal] identified by a DID, that arranges filecoin deals with storage providers. e.g. Spade. |
+| Deal Tracker  | [Principal] identified by a DID, that tracks deals made by the Dealer. |
 
 ### Storefront
 
@@ -41,7 +41,7 @@ A Storefront facilitates data storage services to applications and users, gettin
 
 ### Aggregator
 
-An _Aggregator_ is a type of [principal] identified by a DID. It is RECOMMENDED to use use [`did:key`] identifier due to their stateless nature. 
+An _Aggregator_ is a type of [principal] identified by a DID. It is RECOMMENDED to use use [`did:key`] identifier due to their stateless nature.
 
 An Aggregator facilitates data storage into Filecoin deals by aggregating smaller data (Filecoin Pieces) into a larger piece that can effectively be stored with a Filecoin Storage Provider using [Verifiable Data Aggregation
 ](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0058.md).
