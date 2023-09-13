@@ -20,6 +20,8 @@ to administrative users by creating delegations signed with the service signer's
   - [`consumer/get`](#consumerget)
   - [`customer/get`](#customerget)
   - [`subscription/get`](#subscriptionget)
+  - [`admin/upload/inspect`](#adminuploadinspect)
+  - [`admin/store/inspect`](#adminstoreinspect)
 
 ## Language
 
@@ -147,4 +149,45 @@ export const get = capability({
     )
   },
 })
+```
+
+### `admin/upload/inspect`
+
+Get information about a content CID. This does not return the actual data identified by the CID, just metadata our
+system tracks, e.g. the spaces the content identified by a given CID has been uploaded to and the dates the uploads happened.
+
+#### inputs
+
+`root: CID`
+
+#### returns
+
+The `uploads` property will be a list of spaces the given root CID's content has been uploaded to, along
+with the date it was uploaded.
+
+```typescript
+{
+  uploads: Array<{space: SpaceDID, insertedAt: Date}>
+}
+```
+
+### `admin/store/inspect`
+
+Get information about a shard (i.e., a CAR that contains part of an upload) CID. This
+does not return the actual data identified by the CID, just metadata our system tracks,
+e.g. the spaces the CAR identified by a given CID has been stored in and the date it was stored.
+
+#### inputs
+
+`link: CID`
+
+#### returns
+
+The `stores` property will be a list of spaces the specified shard was stored in, along with the date on
+which it was stored.
+
+```typescript
+{
+  stores: Array<{space: SpaceDID, insertedAt: Date}>
+}
 ```
