@@ -24,26 +24,26 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 - [Terminology](#terminology)
   - [Roles](#roles)
-    - [Storefront](#storefront)
-    - [Aggregator](#aggregator)
-    - [Dealer](#dealer)
-    - [Deal Tracker](#deal-tracker)
+    - [Storefront]
+    - [Aggregator]
+    - [Dealer]
+    - [Deal Tracker]
 - [Protocol](#protocol)
   - [Overview](#overview)
   - [Authorization](#authorization)
   - [Capabilities](#capabilities)
     - [Storefront Capabilities](#storefront-capabilities)
-      - [`filecoin/offer`](#filecoinoffer)
-      - [`filecoin/submit`](#filecoinsubmit)
-      - [`filecoin/accept`](#filecoinaccept)
+      - [`filecoin/offer`]
+      - [`filecoin/submit`]
+      - [`filecoin/accept`]
     - [Aggregator Capabilities](#aggregator-capabilities)
-      - [`piece/offer`](#aggregateoffer)
-      - [`piece/accept`](#aggregateaccept)
+      - [`piece/offer`]
+      - [`piece/accept`]
     - [Dealer Capabilities](#storefront-capabilities)
-      - [`aggregate/offer`](#aggregateoffer)
-      - [`aggregate/accept`](#aggregateaccept)
+      - [`aggregate/offer`]
+      - [`aggregate/accept`]
     - [Deal Tracker Capabilities](#deal-tracker-capabilities)
-      - [`deal/info`](#dealinfo)
+      - [`deal/info`]
   - [Schema](#schema)
     - [Base types](#base-types)
     - [`filecoin/offer` schema](#filecoinoffer-schema)
@@ -912,3 +912,16 @@ type DealInfoDetail struct {
 [effect]:https://github.com/ucan-wg/invocation/#7-effect
 [`DataAggregationProof`]:https://github.com/filecoin-project/go-data-segment/blob/e3257b64fa2c84e0df95df35de409cfed7a38438/datasegment/verifier.go#L8-L14
 [`InclusionProof`]:https://github.com/filecoin-project/go-data-segment/blob/e3257b64fa2c84e0df95df35de409cfed7a38438/datasegment/inclusion.go#L30-L39
+[Storefront]:#storefront
+[Aggregator]:#aggregator
+[Dealer]:#dealer
+[Deal Tracker]:#deal-tracker
+
+[`filecoin/offer`]:#filecoinoffer
+[`filecoin/submit`]:#filecoinsubmit
+[`filecoin/accept`]:#filecoinaccept
+[`piece/offer`]:#aggregateoffer
+[`piece/accept`]:#aggregateaccept
+[`aggregate/offer`]:#aggregateoffer
+[`aggregate/accept`]:#aggregateaccept
+[`deal/info`]:#dealinfo
