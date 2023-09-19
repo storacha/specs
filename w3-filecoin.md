@@ -741,6 +741,7 @@ type FilecoinCapability union {
   | FilecoinOffer "filecoin/offer"
   | FilecoinAccept "filecoin/accept"
   | FilecoinSubmit "filecoin/submit"
+  | FilecoinSubmit "filecoin/submit"
 } representation inline {
   discriminantKey "can"
 }
