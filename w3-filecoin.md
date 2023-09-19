@@ -739,22 +739,20 @@ The invocation to the [Deal Tracker] MUST fail if the deal information for the a
 ```ipldsch
 type FilecoinCapability union {
   | FilecoinOffer "filecoin/offer"
+  | FilecoinSubmit "filecoin/submit"
   | FilecoinAccept "filecoin/accept"
-  | FilecoinSubmit "filecoin/submit"
-  | FilecoinSubmit "filecoin/submit"
 } representation inline {
   discriminantKey "can"
 }
 
-type AggregatorCapability union {
+type PieceCapability union {
   | PieceOffer "piece/offer"
-  | PieceSubmit "piece/submit"
   | PieceAccept "piece/accept"
 } representation inline {
   discriminantKey "can"
 }
 
-type DealerCapability union {
+type AggregateCapability union {
   | AggregateOffer "aggregate/offer"
   | AggregateAccept "aggregate/accept"
 } representation inline {
