@@ -117,36 +117,7 @@ Successful invocation receipt MUST have an `fx.fork` [effect] that links to the 
 
 The [Storefront] MUST issue a receipt for the linked [`filecoin/submit`] task after it verifies the offered piece and queues it for aggregation. This receipt MUST have an `fx.join` [effect] that links to a [`piece/offer`] task that forwards the submitted piece to the [Aggregator].
 
-```mermaid
-sequenceDiagram
-    participant Agent as <br/>did:key:aAlice<br/>
-    participant Storefront as <br/>did:web:web3.storage<br/>
-    participant Aggregator as <br/>did:web:aggregator.web3.storage<br/>
-
-
-    Agent->>Storefront: run: filecoin/offer<br/>with:did:key:aSpace
-    Activate Storefront
-    Note left of Storefront: Request piece to be added to filecoin deal
-
-    par
-    Storefront->>Storefront: fx.fork: filecoin/submit<br/>with:did:web:web3.storage
-
-    Storefront->>Aggregator: fx.join: piece/offer
-    Storefront-->>Agent: Receipt accepting offer
-    end
-    par
-
-    Storefront->>Storefront: fx.join: filecoin/accept <br/>with:did:web:web3.storage
-    
-    Storefront-->>Agent: Receipt with final result
-    end
-
-    Storefront-->>Agent: Receipt acknowledging offer
-    deactivate Storefront
-
-
-
-```
+![storefront flow](./w3-filecoin/storefront.svg)
 
 ### _Storefront_ offers a piece to aggregate
 
@@ -162,23 +133,7 @@ The same Piece submitted by different [Storefront]s SHOULD NOT be considered a d
 
 After an [Aggregator] includes a piece in an aggregate it MUST issue a [`piece/accept`] receipt with a piece inclusion proof as the result. The receipt MUST have an `fx.join` [effect] that links to an [`aggregate/offer`] task for the aggregate where piece was included.
 
-```mermaid
-sequenceDiagram
-    participant Storefront as <br/>did:web:web3.storage<br/>
-    participant Aggregator as <br/>did:web:aggregator.web3.storage<br/>
-    participant Dealer as <br/>did:web:dealer.web3.storage<br/>
-
-    Storefront->>Aggregator: run: piece/offer<br>with: did:web:web3.storage
-    activate Aggregator
-    Note left of Aggregator: Request piece to be included in aggregate
-    par
-    Aggregator->>Aggregator: invoke piece/accept <br/>with: did:key:agg...
-    Aggregator->>Dealer: fx.join aggregate/offer
-    Aggregator-->>Storefront: Receipt with inclusion proof
-    end
-    Aggregator-->>Storefront: Receipt acknowledging offer
-    deactivate Aggregator
-```
+![aggregator flow](./w3-filecoin/aggregator.svg)
 
 ### _Aggregator_ offers dealer an aggregate
 
@@ -195,21 +150,7 @@ A failed task MUST provide an error reason. When pieces of the aggregate can be 
 
 > Note: The [Dealer] MAY have several intermediate steps and states it transitions through, however those are _not_ captured by this protocol intentionally, because the other actor take no action until a success / failure condition is met.
 
-```mermaid
-sequenceDiagram
-    participant Aggregator as <br/>did:web:aggregator.web3.storage<br/>
-    participant Dealer as <br/>did:web:dealer.web3.storage<br/>
-
-    Aggregator->>Dealer: run: aggregate/offer<br/>with: did:key:agg...
-    activate Dealer
-    Note left of Dealer: Request to arrange deal for the aggregate
-    par
-    Dealer->>Dealer: run: aggregate/accept<br/>with: did:key:brk...
-    Dealer-->>Aggregator: Receipt with DataAggregationProof or error
-    end
-    Dealer-->>Aggregator: Receipt akwnoledging offer
-    deactivate Dealer
-```
+![dealer flow](./w3-filecoin/dealer.svg)
 
 ### _Deal Tracker_ can be queried for the aggregate status
 
@@ -217,17 +158,7 @@ sequenceDiagram
 
 The [Dealer] MAY also use a [Deal Tracker] to poll for status of the the aggregates to obtain proof that deals have made it onto a chain and to issue [`aggregate/accept`] receipts when they do.
 
-```mermaid
-sequenceDiagram
-    participant Storefront as <br/>did:web:web3.storage<br/>
-    participant DealTracker as <br/>did:web:tracker.web3.storage<br/>
-    participant Dealer as <br/>did:web:dealer.web3.storage<br/>
-
-    Storefront->>DealTracker: run: deal/info
-    Note left of DealTracker: Request information about an aggregate
-    Dealer->>DealTracker: run deal/info
-    Note right of DealTracker: Request information about an aggregate
-```
+![dealer tracker flow](./w3-filecoin/deal-tracker.svg)
 
 ## Capabilities
 
