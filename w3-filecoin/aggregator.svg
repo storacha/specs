@@ -8,6 +8,9 @@
 						</mask><pattern id="hash_pattern" width="8" height="8" patternUnits="userSpaceOnUse">
 							<rect x="0" y="0" width="8" height="8" fill="#28292e" mask="url(#hash_pattern_mask)"/>
 						</pattern><!--def: tldraw:font:draw--><style>
+[stroke="#212529"] {
+  display: none;
+}
 @font-face {
 	font-family: tldraw_draw;
 	font-stretch: normal;
