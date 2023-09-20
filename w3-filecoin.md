@@ -104,7 +104,7 @@ For example, an [Aggregator] can authorize invocations from `did:web:web3.storag
 
 A [Storefront] MUST submit content for aggregation by its piece CID. It MAY be computed from content by a trusted actor or it MAY be computed by the [Storefront] itself. A [Storefront] MUST provide a capability that can be used to submit a piece to be replicated by (Filecoin) Storage Providers. It may be invoked by a [Storefront] client or delegated to a hired third party, ether way a [Storefront] MUST acknowledge request by issuing a signed receipt. A [Storefront] MAY decide to verify submitted piece prior to aggregation. A [Storefront] MAY also operate trusted actor that computes and submits pieces on content upload.
 
-Once a [Storefront] receives the offer for a piece, it is pending for verification. The [Storefront] MUST issue a receipt proving that request state has transition from `uninitialized` to `pending` if result was `ok`, or to `failed` if result was `error`. The [Storefront] MAY fail invocation if piece `content` has not been provided.
+Once a [Storefront] receives the offer for a piece, it is pending for verification. The [Storefront] MUST issue a receipt proving that request state has transitioned from `uninitialized` to `pending` if result was `ok`, or to `failed` if result was `error`. The [Storefront] MAY fail invocation if piece `content` has not been provided.
 
 #### `filecoin/accept` effect
 
@@ -241,7 +241,7 @@ The issued receipt MUST have a `fx.fork` [effect] that links to the [`filecoin/s
 
 #### `filecoin/accept`
 
-This task is effectively a shortcut allowing an observer to find out the result of the [`filecoin/offer`] task chain without having to follow each step.  The [Storefront] MUST issue a signed receipt with an [`DataAggregationProof`] result or an error.
+This task is effectively a shortcut allowing an observer to find out the result of the [`filecoin/offer`] task chain without having to follow each step. The [Storefront] MUST issue a signed receipt with a [`DataAggregationProof`] result or an error.
 
 ##### Filecoin Accept Failure
 
@@ -334,7 +334,7 @@ A [Storefront] MUST issue a signed receipt that either succeeds and links to the
 }
 ```
 
-See the [`piece/offer`] section to see the subsequent task.
+See the [`piece/offer`] section for the subsequent task.
 If the added piece is invalid, the reason for the failure is also reported:
 
 ```json
@@ -384,7 +384,7 @@ A [Storefront] can invoke a capability to offer a piece to be aggregated for upc
 }
 ```
 
-An [Aggregator] MUST issue a signed receipt to acknowledge the received request. The receipt MUST contain a `fx.join` [effect] linking to [`piece/accept`] task that MUST either succeed with [`InclusionProof`] or fail with an error describing the reason.
+An [Aggregator] MUST issue a signed receipt to acknowledge the received request. The receipt MUST contain an `fx.join` [effect] linking to [`piece/accept`] task that MUST either succeed with an [`InclusionProof`] or fail with an error describing the reason.
 
 ```json
 {
@@ -408,7 +408,7 @@ See the [`piece/accept`] section for the subsequent task.
 
 #### `piece/accept`
 
-An [Aggregator] MUST issue a receipt for the [`piece/accept`] task for the offered piece that was included in an aggregate. The receipt MUST contain an [`InclusionProof`] in the result and `fx.join` [effect] linking to [`aggregate/offer`] task, or an error detailing the reason.
+An [Aggregator] MUST issue a receipt for the [`piece/accept`] task for the offered piece that was included in an aggregate. The receipt MUST contain an [`InclusionProof`] in the result and an `fx.join` [effect] linking to [`aggregate/offer`] task, or an error detailing the reason.
 
 > It is RECOMMENDED to never fail [`piece/accept`] as piece inclusion is a deterministic computation occurring on validated data.
 
@@ -433,6 +433,8 @@ An [Aggregator] MUST issue a receipt for the [`piece/accept`] task for the offer
         }
       }
     }
+  "fx": {
+    "join": { "/": "bafy...aggregateOffer" }
   },
   "meta": {},
   "iss": "did:web:aggregator.web3.storage",
@@ -444,7 +446,7 @@ An [Aggregator] MUST issue a receipt for the [`piece/accept`] task for the offer
 
 #### `aggregate/offer`
 
-An [Aggregator] can offer an aggregate for Filecoin deal inclusion by invoking a [`aggregate/offer`] capability. See [schema](#aggregateoffer-schema).
+An [Aggregator] can offer an aggregate for Filecoin deal inclusion by invoking an [`aggregate/offer`] capability. See [schema](#aggregateoffer-schema).
 
 > `did:web:aggregator.web3.storage` invokes capability from `did:web:dealer.web3.storage`
 
@@ -474,7 +476,7 @@ Invoking the [`aggregate/offer`] capability is a request to arrange Filecoin dea
 
 The `nb.aggregate` field represents a commitment proof for the `aggregate` to arrange a deal(s) for.
 
-The `nb.pieces` field represents a link to DAG-CBOR encoded list of pieces of an `aggregate`. The elements of the `nb.pieces` field MUST be sorted in the _same_ order as they were used to compute the aggregate piece CID. This block MUST be included with the invocation. Its format is:
+The `nb.pieces` field represents a link to a DAG-CBOR encoded list of pieces of an `aggregate`. The elements of the `nb.pieces` field MUST be sorted in the _same_ order as they were used to compute the aggregate piece CID. This block MUST be included with the invocation. Its format is:
 
 ```json
 /* offers block as an array of piece CIDs, encoded as DAG-JSON (for readability) */
