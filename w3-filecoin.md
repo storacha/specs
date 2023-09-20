@@ -777,12 +777,7 @@ type PieceAccept struct {
   nb PieceAcceptDetail
 }
 
-type PieceAcceptDetail struct {
-  # Piece as Filecoin Piece with padding
-  piece PieceLink
-  # Grouping for joining segments into an aggregate (subset of space)
-  group string
-}
+type PieceAcceptDetail = PieceOfferDetail
 ```
 
 ### `aggregate/offer` schema
@@ -809,12 +804,7 @@ type AggregateAccept struct {
   nb AggregateAcceptDetail
 }
 
-type AggregateAcceptDetail struct {
-  # Contains each individual piece within Aggregate piece
-  pieces &AggregatePieces
-  # Piece as Aggregate of CARs with padding
-  aggregate PieceLink
-}
+type AggregateAcceptDetail = AggregateOfferDetail
 ```
 
 ### `deal/info` schema
