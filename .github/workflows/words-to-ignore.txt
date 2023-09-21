@@ -122,3 +122,15 @@ deduplicated
 AggregatorPrincipal
 w3filecoin
 DealerPrincipal
+ipld
+dag-ucan
+markdownlint
+markdownlint-cli
+vscode-markdownlint
+md-spellcheck-action
+github
+txt
+Irakli
+Gozalishvili
+Vasco
+invoker
