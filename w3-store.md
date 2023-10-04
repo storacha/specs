@@ -22,11 +22,13 @@ The protocol is modeled as a set of capabilities which can be fulfilled by a [pr
   - [`store/` namespace](#store-namespace)
     - [`store/*`](#store)
     - [`store/add`](#storeadd)
+    - [`store/get`](#storeget)
     - [`store/remove`](#storeremove)
     - [`store/list`](#storelist)
   - [`upload/` namespace](#upload-namespace)
     - [`upload/*`](#upload)
     - [`upload/add`](#uploadadd)
+    - [`upload/get`](#uploadget)
     - [`upload/remove`](#uploadremove)
     - [`upload/list`](#uploadlist)
 
@@ -142,6 +144,66 @@ If `status == 'upload'`, the response will include additional fields containing 
 | `link`    | `string`                 | The CAR CID specified in the invocation's `link` field.         |
 
 The client should then make an HTTP `PUT` request to the `url` specified in the response, attaching all the included `headers`. The body of the request MUST be CAR data, whose size exactly equals the size specified in the `store/add` invocation's `size` caveat. Additionally, the CID of the uploaded CAR must match the invocation's `link` caveat. In other words, attempting to upload any data other than that authorized by the `store/add` invocation will fail.
+
+### `store/get`
+
+> Get metadata about a CAR shard from a space
+
+The `store/get` capability can be invoked to get metadata about a CAR from a [space](#spaces).
+
+This may be used to check for inclusion, or to get the `size` and `origin` properties for a shard.
+
+#### Derivations
+
+`store/get` can be derived from a [`store/*`](#store) or [`*`][ucan-spec-top] capability with a matching `with` field.
+
+#### Caveats
+
+When invoking `store/get`, the `link` caveat must be set to the CID of the CAR file to get metadata for.
+
+If a delegation contains a `link` caveat, an invocation derived from it must have the same CAR CID in its `link` field. A delegation without a `link` caveat may be invoked with any `link` value.
+
+| `field`   | `value`                           | `required?` | `context`                                     |
+| --------- | --------------------------------- | ----------- | --------------------------------------------- |
+| `link`    | CAR CID string, e.g. `bag...`     |             | The CID of the CAR to get metadata for        |
+
+#### Invocation
+
+```js
+{
+  can: "store/get",
+  with: "did:key:abc...",
+  nb: {
+    link: "bag...",
+  }
+}
+```
+
+#### Responses
+
+*Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
+
+Executing a `store/get` invocation with a service provider should return a response object.
+
+If a failure occurs, the response will have an `error` field with a value of `true`, and a `message` string field with details about the error.
+
+On success, the response object will have the following shape:
+
+```ts
+interface StoreListItem {
+  /** CID of the stored CAR. */
+  link: string
+
+  /** Size in bytes of the stored CAR */
+  size: number
+
+  /** Link to a related CAR, used for sharded uploads */
+  origin?: string,
+
+  /** ISO-8601 timestamp when CAR was added to the space */
+  insertedAt: string,
+}
+```
 
 ### `store/remove`
 
@@ -337,6 +399,68 @@ On success, the response object will have the following shape:
 interface UploadAddResponse {
   root: string
   shards?: string[] 
+}
+```
+
+### `upload/get`
+
+> Get metadata about a upload from a space
+
+The `upload/get` capability can be invoked to get metadata about an upload from a [space](#spaces).
+
+This may be used to check for inclusion, or to get the set of CAR shards associated with a root cid.
+
+The `with` resource URI must be set to the DID of the space to get the upload metadata from.
+
+#### Derivations
+
+`upload/get` can be derived from an [`upload/*`](#upload) or [`*`][ucan-spec-top] capability with a matching `with` resource URI.
+
+#### Caveats
+
+The `root` caveat must contain the root CID of the data item to remove.
+
+| `field`   | `value`                           | `required?` | `context`                                                     |
+| --------- | --------------------------------- | ----------- | ------------------------------------------------------------- |
+| `root`    | data CID string, e.g. `bafy...`   |             | The root CID of the upload to get metadata for                |
+
+#### Invocation
+
+To invoke `upload/get`, an agent prepares a UCAN with the following shape:
+
+```js
+{
+  can: "upload/get",
+  with: "did:key:abc...",
+  nb: {
+    root: "bafyabc..."
+  }
+}
+```
+
+#### Responses
+
+*Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
+
+Executing an `upload/get` invocation with a service provider should return a response object.
+
+If a failure occurs, the response will have an `error` field with a value of `true`, and a `message` string field with details about the error.
+
+On success, the response object will have the following shape:
+
+```ts
+interface UploadListItem {
+  /** Root CID of the uploaded data item. */
+  root: string
+
+  /** CIDs of CARs that contain the complete DAG for the uploaded data item. */
+  shards: string[]
+
+  /** ISO-8601 timestamp when the upload was added to the space. */
+  insertedAt: string,
+
+  /** ISO-8601 timestamp when the upload entry was last modified. */
+  updatedAt: string,
 }
 ```
 
