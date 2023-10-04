@@ -408,7 +408,7 @@ interface UploadAddResponse {
 
 The `upload/get` capability can be invoked to get metadata about an upload from a [space](#spaces).
 
-This may be used to check for inclusion, or to get the set of CAR shards associated with a root cid.
+This may be used to check for inclusion, or to get the set of CAR shards associated with a root CID.
 
 The `with` resource URI must be set to the DID of the space to get the upload metadata from.
 
