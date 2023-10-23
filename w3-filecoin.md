@@ -264,6 +264,11 @@ This task is effectively a shortcut allowing an observer to find out the result 
   "ran": "bafy...filAccept",
   "out": {
     "ok": {
+      /* commitment proof for piece */
+      "piece": { "/": "commitment...car" },
+      /* commitment proof for aggregate */
+      "aggregate": { "/": "commitment...aggregate" },
+      /** inclusion proof for piece */
       "inclusion": {
         "tree": {
           "path": [
@@ -279,9 +284,12 @@ This task is effectively a shortcut allowing an observer to find out the result 
           "at": 7
         }
       },
-      "auxDataType": 0,
-      "auxDataSource": {
-        "dealID": 1245
+      /** deal type */
+      "aux": {
+        "dataType": 0,
+        "dataSource": {
+          "dealID": 1245
+        }
       }
     }
   }
