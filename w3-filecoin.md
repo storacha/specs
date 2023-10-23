@@ -520,23 +520,10 @@ The [Dealer] MUST issue a receipt for the [`aggregate/accept`] task once it arra
   "ran": "bafy...aggregateAccept",
   "out": {
     "ok": {
-      "inclusion": {
-        "tree": {
-          "path": [
-            "bafk...root",
-            "bafk...parent",
-            "bafk...child",
-            "bag...car"
-          ],
-          "at": 1
-        },
-        "index": {
-          "path": [/** ... */],
-          "at": 7
-        }
-      },
-      "auxDataType": 0,
-      "auxDataSource": {
+      /* commitment proof for aggregate */
+      "aggregate": { "/": "bafk...aggregate-proof" },
+      "dataType": 0,
+      "dataSource": {
         "dealID": 1245
       }
     }
