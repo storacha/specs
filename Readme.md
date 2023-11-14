@@ -18,9 +18,9 @@ Other specs are available, maturing at rates commensurate with general interest.
 We use the following label system to identify the state of each spec:
 
 - ![wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square) - A work-in-progress, possibly to describe an idea before actually committing to a full draft of the spec.
-- ![draft](https://img.shields.io/badge/status-draft-yellow.svg?style=flat-square) - A draft that is ready to review. It should be implementable.
-- ![reliable](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square) - A spec that has been adopted (implemented) and can be used as a reference point to learn how the system works.
-- ![stable](https://img.shields.io/badge/status-stable-brightgreen.svg?style=flat-square) - We consider this spec to close to final, it might be improved but the system it specifies should not change fundamentally.
+- ![draft](https://img.shields.io/badge/status-draft-yellow.svg?style=flat-square) - A draft ready for review. It should be implementable.
+- ![reliable](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square) - A spec that has been implemented. It will change as we learn how it works in practice.
+- ![stable](https://img.shields.io/badge/status-stable-brightgreen.svg?style=flat-square) - It may be improved but should not change fundamentally.
 - ![permanent](https://img.shields.io/badge/status-permanent-blue.svg?style=flat-square) - This spec will not change.
 - ![deprecated](https://img.shields.io/badge/status-deprecated-red.svg?style=flat-square) - This spec is no longer in use.
 
