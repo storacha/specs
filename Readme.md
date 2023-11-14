@@ -17,12 +17,12 @@ Other specs are available, maturing at rates commensurate with general interest.
 
 We use the following label system to identify the state of each spec:
 
-- ![wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square) - A work-in-progress, possibly to describe an idea before actually committing to a full draft of the spec.
-- ![draft](https://img.shields.io/badge/status-draft-yellow.svg?style=flat-square) - A draft ready for review. It should be implementable.
-- ![reliable](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square) - A spec that has been implemented. It will change as we learn how it works in practice.
-- ![stable](https://img.shields.io/badge/status-stable-brightgreen.svg?style=flat-square) - It may be improved but should not change fundamentally.
-- ![permanent](https://img.shields.io/badge/status-permanent-blue.svg?style=flat-square) - This spec will not change.
-- ![deprecated](https://img.shields.io/badge/status-deprecated-red.svg?style=flat-square) - This spec is no longer in use.
+- ![wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square) A work-in-progress to describe an idea before committing to a full draft.
+- ![draft](https://img.shields.io/badge/status-draft-yellow.svg?style=flat-square) A draft ready for review. It should be implementable.
+- ![reliable](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square) A spec that has been implemented. It will change as we learn how it works in practice.
+- ![stable](https://img.shields.io/badge/status-stable-brightgreen.svg?style=flat-square) It may be improved but should not change fundamentally.
+- ![permanent](https://img.shields.io/badge/status-permanent-blue.svg?style=flat-square) This spec will not change.
+- ![deprecated](https://img.shields.io/badge/status-deprecated-red.svg?style=flat-square) This spec is no longer in use.
 
 Nothing in this spec repository is `permanent` or even `stable` yet. Most of the subsystems are still a `draft` or in `reliable` state.
 
