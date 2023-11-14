@@ -15,8 +15,6 @@ The following specs are cannon:
 
 Other specs are available, maturing at rates commensurate with general interest.
 
-### Understanding the meaning of the spec badges and their life cycle
-
 We use the following label system to identify the state of each spec:
 
 - ![wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square) - A work-in-progress, possibly to describe an idea before actually committing to a full draft of the spec.
