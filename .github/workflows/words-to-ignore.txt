@@ -142,3 +142,5 @@ dr
 S3
 bitswap
 PeerID
+gossipsub
+w3s

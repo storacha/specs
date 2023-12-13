@@ -22,7 +22,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 We publish ad-hoc batches of multihashes to IPNI. This proposal aims to align our usage of IPNI with content-claims, by publishing an advert per inclusion claim, and include the source claim in the IPNI advert.
 
-### Motivation
+### Motivation
 
 - Align IPNI advert entries with CAR block sets and setting the ContextID to be the CAR CID.
   - With this we (or anyone, ipni is open access) can now use IPNI to find which CAR a block is in. The context id bytes provide the CAR CID for any block look up. The CAR CID can then be used to find the CAR index via our content-claims API.
@@ -39,7 +39,7 @@ IPNI ingests and replicates billions of signed provider claims for where individ
 
 Users can query IPNI servers for any CID, and it provides a set of provider addresses and transport info, along with a provider specific `ContextID` and optional metadata.
 
-<http://cid.contact> hosts an IPNI server that Protocol Labs maintains. *(at time of writing)*
+<http://cid.contact> hosts an IPNI server that Protocol Labs maintains. _(at time of writing)_
 
 ```bash
 curl https://cid.contact/cid/bafybeicawc3qwtlecld6lmtvsndimoz3446xyaprgsxvhd3aapwa2twnc4 -sS | jq
@@ -80,26 +80,25 @@ An `Advertisement` includes `Provider` info which claims that a the batch of mul
 
 Advertisements also include a CID link to any previous ones from the same provider forming a hash linked list.
 
-The latest `head` CID of the ad list can be broadcast over gossipsub, to be replicated and indexed by all listeners, or POSTed over HTTP to specific IPNI servers as a notification to pull and index the latest ads from you at their earliest convenience.
+The latest `head` CID of the ad list can be broadcast over [gossipsub], to be replicated and indexed by all listeners, or via HTTP to specific IPNI servers as a notification to pull and index the latest ads from you at their earliest convenience.
 
 The advert `ContextID` allows providers to specify a custom grouping key for multiple adverts. You can update or remove multiple adverts by specifying the same ContextID. The value is an opaque byte array as far as IPNI is concerned, and is provided in the query response.
 
-A `Metadata` field is also available for provider specific retrieval hints, that a user should send to the provider when making a request for the block, but the mechanism here is unclear _(http headers? bitswap?)_.
+A `Metadata` field is also available for provider specific retrieval hints, that a user should send to the provider when making a request for the block, but the mechanism here is unclear _(HTTP headers? bitswap?)_.
 
 Regardless, it is space for provider specified bytes which we can use as to include the portable cryptographic proof that an end-user made the original claim that a set of blocks are included in a CAR and that as a large provider we have alerted IPNI on their behalf.
 
-
 ### How web3.storage integrates IPNI today
 
-w3s publishes IPNI advertisements as a side-effect of the e-ipfs car block indexer.
+web3.storage publishes IPNI advertisements as a side-effect of the E-IPFS car [indexer-lambda].
 
-Each multihash in a CAR is sent to an SQS queue. The `publisher-lambda` takes batches from the queue, encodes and signs `Advertisement`s and writes them to S3 as json.
+Each multihash in a CAR is sent to an SQS queue. The `publisher-lambda` takes batches from the queue, encodes and signs `Advertisement`s and writes them to S3 as JSON.
 
-The lambda makes an http request to the cid.contact to inform it when the head CID of the Advertisement linked list changes.
+The lambda makes an HTTP request to the IPNI server at `cid.contact` to inform it when the head CID of the Advertisement linked list changes.
 
-The cid.contact IPNI server fetches new head Advertisement from our s3 bucket, and any others in the chain it hasn't read yet, and updates it's indexes.
+The IPNI server fetches new head Advertisement from our s3 bucket, and any others in the chain it hasn't read yet, and updates it's indexes.
 
-Our `Advertisement`s contain arbitrary batches of multihashes defined by SQS queue batching config. The ContextID is set to opaque bytes (a custom hash of the hashes).
+Our `Advertisement`s contain arbitrary batches of multihashes defined by SQS queue batching config. The `ContextID` is set to opaque bytes (a custom hash of the hashes).
 
 #### Diagram
 
@@ -227,11 +226,13 @@ type EntryChunk struct {
 
 It is possible to create long chains of `EntryChunk` blocks by setting the `Next` field to the CID to another `EntryChunk`, but this requires an entire EntryChunk to be fetched and decoded, before the IPNI server can determine the next chunk to fetch.
 
-The containing CAR CID provides a useful `ContextID` for grouping multiple (light weight) Advertisement blocks so it is recommended to split the set across multiple `Advertisement` blocks each pointing to an `EntryChunk` with a partition of the set of multihashes in, and the `ContextId` set to the CAR CID.
+The containing CAR CID provides a useful `ContextID` for grouping multiple (light weight) Advertisement blocks so it is recommended to split the set across multiple `Advertisement` blocks each pointing to an `EntryChunk` with a partition of the set of multihashes in, and the `ContextID` set to the CAR CID.
 
 [IPNI]: https://github.com/ipni/specs/blob/main/IPNI.md
 [MultihashIndexSorted CARv2 Index]:  https://ipld.io/specs/transport/car/carv2/#format-0x0401-multihashindexsorted
 [inclusion claim]: https://github.com/web3-storage/content-claims?tab=readme-ov-file#inclusion-claim
 [IPNI Advertisements]: https://github.com/ipni/specs/blob/main/IPNI.md#advertisements
+[gossipsub]: https://github.com/libp2p/specs/blob/master/pubsub/gossipsub/README.md
+[indexer-lambda]: https://github.com/elastic-ipfs/indexer-lambda/blob/a38d8074424d3f02845bac303a0d3fb3719dad82/src/lib/block.js#L22-L32
 [olizilla]: https://github.com/olizilla
 [Protocol Labs]: https://protocol.ai
