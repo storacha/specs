@@ -8,7 +8,7 @@
 
 ## Abstract
 
-For IPNI we assert that we can provide batches of multihashes by signing "Advertisements". 
+For IPNI we assert that we can provide batches of multihashes by signing "Advertisements".
 
 With an inclusion claim, a user asserts that a CAR contains a given set of multihashes via a car index.
 
@@ -22,7 +22,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 We publish ad-hoc batches of multihashes to IPNI. This proposal aims to align our usage of IPNI with content-claims, by publishing an advert per inclusion claim, and include the source claim in the IPNI advert.
 
-**What this Unlocks**
+**What this Unlocks** _(tl;dr)_
 
 - Create 1 or more IPNI Adverts per user uploaded CAR and set the ContextID to be the CAR CID (instead of arbitrary batches with no ContextId)
   - With this we (or anyone, ipni is open access) can now use IPNI to find which CAR a block is in. The context id bytes provide the CAR CID for any block look up. The CAR CID can then be used to find the CAR index via our content-claims API.
@@ -38,7 +38,7 @@ We publish ad-hoc batches of multihashes to IPNI. This proposal aims to align ou
 
 IPNI ingests and replicates billions of signed provider claims for where individual block CIDs can be retrieved from.
 
-Users can query IPNI servers for any CID, and it provides a set of provider addresses and transport info, along with a provider specific ContextID and optional metadata.
+Users can query IPNI servers for any CID, and it provides a set of provider addresses and transport info, along with a provider specific `ContextID` and optional metadata.
 
 <http://cid.contact> hosts an IPNI server that Protocol Labs maintains. *(at time of writing)*
 
@@ -75,9 +75,9 @@ curl https://cid.contact/cid/bafybeicawc3qwtlecld6lmtvsndimoz3446xyaprgsxvhd3aap
 ]}]}
 ```
 
-web3.storage publishes the blocks it can provide by encoding a batch of multihashes as an IPLD object and writing it to S3 as an `Advertisement`, addressed by it's CID. 
+web3.storage publishes the blocks it can provide by encoding a batch of multihashes as an IPLD object and writing it to S3 as an `Advertisement`, addressed by it's CID.
 
-An `Advertisement` includes `Provider` info which claims that a the batch of multihashes are available via bitswap or HTTP, and are signed by the provider PeerId private key; Each advert is a claim that this peer will provide that batch of multihashes.
+An `Advertisement` includes `Provider` info which claims that a the batch of multihashes are available via bitswap or HTTP, and are signed by the provider PeerID private key; Each advert is a claim that this peer will provide that batch of multihashes.
 
 Advertisements also include a CID link to any previous ones from the same provider forming a hash linked list.
 
@@ -141,14 +141,13 @@ sequenceDiagram
     Alice->>ipni: query (CID)
 ```
 
-
 Invoke it with the CID for an [inclusion-claim] that associates a CAR CID wth [MultihashIndexSorted CARv2 Index] CID.
 
 :::info
 Other CAR index forms may be supported in the future. A more convenient external CAR index format would provide the offset byte and block byteLength for a multihash from the start of the CAR file.
 :::
 
-
+**UCAN invocation** example
 ```json
 {
   "iss": "did:key:zAlice",
@@ -163,7 +162,7 @@ Other CAR index forms may be supported in the future. A more convenient external
 }
 ```
 
-**Inclusion claim**
+**Inclusion claim** example
 ```json
 {
   "content": CID, // CAR CID
@@ -175,7 +174,7 @@ When `ipni/offer` is invoked the service must fetch the inclusion claim. The enc
 
 The service must fetch he CARv2 index and parse it to find the set of multihashes included in the CAR. see: [Verifying the CARv2 Index](#verifying-the-carv2-index)
 
-The set of multihashes must be encoded as 1 or more [IPNI Advertisements]. 
+The set of multihashes must be encoded as 1 or more [IPNI Advertisements].
 
 ```ipldsch
 type Advertisement struct {
@@ -201,7 +200,6 @@ The Advertisement CID should be POSTed to an IPNI server. `cid.contact` is assum
 
 The Advertisement CID should be gossiped on the `/indexer/ingest/mainnet` topic so they can be replicated by other IPNI servers, to ensure many nodes can answer queries for the blocks we host.
 
-
 ### Verifying the CARv2 Index
 
 The service must fetch the CARv2 Index and may verify 1 or more multihashes from the index exist at the specified offsets in the associated CAR. 
@@ -212,12 +210,11 @@ Random validation of a number of blocks allows us to detect invalid indexes and 
 
 Full validation of every block is not recommended as it opens us up to performing unbounded work. *We have seen CAR files with millions of tiny blocks.*
 
-
 ### Encoding the IPNI Advertisement
 
 > The set of multihashes must be encoded as 1 or more [IPNI Advertisements].
 
-Where the IPLD encoded size of an `EntryChunk` with the set of multihashes would exceed 4MiB (the upper limit for a block that can be transferred by libp2p) the set of multihashes must be split into multiple `EntryChunk` blocks
+Where the IPLD encoded size of an `EntryChunk` with the set of multihashes would exceed 4MiB (the upper limit for a block that can be transferred by libp2p) the set of multihashes must be split into multiple `EntryChunk` blocks.
 
 ```ipldsch
 type EntryChunk struct {
