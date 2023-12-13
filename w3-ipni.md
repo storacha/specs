@@ -179,6 +179,8 @@ The service must fetch he CARv2 index and parse it to find the set of multihashe
 
 The set of multihashes must be encoded as 1 or more [IPNI Advertisements].
 
+_Advertisement IPLD schema_
+
 ```ipldsch
 type Advertisement struct {
     PreviousID optional Link
@@ -215,7 +217,11 @@ Full validation of every block is not recommended as it opens us up to performin
 
 > The set of multihashes must be encoded as 1 or more [IPNI Advertisements].
 
-Where the IPLD encoded size of an `EntryChunk` with the set of multihashes would exceed 4MiB (the upper limit for a block that can be transferred by libp2p) the set of multihashes must be split into multiple `EntryChunk` blocks.
+In IPNI, batches of multihashes are encoded as `EntryChunk` blocks, each batch includes an array of multihashes.
+
+A `MultihashIndexSorted` Index encodes a set of multihashes. Mapping from an index to an `EntryChunk` requires parsing the index and encoding the multihashes it contains with the EntryChunk IPLD schema.
+
+_EntryChunk IPLD schema_
 
 ```ipldsch
 type EntryChunk struct {
@@ -223,6 +229,8 @@ type EntryChunk struct {
     Next optional Link
 }
 ```
+
+Where the IPLD encoded size of an `EntryChunk` with the set of multihashes would exceed 4MiB (the upper limit for a block that can be transferred by libp2p) the set of multihashes must be split into multiple `EntryChunk` blocks.
 
 It is possible to create long chains of `EntryChunk` blocks by setting the `Next` field to the CID to another `EntryChunk`, but this requires an entire EntryChunk to be fetched and decoded, before the IPNI server can determine the next chunk to fetch.
 
