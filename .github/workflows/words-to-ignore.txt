@@ -135,9 +135,10 @@ Gozalishvili
 Vasco
 invoker
 IPNI
-multihash like multihashes
+multihash
+multihashes
 tl
 dr
 S3
 bitswap
-PeerId like PeerID
+PeerID

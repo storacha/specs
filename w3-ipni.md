@@ -8,11 +8,11 @@
 
 ## Abstract
 
-For IPNI we assert that we can provide batches of multihashes by signing "Advertisements".
+For [IPNI] we assert that we can provide batches of multihashes by signing "Advertisements".
 
-With an inclusion claim, a user asserts that a CAR contains a given set of multihashes via a car index.
+With an [inclusion claim], a user asserts that a CAR contains a given set of multihashes via a car index.
 
-This spec describes how to merge these two concepts by adding an `ipni/offer` capability to submit an inclusion claim as an IPNI Advertisement.
+This spec describes how to merge these two concepts by adding an `ipni/offer` capability to publish an inclusion claim as [IPNI Advertisements].
 
 ## Language
 
@@ -141,7 +141,7 @@ sequenceDiagram
     Alice->>ipni: query (CID)
 ```
 
-Invoke it with the CID for an [inclusion-claim] that associates a CAR CID wth [MultihashIndexSorted CARv2 Index] CID.
+Invoke it with the CID for an [inclusion claim] that associates a CAR CID wth [MultihashIndexSorted CARv2 Index] CID.
 
 :::info
 Other CAR index forms may be supported in the future. A more convenient external CAR index format would provide the offset byte and block byteLength for a multihash from the start of the CAR file.
@@ -196,9 +196,7 @@ type Advertisement struct {
  
 See: [Encoding the IPNI Advertisement](#encoding-the-ipni-advertisement)
 
-The Advertisement CID should be POSTed to an IPNI server. `cid.contact` is assumed initially.
-
-The Advertisement CID should be gossiped on the `/indexer/ingest/mainnet` topic so they can be replicated by other IPNI servers, to ensure many nodes can answer queries for the blocks we host.
+The Advertisement should then be available for consumption by indexer nodes per the [Advertisement Transfer](https://github.com/ipni/specs/blob/main/IPNI.md#advertisement-transfer) section of the IPNI spec.
 
 ### Verifying the CARv2 Index
 
@@ -229,8 +227,9 @@ The containing CAR CID provides a useful `ContextID` for grouping multiple (ligh
 
 <center> ⁂ </center>
 
+[IPNI]: https://github.com/ipni/specs/blob/main/IPNI.md
 [MultihashIndexSorted CARv2 Index]:  https://ipld.io/specs/transport/car/carv2/#format-0x0401-multihashindexsorted
-[inclusion-claim]: https://github.com/web3-storage/content-claims?tab=readme-ov-file#inclusion-claim
+[inclusion claim]: https://github.com/web3-storage/content-claims?tab=readme-ov-file#inclusion-claim
 [IPNI Advertisements]: https://github.com/ipni/specs/blob/main/IPNI.md#advertisements
 [olizilla]: https://github.com/olizilla
 [Protocol Labs]: https://protocol.ai
