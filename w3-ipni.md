@@ -6,7 +6,7 @@
 
 - [olizilla], [Protocol Labs]
 
-# Abstract
+## Abstract
 
 For IPNI we assert that we can provide batches of multihashes by signing "Advertisements". 
 
@@ -18,19 +18,21 @@ This spec describes how to merge these two concepts by adding an `ipni/offer` ca
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
-## Introduction 
+## Introduction
 
-**What this unlocks** (tl;dr)
+We publish ad-hoc batches of multihashes to IPNI. This proposal aims to align our usage of IPNI with content-claims, by publishing an advert per inclusion claim, and include the source claim in the IPNI advert.
+
+**What this Unlocks**
 
 - Create 1 or more IPNI Adverts per user uploaded CAR and set the ContextID to be the CAR CID (instead of arbitrary batches with no ContextId)
-    - With this we (or anyone, ipni is open access) can now use IPNI to find which CAR a block is in. The context id bytes provide the CAR CID for any block look up. The CAR CID can then be used to find the CAR index via our content-claims API.
-    - We can **delete** the IPNI records by CAR CID if the CAR is deleted.
+  - With this we (or anyone, ipni is open access) can now use IPNI to find which CAR a block is in. The context id bytes provide the CAR CID for any block look up. The CAR CID can then be used to find the CAR index via our content-claims API.
+  - We can **delete** the IPNI records by CAR CID if the CAR is deleted.
 - Make IPNI advertising an explicit UCAN capability that clients can invoke rather than a side-effect of bucket events
-    - With this we are free to write CARs anywhere. The users agent invokes a `ipni/offer` capability to ask us to publish and IPNI ad for the blocks in their CAR.
-    - This empowers the user to opt-in or out as they need, and allows us to bill for the (small) cost of running that service.
+  - With this we are free to write CARs anywhere. The users agent invokes a `ipni/offer` capability to ask us to publish and IPNI ad for the blocks in their CAR.
+  - This empowers the user to opt-in or out as they need, and allows us to bill for the (small) cost of running that service.
 - Put the lime in the coconut. Put an inclusion claim in the IPNI advert metadata.
-    - We show the source of our provider claim is a user signed inclusion content claim.
-    - We have to sign IPNI Adverts as the provider, so we can warn folks that this ad is as good as the user provided content claim it includes.
+  - We show the source of our provider claim is a user signed inclusion content claim.
+  - We have to sign IPNI Adverts as the provider, so we can warn folks that this ad is as good as the user provided content claim it includes.
 
 ### Quick IPNI primer
 
@@ -38,10 +40,10 @@ IPNI ingests and replicates billions of signed provider claims for where individ
 
 Users can query IPNI servers for any CID, and it provides a set of provider addresses and transport info, along with a provider specific ContextID and optional metadata.
 
-http://cid.contact hosts an IPNI server that Protocol Labs maintains. *(at time of writing)*
+<http://cid.contact> hosts an IPNI server that Protocol Labs maintains. *(at time of writing)*
 
 ```bash
-$ curl https://cid.contact/cid/bafybeicawc3qwtlecld6lmtvsndimoz3446xyaprgsxvhd3aapwa2twnc4 -sS | jq
+curl https://cid.contact/cid/bafybeicawc3qwtlecld6lmtvsndimoz3446xyaprgsxvhd3aapwa2twnc4 -sS | jq
 ```
 
 ```json
@@ -70,6 +72,7 @@ $ curl https://cid.contact/cid/bafybeicawc3qwtlecld6lmtvsndimoz3446xyaprgsxvhd3a
             ]
           }
         }
+]}]}
 ```
 
 web3.storage publishes the blocks it can provide by encoding a batch of multihashes as an IPLD object and writing it to S3 as an `Advertisement`, addressed by it's CID. 
@@ -227,11 +230,10 @@ It is possible to create long chains of `EntryChunk` blocks by setting the `Next
 
 The containing CAR CID provides a useful `ContextID` for grouping multiple (light weight) Advertisement blocks so it is recommended to split the set across multiple `Advertisement` blocks each pointing to an `EntryChunk` with a partition of the set of multihashes in, and the `ContextId` set to the CAR CID.
 
+<center> ⁂ </center>
 
 [MultihashIndexSorted CARv2 Index]:  https://ipld.io/specs/transport/car/carv2/#format-0x0401-multihashindexsorted
-
 [inclusion-claim]: https://github.com/web3-storage/content-claims?tab=readme-ov-file#inclusion-claim
-
 [IPNI Advertisements]: https://github.com/ipni/specs/blob/main/IPNI.md#advertisements
-
 [olizilla]: https://github.com/olizilla
+[Protocol Labs]: https://protocol.ai
