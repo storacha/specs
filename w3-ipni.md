@@ -177,9 +177,7 @@ When `ipni/offer` is invoked the service must fetch the inclusion claim. The enc
 
 The service must fetch he CARv2 index and parse it to find the set of multihashes included in the CAR. see: [Verifying the CARv2 Index](#verifying-the-carv2-index)
 
-The set of multihashes must be encoded as 1 or more [IPNI Advertisements].
-
-_Advertisement IPLD schema_
+The set of multihashes must be encoded as 1 or more [IPNI Advertisements] per the IPLD Schema:
 
 ```ipldsch
 type Advertisement struct {
@@ -220,8 +218,6 @@ Full validation of every block is not recommended as it opens us up to performin
 In IPNI, batches of multihashes are encoded as `EntryChunk` blocks, each batch includes an array of multihashes.
 
 A `MultihashIndexSorted` Index encodes a set of multihashes. Mapping from an index to an `EntryChunk` requires parsing the index and encoding the multihashes it contains with the EntryChunk IPLD schema.
-
-_EntryChunk IPLD schema_
 
 ```ipldsch
 type EntryChunk struct {
