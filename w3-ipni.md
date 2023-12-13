@@ -24,7 +24,7 @@ We publish ad-hoc batches of multihashes to IPNI. This proposal aims to align ou
 
 ### Motivation
 
-- Align IPNI advert entries with CAR block sets and setting the ContextID to be the CAR CID.
+- Align IPNI advert entries with CAR block sets and setting the `ContextID` to be the CAR CID.
   - With this we (or anyone, ipni is open access) can now use IPNI to find which CAR a block is in. The context id bytes provide the CAR CID for any block look up. The CAR CID can then be used to find the CAR index via our content-claims API.
   - We can **delete** the IPNI records by CAR CID if the CAR is deleted.
 - Make IPNI advertising an explicit UCAN capability that clients can invoke rather than a side-effect of bucket events
@@ -74,7 +74,7 @@ curl https://cid.contact/cid/bafybeicawc3qwtlecld6lmtvsndimoz3446xyaprgsxvhd3aap
 ]}]}
 ```
 
-web3.storage publishes the blocks it can provide by encoding a batch of multihashes as an IPLD object and writing it to S3 as an `Advertisement`, addressed by it's CID.
+web3.storage publishes the blocks it can provide by encoding a batch of multihashes as an IPLD object and writing it to a bucket as an `Advertisement`, addressed by it's CID.
 
 An `Advertisement` includes `Provider` info which claims that a the batch of multihashes are available via bitswap or HTTP, and are signed by the provider PeerID private key; Each advert is a claim that this peer will provide that batch of multihashes.
 
@@ -82,7 +82,7 @@ Advertisements also include a CID link to any previous ones from the same provid
 
 The latest `head` CID of the ad list can be broadcast over [gossipsub], to be replicated and indexed by all listeners, or via HTTP to specific IPNI servers as a notification to pull and index the latest ads from you at their earliest convenience.
 
-The advert `ContextID` allows providers to specify a custom grouping key for multiple adverts. You can update or remove multiple adverts by specifying the same ContextID. The value is an opaque byte array as far as IPNI is concerned, and is provided in the query response.
+The advert `ContextID` allows providers to specify a custom grouping key for multiple adverts. You can update or remove multiple adverts by specifying the same `ContextID`. The value is an opaque byte array as far as IPNI is concerned, and is provided in the query response.
 
 A `Metadata` field is also available for provider specific retrieval hints, that a user should send to the provider when making a request for the block, but the mechanism here is unclear _(HTTP headers? bitswap?)_.
 
@@ -92,11 +92,11 @@ Regardless, it is space for provider specified bytes which we can use as to incl
 
 web3.storage publishes IPNI advertisements as a side-effect of the E-IPFS car [indexer-lambda].
 
-Each multihash in a CAR is sent to an SQS queue. The `publisher-lambda` takes batches from the queue, encodes and signs `Advertisement`s and writes them to S3 as JSON.
+Each multihash in a CAR is sent to an SQS queue. The `publisher-lambda` takes batches from the queue, encodes and signs `Advertisement`s and writes them to a bucket as JSON.
 
 The lambda makes an HTTP request to the IPNI server at `cid.contact` to inform it when the head CID of the Advertisement linked list changes.
 
-The IPNI server fetches new head Advertisement from our s3 bucket, and any others in the chain it hasn't read yet, and updates it's indexes.
+The IPNI server fetches new head Advertisement from our bucket, and any others in the chain it hasn't read yet, and updates it's indexes.
 
 Our `Advertisement`s contain arbitrary batches of multihashes defined by SQS queue batching config. The `ContextID` is set to opaque bytes (a custom hash of the hashes).
 
@@ -123,7 +123,7 @@ flowchart TD
 
 ## Proposal
 
-Provide a `ipni/offer` ucan ability to sign and publish an IPNI Advertisement for the set of multihashes in a CAR a user has stored with w3s, to make them discoverable via IPFS implementations and other IPNI consumers.
+Provide a `ipni/offer` UCAN ability to sign and publish an IPNI Advertisement for the set of multihashes in a CAR a user has stored with w3s, to make them discoverable via IPFS implementations and other IPNI consumers.
 
 ```mermaid
 sequenceDiagram
@@ -142,10 +142,10 @@ sequenceDiagram
     Alice->>ipni: query (CID)
 ```
 
-Invoke it with the CID for an [inclusion claim] that associates a CAR CID wth [MultihashIndexSorted CARv2 Index] CID.
+Invoke it with the CID for an [inclusion claim] that associates a CAR CID with a [MultihashIndexSorted CARv2 Index] CID.
 
 :::info
-Other CAR index forms may be supported in the future. A more convenient external CAR index format would provide the offset byte and block byteLength for a multihash from the start of the CAR file.
+Other CAR index forms may be supported in the future. A more convenient external CAR index format would provide the offset byte and block byte length for a given multihash from the start of the CAR file.
 :::
 
 **UCAN invocation** example

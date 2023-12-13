@@ -144,3 +144,13 @@ bitswap
 PeerID
 gossipsub
 w3s
+E-IPFS
+SQS
+config
+discoverable
+MultihashIndexSorted
+CARv2
+4MiB
+verifier
+libp2p
+EntryChunk
