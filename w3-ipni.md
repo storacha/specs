@@ -22,17 +22,16 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 We publish ad-hoc batches of multihashes to IPNI. This proposal aims to align our usage of IPNI with content-claims, by publishing an advert per inclusion claim, and include the source claim in the IPNI advert.
 
-**What this Unlocks** _(tl;dr)_
+### Motivation
 
-- Create 1 or more IPNI Adverts per user uploaded CAR and set the ContextID to be the CAR CID (instead of arbitrary batches with no ContextId)
+- Align IPNI advert entries with CAR block sets and setting the ContextID to be the CAR CID.
   - With this we (or anyone, ipni is open access) can now use IPNI to find which CAR a block is in. The context id bytes provide the CAR CID for any block look up. The CAR CID can then be used to find the CAR index via our content-claims API.
   - We can **delete** the IPNI records by CAR CID if the CAR is deleted.
 - Make IPNI advertising an explicit UCAN capability that clients can invoke rather than a side-effect of bucket events
   - With this we are free to write CARs anywhere. The users agent invokes a `ipni/offer` capability to ask us to publish and IPNI ad for the blocks in their CAR.
   - This empowers the user to opt-in or out as they need, and allows us to bill for the (small) cost of running that service.
-- Put the lime in the coconut. Put an inclusion claim in the IPNI advert metadata.
-  - We show the source of our provider claim is a user signed inclusion content claim.
-  - We have to sign IPNI Adverts as the provider, so we can warn folks that this ad is as good as the user provided content claim it includes.
+- Put the source inclusion claim in the IPNI advert metadata.
+  - We have to sign IPNI Adverts as the provider. Providing a signed source claim allows more nuanced reputation decisions.
 
 ### Quick IPNI primer
 
@@ -85,7 +84,10 @@ The latest `head` CID of the ad list can be broadcast over gossipsub, to be repl
 
 The advert `ContextID` allows providers to specify a custom grouping key for multiple adverts. You can update or remove multiple adverts by specifying the same ContextID. The value is an opaque byte array as far as IPNI is concerned, and is provided in the query response.
 
-A `Metadata` field is also available for provider specific retrieval hints, that a user should send to the provider when making a request for the block, but the mechanism here is unclear (http headers? bitswap what now?). Regardless it is more space for provider specified bytes... like maybe... a content claim! *(foreshadowing!)*
+A `Metadata` field is also available for provider specific retrieval hints, that a user should send to the provider when making a request for the block, but the mechanism here is unclear _(http headers? bitswap?)_.
+
+Regardless, it is space for provider specified bytes which we can use as to include the portable cryptographic proof that an end-user made the original claim that a set of blocks are included in a CAR and that as a large provider we have alerted IPNI on their behalf.
+
 
 ### How web3.storage integrates IPNI today
 
@@ -148,6 +150,7 @@ Other CAR index forms may be supported in the future. A more convenient external
 :::
 
 **UCAN invocation** example
+
 ```json
 {
   "iss": "did:key:zAlice",
@@ -163,6 +166,7 @@ Other CAR index forms may be supported in the future. A more convenient external
 ```
 
 **Inclusion claim** example
+
 ```json
 {
   "content": CID, // CAR CID
@@ -193,20 +197,20 @@ type Advertisement struct {
 - `Entries` must be the CID of an `EntryChunk` for a subset (or all) of multihashes in the CAR.
 - `ContextID` must be the byte encoded form of the CAR CID.
 - `Metadata` must be the bytes of the inclusion claim.
- 
+
 See: [Encoding the IPNI Advertisement](#encoding-the-ipni-advertisement)
 
 The Advertisement should then be available for consumption by indexer nodes per the [Advertisement Transfer](https://github.com/ipni/specs/blob/main/IPNI.md#advertisement-transfer) section of the IPNI spec.
 
 ### Verifying the CARv2 Index
 
-The service must fetch the CARv2 Index and may verify 1 or more multihashes from the index exist at the specified offsets in the associated CAR. 
+The service must fetch the CARv2 Index and may verify 1 or more multihashes from the index exist at the specified offsets in the associated CAR.
 
 The verifier should pick a set of multihashes at random and fetch the bytes from the CAR identified by the index entry and verify it's multihash. The invocation must return an error if any entry is found to be invalid.
 
 Random validation of a number of blocks allows us to detect invalid indexes and lets us tune how much work we are willing to do per car index.
 
-Full validation of every block is not recommended as it opens us up to performing unbounded work. *We have seen CAR files with millions of tiny blocks.*
+Full validation of every block is not recommended as it opens us up to performing unbounded work. _We have seen CAR files with millions of tiny blocks._
 
 ### Encoding the IPNI Advertisement
 
@@ -224,8 +228,6 @@ type EntryChunk struct {
 It is possible to create long chains of `EntryChunk` blocks by setting the `Next` field to the CID to another `EntryChunk`, but this requires an entire EntryChunk to be fetched and decoded, before the IPNI server can determine the next chunk to fetch.
 
 The containing CAR CID provides a useful `ContextID` for grouping multiple (light weight) Advertisement blocks so it is recommended to split the set across multiple `Advertisement` blocks each pointing to an `EntryChunk` with a partition of the set of multihashes in, and the `ContextId` set to the CAR CID.
-
-<center> ⁂ </center>
 
 [IPNI]: https://github.com/ipni/specs/blob/main/IPNI.md
 [MultihashIndexSorted CARv2 Index]:  https://ipld.io/specs/transport/car/carv2/#format-0x0401-multihashindexsorted
