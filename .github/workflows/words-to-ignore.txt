@@ -137,3 +137,9 @@ Vasco
 invoker
 lexicographically
 nullable
+substring
+LCP
+pseudocode
+foobarboz
+foobarb
+foopey

@@ -223,7 +223,7 @@ After:
 
 #### Long Keys
 
-If the shard key is longer than 64 characters a new shard(s) must be created to acommodate the new length. The first 64 characters must be added as a new entry in the shard, along with a value that is a link to a new shard with the next 64 characters of the key. This is repeated until the key has less than 64 characters. The value for the entry for the key with less than 64 characters must be set as the value for the put operation.
+If the shard key is longer than 64 characters a new shard(s) must be created to accommodate the new length. The first 64 characters must be added as a new entry in the shard, along with a value that is a link to a new shard with the next 64 characters of the key. This is repeated until the key has less than 64 characters. The value for the entry for the key with less than 64 characters must be set as the value for the put operation.
 
 For example, putting a key `ax64...bx64...cx10...` and value `bafyvalue` in an empty shard (dag-json encoded):
 
