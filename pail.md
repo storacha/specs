@@ -1,4 +1,4 @@
-# KV/DAG
+# Pail
 
 ## Editors
 
@@ -23,8 +23,14 @@ This method of key/value storage is designed to allow fast _ordered_ value looku
 IPLD Schema
 
 ```ipldsch
-# A shard is just a list of entries
-type Shard [ShardEntry]
+# A shard is just a list of entries, and some config
+type Shard struct {
+  # Max key length (in UTF-8 encoded characters) - default 64
+  maxKeyLength: Int
+  # Max encoded shard size in bytes - default 512 KiB
+  maxSize: Int
+  entries: [ShardEntry]
+}
 
 # Single key/value entry within a shard
 type ShardEntry struct {
@@ -34,8 +40,8 @@ type ShardEntry struct {
 
 # User data (any CID to any data) or shard link
 type ShardValue union {
-  | &UserData link
-  | ShardLinkValue list
+  | &UserData Link
+  | ShardLinkValue List
 } representation kinded
 
 # A link to another shard, and optional user data
@@ -45,7 +51,7 @@ type ShardLinkValue struct {
 } representation tuple
 
 # User data - any CID to any data
-type UserData = Any
+type UserData Any
 ```
 
 Typsecript
@@ -53,8 +59,14 @@ Typsecript
 ```ts
 import { Link } from 'multiformats/link'
 
-/** A shard is just a list of entries */
-type Shard = ShardEntry[]
+/** A shard is just a list of entries, and some config */
+interface Shard {
+  /** Max key length (in UTF-8 encoded characters) - default 64 */
+  maxKeyLength: number
+  /** Max encoded shard size in bytes - default 512 KiB */
+  maxSize: number
+  entries: ShardEntry[]
+}
 
 /** Single key/value entry within a shard */
 type ShardEntry = [
