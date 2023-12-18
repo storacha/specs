@@ -418,7 +418,7 @@ The `with` resource URI must be set to the DID of the space to get the upload me
 
 #### Caveats
 
-The `root` caveat must contain the root CID of the data item to remove.
+The `root` caveat must contain the root CID of the item to get metadata for.
 
 | `field`   | `value`                           | `required?` | `context`                                                     |
 | --------- | --------------------------------- | ----------- | ------------------------------------------------------------- |
