@@ -87,17 +87,17 @@ type UserData = Link<any>
 
 The storage is made up of shards. They are blocks of IPLD data. Shards must be [dag-cbor](https://ipld.io/specs/codecs/dag-cbor/spec/) encoded and must not exceed `512KiB` in size (post encode).
 
-A shard is an ordered list of [shard entries](#Shard-Entry). Shard entries must always be ordered lexicographically by key within a shard.
+A shard is an ordered list of [shard entries](#shard-entry). Shard entries must always be ordered lexicographically by key within a shard.
 
 ### Shard Entry
 
-A key/value pair whose value corresponds to [user data](#User-Data) or a [shard link](#Shard-Link).
+A key/value pair whose value corresponds to [user data](#user-data) or a [shard link](#shard-link).
 
 ### Key
 
 A UTF-8 encoded string.
 
-The key length must not exceed 64 characters. Putting a key whose length is greater than 64 characters must create a new shard(s) to accommodate the additional length. See [Long Keys](#Long-Keys).
+The key length must not exceed 64 characters. Putting a key whose length is greater than 64 characters must create a new shard(s) to accommodate the additional length. See [Long Keys](#long-keys).
 
 ### Value
 
@@ -115,9 +115,9 @@ For example (dag-json encoded):
 
 An IPLD [CID](https://github.com/multiformats/cid) link to another shard in the storage.
 
-Shard link values must be encoded as an array (tuple) in order to differentiate them from [user data](#User-Data).
+Shard link values must be encoded as an array (tuple) in order to differentiate them from [user data](#user-data).
 
-If the value is a shard link value, the first item in the array must be an IPLD [CID](https://github.com/multiformats/cid) link to another shard in the storage. If the array contains a second item, the item is [user data](#User-Data).
+If the value is a shard link value, the first item in the array must be an IPLD [CID](https://github.com/multiformats/cid) link to another shard in the storage. If the array contains a second item, the item is [user data](#user-data).
 
 Shard link values must contain one or two elements. The first element (the shard link) is required (not nullable).
 
@@ -142,9 +142,9 @@ For example, a shard link _with_ user data (dag-json encoded):
 
 The "put" operation adds a new value or updates an existing value for a given key in the storage.
 
-The storage must first be [traversed](#Shard-Traversal) to identify the target shard where the value should be placed, as well as the key within the shard that should be used.
+The storage must first be [traversed](#shard-traversal) to identify the target shard where the value should be placed, as well as the key within the shard that should be used.
 
-Any changes made must be [propagated to the root shard](#Propagating-Changes).
+Any changes made must be [propagated to the root shard](#propagating-changes).
 
 #### New Value
 
@@ -153,6 +153,7 @@ If no value exists in the shard for the shard key then a new user data entry sho
 For example, putting a key `b` and value `bafyvalueb` to a shard with existing keys `a` and `c` (dag-json encoded):
 
 Before:
+
 ```javascript
 [
   ['a', { '/': 'bafyvaluea' }],
@@ -161,6 +162,7 @@ Before:
 ```
 
 After:
+
 ```javascript
 [
   ['a', { '/': 'bafyvaluea' }],
@@ -176,11 +178,13 @@ If a value exists in the shard for the shard key and the value is user data, the
 For example, putting a key `a` and value `bafyvalueaaa` to a shard with existing key `a` and value `bafyvaluea` (dag-json encoded):
 
 Before:
+
 ```javascript
 [['a', { '/': 'bafyvaluea' }]]
 ```
 
 After:
+
 ```javascript
 [['a', { '/': 'bafyvalueaaa' }]]
 ```
@@ -192,11 +196,13 @@ If a value exists in the shard for the shard key and the value is a shard link, 
 For example, putting a key `a` and value `bafyvaluea` to a shard with existing key `a` with a shard link value `bafyshard` (dag-json encoded):
 
 Before:
+
 ```javascript
 [['a', [{ '/': 'bafyshard' }]]]
 ```
 
 After:
+
 ```javascript
 [['a', [{ '/': 'bafyshard' }, { '/': 'bafyvaluea' }]]]
 ```
@@ -204,11 +210,13 @@ After:
 For example, putting a key `a` and value `bafyvalueaaa` to a shard with existing key `a` with a shard link value `bafyshard`, with user data `bafyvaluea` (dag-json encoded):
 
 Before:
+
 ```javascript
 [['a', [{ '/': 'bafyshard' }, { '/': 'bafyvaluea' }]]]
 ```
 
 After:
+
 ```javascript
 [['a', [{ '/': 'bafyshard' }, { '/': 'bafyvalueaaa' }]]]
 ```
@@ -222,10 +230,12 @@ For example, putting a key `ax64...bx64...cx10...` and value `bafyvalue` in an e
 ```javascript
 [['ax64...', [{ '/': 'bafyshard1' }]]]
 ```
+
 ```javascript
 // bafyshard1
 [['bx64...', [{ '/': 'bafyshard0' }]]]
 ```
+
 ```javascript
 // bafyshard0
 [['cx10...', { '/': 'bafyvalue' }]]
@@ -251,7 +261,7 @@ The following is pseudocode of the algorithm for creating a new shard when a sha
 
 For example:
 
-```
+```text
 abel
 foobarbaz
 foobarwooz
@@ -260,7 +270,8 @@ somethingelse
 ```
 
 Put "foobarboz" and exceed shard size limit:
-```
+
+```text
 abel
 foobarbaz
 <- foobarboz
@@ -270,7 +281,8 @@ somethingelse
 ```
 
 Find "foobarb" as longest common prefix, create shard:
-```
+
+```text
 abel
 foobarb -> az
            oz
@@ -280,7 +292,8 @@ somethingelse
 ```
 
 Put "foopey", exceeding shard size:
-```
+
+```text
 abel
 foobarb -> az
            oz
@@ -291,7 +304,8 @@ somethingelse
 ```
 
 Find "foo" as longest common prefix, create shard:
-```
+
+```text
 abel
 foo -> barb -> az
                oz
@@ -305,20 +319,22 @@ somethingelse
 
 The "delete" operation removes a value for a given key in the storage.
 
-The storage must first be [traversed](#Shard-Traversal) to identify the target shard where the value should be removed from, as well as the key within the shard that should be used.
+The storage must first be [traversed](#shard-traversal) to identify the target shard where the value should be removed from, as well as the key within the shard that should be used.
 
-Any changes made must be [propagated to the root shard](#Propagating-Changes).
+Any changes made must be [propagated to the root shard](#propagating-changes).
 
 Deleting the last remaining key in a non-root shard must remove the shard entirely and it's entry in it's parent shard. That is unless the entry in the parent shard contains user data. In this case the value in the parent shard is updated from a shard link (with user data) to user data.
 
 For example, deleting a key `a` from a root shard (dag-json encoded):
 
 Before:
+
 ```javascript
 [['a', { '/': 'bafyvaluea' }]]
 ```
 
 After:
+
 ```javascript
 []
 ```
@@ -326,15 +342,18 @@ After:
 For example, deleting a key `abba` from a non-root shard (dag-json encoded):
 
 Before:
+
 ```javascript
 [['abb', [{ '/': 'bafyshard' }]]]
 ```
+
 ```javascript
 // bafyshard
 [['a', { '/': 'bafyvalue' }]]
 ```
 
 After:
+
 ```javascript
 []
 ```
@@ -342,15 +361,18 @@ After:
 For example, deleting a key `abba` from a non-root shard with user data in key `abb` (dag-json encoded):
 
 Before:
+
 ```javascript
 [['abb', [{ '/': 'bafyshard' }, { '/': 'bafyvalueabb' }]]]
 ```
+
 ```javascript
 // bafyshard
 [['a', { '/': 'bafyvalue' }]]
 ```
 
 After:
+
 ```javascript
 [['abb', { '/': 'bafyvalueabb' }]]
 ```
