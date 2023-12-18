@@ -16,7 +16,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 This specification describes a method of key/value storage implemented as an IPLD DAG. It details the format, encoding and mechanisms to mutate the storage.
 
-This method of key/value storage is designed to allow fast _ordered_ value lookups by key _prefix_.
+This method of key/value storage is designed to allow fast _ordered_ value lookup by key _prefix_.
 
 ## Data Format
 
@@ -54,7 +54,7 @@ type ShardLinkValue struct {
 type UserData Any
 ```
 
-Typsecript
+Typescript
 
 ```ts
 import { Link } from 'multiformats/link'
@@ -97,7 +97,7 @@ A key/value pair whose value corresponds to [user data](#User-Data) or a [shard 
 
 A UTF-8 encoded string.
 
-The key length must not exceed 64 characters. Putting a key whose length is greater than 64 characters must create a new shard(s) to accomodate the additional length. See [Long Keys](#Long-Keys).
+The key length must not exceed 64 characters. Putting a key whose length is greater than 64 characters must create a new shard(s) to accommodate the additional length. See [Long Keys](#Long-Keys).
 
 ### Value
 

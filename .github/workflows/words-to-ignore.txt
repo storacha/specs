@@ -90,6 +90,7 @@ RFC6376
 UTF-8
 UCAN-IPLD
 DAG-JSON
+dag-json
 installationOraclePrincipal
 flowAuthorityPrincipal
 capabilitiesVerifierComponent
@@ -134,3 +135,5 @@ Irakli
 Gozalishvili
 Vasco
 invoker
+lexicographically
+nullable
