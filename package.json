@@ -9,7 +9,7 @@
   },
   "keywords": ["web3.storage", "web3", "w3"],
   "license": "Apache-2.0 OR MIT",
-  "devDependencies": {
+  "dependencies": {
     "@11ty/eleventy": "^2.0.1",
     "@11ty/eleventy-plugin-webc": "^0.11.2"
   }
