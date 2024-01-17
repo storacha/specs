@@ -1,7 +1,5 @@
 # Rate Limit Protocol
 
-![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
-
 ## Editors
 
 - [Travis Vachon](https://github.com/travis), [Protocol Labs](https://protocol.ai/)
@@ -10,7 +8,14 @@
 
 - [Travis Vachon](https://github.com/travis), [Protocol Labs](https://protocol.ai/)
 
-# Abstract
+## Status
+
+![reliable badge](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square):
+
+Reliable:
+a spec that has been implemented ([in @web3-storage/upload-api](https://github.com/web3-storage/w3up/blob/main/packages/upload-api/src/rate-limit.js)). It will change as we learn how it works in practice.
+
+## Abstract
 
 Storage providers in the w3 family of protocols need to be able to rate limit (and in many cases, fully block) abusive users
 from using their service. We describe a set of capabilities for tracking and administering such rate limits.
@@ -85,6 +90,11 @@ export const add = capability({
 })
 ```
 
+##### Implementations
+
+* @web3-storage/capabilities [defines `rate-limit/add` capability](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/capabilities/src/rate-limit.js#L20)
+* @web3-storage/upload-api [handles `rate-limit/add` invocations](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/upload-api/src/rate-limit.js#L10)
+
 #### rate-limit/list
 
 Given a subject ID (e.g., a`did:mailto`, a URL, a domain name, etc), list all rate limits that apply to the given subject.
@@ -130,6 +140,10 @@ export const remove = capability({
   },
 })
 ```
+##### Implementations
+
+* @web3-storage/capabilities [defines `rate-limit/list` capability](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/capabilities/src/rate-limit.js#L58)
+* @web3-storage/upload-api [handles `rate-limit/list` invocations](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/upload-api/src/rate-limit.js#L12)
 
 #### rate-limit/remove
 
@@ -167,3 +181,8 @@ export const remove = capability({
   },
 })
 ```
+
+##### Implementations
+
+* @web3-storage/capabilities [defines `rate-limit/remove` capability](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/capabilities/src/rate-limit.js#L40)
+* @web3-storage/upload-api [handles `rate-limit/remove` invocations](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/upload-api/src/rate-limit.js#L11)
