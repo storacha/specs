@@ -6,14 +6,14 @@
 
 There are no known implementations of w3-store Authorization + IPFS Pinning Service API.
 
-See [w3-store](../w3-store.md) for implementations of the storage protocol that this refers to.
+See [w3-store](./w3-store.md) for implementations of the storage protocol that this refers to.
 
 ## Description
 
 We reimagine IPFS [pinning service][] as a web3 service, where:
 
 - Users delegate necessary capabilities to the pinning service as opposed to getting [access token][]s from the service which must be kept secret.
-- As a layer on top of [w3-store](../w3-store.md) protocol
+- As a layer on top of [w3-store](./w3-store.md) protocol
 
 The following table maps [IPFS pinning service API][pinning service] operations to capabilities necessary to execute them
 
