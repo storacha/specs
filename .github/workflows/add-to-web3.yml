@@ -1,0 +1,22 @@
+name: add to web3
+
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  markdown-link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout
+      - uses: web3-storage/add-to-web3@v3
+        id: w3up
+        with:
+          path_to_add: '_site'
+          proof: ${{ secrets.W3_PROOF }}
+          secret_key: ${{ secrets.W3_PRINCIPAL }}
+      - run: echo ${{ steps.w3up.outputs.cid }}
+      - run: echo ${{ steps.w3up.outputs.url }}
