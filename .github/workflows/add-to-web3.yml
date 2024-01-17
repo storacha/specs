@@ -9,10 +9,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  markdown-link-check:
+  add-to-web3:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - uses: web3-storage/add-to-web3@v3
         id: w3up
         with:
