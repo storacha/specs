@@ -92,8 +92,8 @@ export const add = capability({
 
 ##### Implementations
 
-* @web3-storage/capabilities [defines `rate-limit/add` capability](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/capabilities/src/rate-limit.js#L20)
-* @web3-storage/upload-api [handles `rate-limit/add` invocations](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/upload-api/src/rate-limit.js#L10)
+- @web3-storage/capabilities [defines `rate-limit/add` capability](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/capabilities/src/rate-limit.js#L20)
+- @web3-storage/upload-api [handles `rate-limit/add` invocations](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/upload-api/src/rate-limit.js#L10)
 
 #### rate-limit/list
 
@@ -140,10 +140,11 @@ export const remove = capability({
   },
 })
 ```
+
 ##### Implementations
 
-* @web3-storage/capabilities [defines `rate-limit/list` capability](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/capabilities/src/rate-limit.js#L58)
-* @web3-storage/upload-api [handles `rate-limit/list` invocations](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/upload-api/src/rate-limit.js#L12)
+- @web3-storage/capabilities [defines `rate-limit/list` capability](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/capabilities/src/rate-limit.js#L58)
+- @web3-storage/upload-api [handles `rate-limit/list` invocations](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/upload-api/src/rate-limit.js#L12)
 
 #### rate-limit/remove
 
@@ -184,5 +185,5 @@ export const remove = capability({
 
 ##### Implementations
 
-* @web3-storage/capabilities [defines `rate-limit/remove` capability](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/capabilities/src/rate-limit.js#L40)
-* @web3-storage/upload-api [handles `rate-limit/remove` invocations](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/upload-api/src/rate-limit.js#L11)
+- @web3-storage/capabilities [defines `rate-limit/remove` capability](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/capabilities/src/rate-limit.js#L40)
+- @web3-storage/upload-api [handles `rate-limit/remove` invocations](https://github.com/web3-storage/w3up/blob/3244a26ac10fb76858903f5271111d350cca05e8/packages/upload-api/src/rate-limit.js#L11)
