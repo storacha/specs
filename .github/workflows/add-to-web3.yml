@@ -12,7 +12,7 @@ jobs:
   markdown-link-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout
+      - uses: actions/checkout@master
       - uses: web3-storage/add-to-web3@v3
         id: w3up
         with:
