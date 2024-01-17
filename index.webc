@@ -1,0 +1,15 @@
+<h1>
+w3-specs ⁂
+</h1>
+  <section webc:for="item of collections.all" webc:if="item.fileSlug">
+    <h2 id="item.fileSlug">
+      <span @text="item.fileSlug"></span>
+      <a href="`#${item.fileSlug}`">§</a>
+    </h2>
+    <dl>
+      <dt>url</dt>
+        <dd>
+          <a :href="item.url"><span @text="item.url"></span></a>
+        </dd>
+    </dl>
+  </section>

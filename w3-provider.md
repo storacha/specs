@@ -90,9 +90,9 @@ To make capabilities invocable, one needs to obtain a provider and add it to the
 
 ```mermaid
 flowchart TB
-  Space((did:key:zAliceSpace))
-  W3{{did:web:free.web3.storage}}
-  NFT{{did:web:nft.storage}}
+  Space(("did:key:zAliceSpace"))
+  W3{{"did:web:free.web3.storage"}}
+  NFT{{"did:web:nft.storage"}}
 
   Name([name/*])
   Upload([upload/*])
