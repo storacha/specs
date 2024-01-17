@@ -1,5 +1,7 @@
 name: add to web3
 
+permissions:
+  pull-requests: write
 
 on:
   push:
@@ -25,3 +27,9 @@ jobs:
           secret_key: ${{ secrets.W3_PRINCIPAL }}
       - run: echo ${{ steps.w3up.outputs.cid }}
       - run: echo ${{ steps.w3up.outputs.url }}
+      - uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+            # added to web3
+
+            ${{ steps.w3up.outputs.url }}
