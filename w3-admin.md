@@ -74,7 +74,7 @@ export const get = capability({
 #### Implementations
 
 - @web3-storage/capabilities: [capability in consumer.js](https://github.com/web3-storage/w3up/blob/231cf1f863f4e9a96c92d9ef5001617ba928028d/packages/capabilities/src/consumer.js#L29C1-L29C1)
-- @web3-storage/upload-api: [invocation handler in (https://github.com/web3-storage/w3up/blob/231cf1f863f4e9a96c92d9ef5001617ba928028d/packages/upload-api/src/consumer/get.js)
+- @web3-storage/upload-api: [invocation handler in consumer/get.js](https://github.com/web3-storage/w3up/blob/231cf1f863f4e9a96c92d9ef5001617ba928028d/packages/upload-api/src/consumer/get.js)
 
 ### `customer/get`
 
@@ -163,8 +163,8 @@ export const get = capability({
 
 #### Implementations
 
-- @web3-storage/capabilities: [capability in admin.js](https://github.com/web3-storage/w3up/blob/main/packages/capabilities/src/admin.js)
-- @web3-storage/upload-api: [invocation handler in subscription/get.js](hthttps://github.com/web3-storage/w3up/blob/231cf1f863f4e9a96c92d9ef5001617ba928028d/packages/upload-api/src/subscription/get.js)
+- @web3-storage/capabilities: [capability in subscription.js](https://github.com/web3-storage/w3up/blob/main/packages/capabilities/src/subscription.js)
+- @web3-storage/upload-api: [invocation handler in subscription/get.js](https://github.com/web3-storage/w3up/blob/231cf1f863f4e9a96c92d9ef5001617ba928028d/packages/upload-api/src/subscription/get.js)
 
 ### `admin/upload/inspect`
 
