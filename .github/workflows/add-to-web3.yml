@@ -16,6 +16,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - run: npm ci
       - uses: web3-storage/add-to-web3@v3
         id: w3up
         with:
