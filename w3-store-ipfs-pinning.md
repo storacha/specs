@@ -12,7 +12,7 @@ See [w3-store](./w3-store.md) for implementations of the storage protocol that t
 
 We reimagine IPFS [pinning service][] as a web3 service, where:
 
-- Users delegate necessary capabilities to the pinning service as opposed to getting [access token][]s from the service which must be kept secret.
+- Users delegate necessary capabilities to the pinning service as [UCAN][]s opposed to sharing powerful bearer [access token][]s that must be kept secret by both client and pinning service, and client must trust pinning service to only use as intended
 - As a layer on top of [w3-store](./w3-store.md) protocol
 
 The following table maps [IPFS pinning service API][pinning service] operations to capabilities necessary to execute them
@@ -85,5 +85,5 @@ While UCAN validation is not strictly necessary (as they get verified downstream
 [`store/remove`]: https://github.com/web3-storage/specs/blob/main/w3-store.md#storeremove
 [`store/list`]: https://github.com/web3-storage/specs/blob/main/w3-store.md#storelist
 [`store/get`]: https://github.com/web3-storage/specs/blob/main/w3-store.md#storeget
-[ucan]: https://github.com/ucan-wg/spec/
+[UCAN]: https://github.com/ucan-wg/spec/
 [UCAN JWT]: https://github.com/ucan-wg/spec/tree/692e8aab59b763a783fe1484131c3f40d997b69a#3-jwt-structure
