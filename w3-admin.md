@@ -1,6 +1,6 @@
 # Admin Protocol
 
-![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
+![status:reliable](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square)
 
 ## Editors
 
@@ -10,7 +10,7 @@
 
 - [Travis Vachon](https://github.com/travis), [Protocol Labs](https://protocol.ai/)
 
-# Abstract
+## Abstract
 
 Storage providers in the w3 family of protocols need to be able to get information about the customers, subscriptions and "consumers" (i.e., spaces)
 they work with. The capabilities described in this document all act on the "service" resource (i.e., `did:web:web3.storage`) and can be delegated
@@ -71,6 +71,11 @@ export const get = capability({
 })
 ```
 
+#### Implementations
+
+* @web3-storage/capabilities: [capability in consumer.js](https://github.com/web3-storage/w3up/blob/231cf1f863f4e9a96c92d9ef5001617ba928028d/packages/capabilities/src/consumer.js#L29C1-L29C1)
+* @web3-storage/upload-api: [invocation handler in (https://github.com/web3-storage/w3up/blob/231cf1f863f4e9a96c92d9ef5001617ba928028d/packages/upload-api/src/consumer/get.js)
+
 ### `customer/get`
 
 Get information about a customer.
@@ -110,6 +115,11 @@ export const get = capability({
   },
 })
 ```
+
+#### Implementations
+
+* @web3-storage/capabilities: [capability in customer.js](https://github.com/web3-storage/w3up/blob/231cf1f863f4e9a96c92d9ef5001617ba928028d/packages/capabilities/src/customer.js#L12)
+* @web3-storage/upload-api: [invocation handler in customer/get.js](https://github.com/web3-storage/w3up/blob/231cf1f863f4e9a96c92d9ef5001617ba928028d/packages/upload-api/src/customer/get.js)
 
 ### `subscription/get`
 
@@ -151,6 +161,11 @@ export const get = capability({
 })
 ```
 
+#### Implementations
+
+* @web3-storage/capabilities: [capability in admin.js](https://github.com/web3-storage/w3up/blob/main/packages/capabilities/src/admin.js)
+* @web3-storage/upload-api: [invocation handler in subscription/get.js](hthttps://github.com/web3-storage/w3up/blob/231cf1f863f4e9a96c92d9ef5001617ba928028d/packages/upload-api/src/subscription/get.js)
+
 ### `admin/upload/inspect`
 
 Get information about a content CID. This does not return the actual data identified by the CID, just metadata our
@@ -170,6 +185,11 @@ with the date it was uploaded.
   uploads: Array<{space: SpaceDID, insertedAt: Date}>
 }
 ```
+
+#### Implementations
+
+* @web3-storage/capabilities: [capability in admin.js](https://github.com/web3-storage/w3up/blob/main/packages/capabilities/src/admin.js)
+* @web3-storage/upload-api: [invocation handler in admin/upload/inspect.js](https://github.com/web3-storage/w3up/blob/231cf1f863f4e9a96c92d9ef5001617ba928028d/packages/upload-api/src/admin/upload/inspect.js)
 
 ### `admin/store/inspect`
 
@@ -191,3 +211,8 @@ which it was stored.
   stores: Array<{space: SpaceDID, insertedAt: Date}>
 }
 ```
+
+#### Implementations
+
+* @web3-storage/capabilities: [capability in admin.js](https://github.com/web3-storage/w3up/blob/main/packages/capabilities/src/admin.js)
+* @web3-storage/upload-api: [invocation handler in admin/store/inspect.js](https://github.com/web3-storage/w3up/blob/231cf1f863f4e9a96c92d9ef5001617ba928028d/packages/upload-api/src/admin/store/inspect.js)
