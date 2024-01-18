@@ -4,18 +4,26 @@ This repository contains the specs for the `w3up` protocol and associated subsys
 
 The implementations of these specs can be found in <https://github.com/web3-storage/w3up>
 
-## Getting started
+## Overview
 
-The following specs are cannon:
+### Stable specs
+
+Stable specs may be improved but should not change fundamentally.
 
 - [`w3-account`](./w3-account.md) - let users sync and recover delegatated capabilities via a `did` they control.
 - [`w3-session`](./w3-session.md) - delegating capabilities to an agent via email verification magic link.
 - [`w3-store`](./w3-store.md) - storing shards of a DAGs as CARs; linking root CIDs to shards as uploads.
 - [`w3-filecoin`](./w3-filecoin.md) - verfiable aggreagation of CARs for filecoin deals.
 
+### Other specs
+
 Other specs are available, maturing at rates commensurate with general interest.
 
-We use the following label system to identify the state of each spec:
+- [`w3-admin`](./w3-admin.md) ![reliable](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square) - `consumer/get`, `customer/get`, `subscription/get`, `admin/*`
+
+## Status indicators
+
+We use the following label system to identify the status of each spec:
 
 - ![wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square) A work-in-progress to describe an idea before committing to a full draft.
 - ![draft](https://img.shields.io/badge/status-draft-yellow.svg?style=flat-square) A draft ready for review. It should be implementable.
@@ -24,7 +32,7 @@ We use the following label system to identify the state of each spec:
 - ![permanent](https://img.shields.io/badge/status-permanent-blue.svg?style=flat-square) This spec will not change.
 - ![deprecated](https://img.shields.io/badge/status-deprecated-red.svg?style=flat-square) This spec is no longer in use.
 
-Nothing in this spec repository is `permanent` or even `stable` yet. Most of the subsystems are still a `draft` or in `reliable` state.
+Nothing in this spec repository is `permanent`. While some of the subsystems are `stable`, some are still in a `draft` or `reliable` status.
 
 ## Contribute
 
