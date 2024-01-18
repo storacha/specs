@@ -1,6 +1,6 @@
 # W3 Filecoin Protocol
 
-![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
+![status:reliable](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square)
 
 ## Editors
 
@@ -36,6 +36,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
       - [`filecoin/offer`]
       - [`filecoin/submit`]
       - [`filecoin/accept`]
+      - [`filecoin/info`]
     - [Aggregator Capabilities](#aggregator-capabilities)
       - [`piece/offer`]
       - [`piece/accept`]
@@ -49,6 +50,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
     - [`filecoin/offer` schema](#filecoinoffer-schema)
     - [`filecoin/submit` schema](#filecoinsubmit-schema)
     - [`filecoin/accept` schema](#filecoinaccept-schema)
+    - [`filecoin/info` schema](#filecoininfo-schema)
     - [`piece/offer` schema](#pieceoffer-schema)
     - [`piece/accept` schema](#pieceaccept-schema)
     - [`aggregate/offer` schema](#aggregateoffer-schema)
@@ -360,6 +362,96 @@ If the added piece is invalid, the reason for the failure is also reported:
   "meta": {},
   "iss": "did:web:web3.storage",
   "prf": []
+}
+```
+
+#### `filecoin/info`
+
+An agent MAY invoke the `filecoin/info` capability to request known information about content piece in Filecoin. See [schema](#filecoininfo-schema).
+
+> `did:key:zAliceAgent` invokes `filecoin/info` capability provided by `did:web:web3.storage`
+
+```json
+{
+  "iss": "did:key:zAliceAgent",
+  "aud": "did:web:web3.storage",
+  "att": [
+    {
+      "with": "did:key:zAlice",
+      "can": "filecoin/info",
+      "nb": {
+        /* Commitment proof for piece */
+        "piece": { "/": "bafk...commp" }
+      }
+    }
+  ],
+  "prf": [],
+  "sig": "..."
+}
+```
+
+##### Filecoin Info Failure
+
+```json
+{
+  "ran": "bafy...filInfo",
+  "out": {
+    "error": {
+      "name": "InvalidContentPiece",
+      "content": { "/": "bafk...commp" }
+    }
+  }
+}
+```
+
+##### Filecoin Info Success
+
+```json
+{
+  "ran": "bafy...filInfo",
+  "out": {
+    "ok": {
+      /* commitment proof for piece */
+      "piece": { "/": "commitment...car" },
+      /* aggregates where this piece was included */
+      "aggregates": [
+        {
+          /* commitment proof for aggregate */
+          "aggregate": { "/": "commitment...aggregate" },
+          /** inclusion proof for piece */
+          "inclusion": {
+            "tree": {
+              "path": [
+                "bafk...root",
+                "bafk...parent",
+                "bafk...child",
+                "bag...car"
+              ],
+              "at": 1
+            },
+            "index": {
+              "path": [/** ... */],
+              "at": 7
+            }
+          }
+        }
+      ],
+      /* filecoin deals where this piece was included */
+      "deals": [
+        {
+          /* commitment proof for aggregate */
+          "aggregate": { "/": "commitment...aggregate" },
+          /** deal type */
+          "aux": {
+            "dataType": 0,
+            "dataSource": {
+              "dealID": 1245
+            }
+          }
+        }
+      ]
+    }
+  }
 }
 ```
 
@@ -748,6 +840,20 @@ type FilecoinAccept struct {
 type FilecoinAcceptDetail = FilecoinOfferDetail
 ```
 
+### `filecoin/info` schema
+
+```ipldsch
+type FilecoinInfo struct {
+  with AgentDID
+  nb FilecoinInfoDetail
+}
+
+type FilecoinInfoDetail struct {
+  # Piece as Filecoin Piece with padding
+  piece PieceLink
+}
+```
+
 ### `piece/offer` schema
 
 ```ipldsch
@@ -835,6 +941,7 @@ type DealInfoDetail struct {
 [`filecoin/offer`]:#filecoinoffer
 [`filecoin/submit`]:#filecoinsubmit
 [`filecoin/accept`]:#filecoinaccept
+[`filecoin/info`]:#filecoininfo
 [`piece/offer`]:#pieceoffer
 [`piece/accept`]:#pieceaccept
 [`aggregate/offer`]:#aggregateoffer
