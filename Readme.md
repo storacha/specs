@@ -21,7 +21,7 @@ Other specs are available, maturing at rates commensurate with general interest.
 
 - [`w3-admin`](./w3-admin.md) ![reliable](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square) - `consumer/get`, `customer/get`, `subscription/get`, `admin/*`
 
-## spec status
+## Status indicators
 
 We use the following label system to identify the status of each spec:
 
