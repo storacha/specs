@@ -12,7 +12,7 @@
 
 ## Abstract
 
-A Plan
+A Plan that accounts can register to, in order to have an associated billing plan for their spaces.
 
 - [Capabilities](#capabilities)
   - [`plan/get`](#planget)
