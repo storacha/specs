@@ -6,7 +6,7 @@ The implementations of these specs can be found in <https://github.com/web3-stor
 
 ## Overview
 
-### ![status=stable](https://img.shields.io/badge/status-stable-brightgreen.svg?style=flat-square) specs
+### Stable specs
 
 Stable specs may be improved but should not change fundamentally.
 
