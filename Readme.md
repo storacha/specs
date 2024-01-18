@@ -32,7 +32,7 @@ We use the following label system to identify the status of each spec:
 - ![permanent](https://img.shields.io/badge/status-permanent-blue.svg?style=flat-square) This spec will not change.
 - ![deprecated](https://img.shields.io/badge/status-deprecated-red.svg?style=flat-square) This spec is no longer in use.
 
-Nothing in this spec repository is `permanent`. While some of the subsystems are `stable`, some of the subsystems are still in a `draft` or `reliable` status.
+Nothing in this spec repository is `permanent`. While some of the subsystems are `stable`, some are still in a `draft` or `reliable` status.
 
 ## Contribute
 
