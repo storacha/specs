@@ -7,8 +7,7 @@
   ],
   "description": "specifying the behavior of up.web3.storage (aka w3up) and related web3.storage behaviors",
   "scripts": {
-    "build": "npx @11ty/eleventy",
-    "prepare": "npm run build",
+    "prepare": "npm run prepare -w specs-website",
     "start": "npm start -w specs-website"
   },
   "keywords": ["web3.storage", "web3", "w3"],

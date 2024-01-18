@@ -2,8 +2,8 @@
   "name": "@web3-storage/specs-website",
   "version": "0.0.0",
   "scripts": {
-    "build:eleventy": "npx eleventy",
-    "prepare": "npm run build:eleventy",
+    "build": "npx @11ty/eleventy --input=..",
+    "prepare": "npm run build",
     "start": "npx eleventy --serve"
   },
   "dependencies": {
