@@ -20,13 +20,13 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Introduction
 
-We publish ad-hoc batches of multihashes to IPNI. This proposal aims to align our usage of IPNI with content-claims, by publishing an advert per inclusion claim, and include the source claim in the IPNI advert.
+We publish ad-hoc batches of multihashes to IPNI. This proposal aims to align our usage of IPNI with [content-claims], by publishing an advert per [inclusion claim], and include the source claim in the IPNI Advertisement
 
 ### Motivation
 
 - Align IPNI advert entries with CAR block sets and setting the `ContextID` to be the CAR CID.
-  - With this we (or anyone, ipni is open access) can now use IPNI to find which CAR a block is in. The context id bytes provide the CAR CID for any block look up. The CAR CID can then be used to find the CAR index via our content-claims API.
-  - We can **delete** the IPNI records by CAR CID if the CAR is deleted.
+  - This exposes our block-to-car indexes. Anyone could use IPNI to find which CAR a block is in. The context id bytes provide the CAR CID for any block look up. The CAR CID can then be used to find the CAR index via our content-claims API.
+  - We could delete the IPNI records by CAR CID if the CAR is deleted.
 - Make IPNI advertising an explicit UCAN capability that clients can invoke rather than a side-effect of bucket events
   - With this we are free to write CARs anywhere. The users agent invokes a `ipni/offer` capability to ask us to publish and IPNI ad for the blocks in their CAR.
   - This empowers the user to opt-in or out as they need, and allows us to bill for the (small) cost of running that service.
@@ -39,7 +39,9 @@ IPNI ingests and replicates billions of signed provider claims for where individ
 
 Users can query IPNI servers for any CID, and it provides a set of provider addresses and transport info, along with a provider specific `ContextID` and optional metadata.
 
-<http://cid.contact> hosts an IPNI server that Protocol Labs maintains. _(at time of writing)_
+For example: <http://cid.contact> hosts an IPNI server that Protocol Labs maintains.
+
+_Query IPNI for a cid_
 
 ```bash
 curl https://cid.contact/cid/bafybeicawc3qwtlecld6lmtvsndimoz3446xyaprgsxvhd3aapwa2twnc4 -sS | jq
@@ -74,19 +76,19 @@ curl https://cid.contact/cid/bafybeicawc3qwtlecld6lmtvsndimoz3446xyaprgsxvhd3aap
 ]}]}
 ```
 
-web3.storage publishes the blocks it can provide by encoding a batch of multihashes as an IPLD object and writing it to a bucket as an `Advertisement`, addressed by it's CID.
+[web3.storage] publishes the blocks it can provide by encoding a batch of multihashes as an IPLD object and writing it to a bucket as an `Advertisement`, addressed by it's CID.
 
-An `Advertisement` includes `Provider` info which claims that a the batch of multihashes are available via bitswap or HTTP, and are signed by the provider PeerID private key; Each advert is a claim that this peer will provide that batch of multihashes.
+An `Advertisement` includes `Provider` info which claims that the batch of multihashes are available via bitswap or HTTP, and are signed by the providers PeerID private key; Each advert is a claim that this peer will provide that batch of multihashes.
 
 Advertisements also include a CID link to any previous ones from the same provider forming a hash linked list.
 
-The latest `head` CID of the ad list can be broadcast over [gossipsub], to be replicated and indexed by all listeners, or via HTTP to specific IPNI servers as a notification to pull and index the latest ads from you at their earliest convenience.
+The latest `head` CID of the advert list can be broadcast over [gossipsub], to be replicated and indexed by all listeners, or sent via HTTP to specific IPNI servers as a notification to pull and index the latest ads from you at their earliest convenience.
 
 The advert `ContextID` allows providers to specify a custom grouping key for multiple adverts. You can update or remove multiple adverts by specifying the same `ContextID`. The value is an opaque byte array as far as IPNI is concerned, and is provided in the query response.
 
 A `Metadata` field is also available for provider specific retrieval hints, that a user should send to the provider when making a request for the block, but the mechanism here is unclear _(HTTP headers? bitswap?)_.
 
-Regardless, it is space for provider specified bytes which we can use as to include the portable cryptographic proof that an end-user made the original claim that a set of blocks are included in a CAR and that as a large provider we have alerted IPNI on their behalf.
+Regardless, it is a field we can use to include the portable cryptographic proof of the content-claim that an end-user made that a set of blocks are included in a CAR. The provider has to sign the IPNI advert with the peerID key that should be used to secure the libp2p connection when retrieving the block. For upload services like web3.storage, 
 
 ### How web3.storage integrates IPNI today
 
@@ -234,9 +236,11 @@ The containing CAR CID provides a useful `ContextID` for grouping multiple (ligh
 
 [IPNI]: https://github.com/ipni/specs/blob/main/IPNI.md
 [MultihashIndexSorted CARv2 Index]:  https://ipld.io/specs/transport/car/carv2/#format-0x0401-multihashindexsorted
+[content-claims]: https://github.com/web3-storage/content-claims
 [inclusion claim]: https://github.com/web3-storage/content-claims?tab=readme-ov-file#inclusion-claim
 [IPNI Advertisements]: https://github.com/ipni/specs/blob/main/IPNI.md#advertisements
 [gossipsub]: https://github.com/libp2p/specs/blob/master/pubsub/gossipsub/README.md
 [indexer-lambda]: https://github.com/elastic-ipfs/indexer-lambda/blob/a38d8074424d3f02845bac303a0d3fb3719dad82/src/lib/block.js#L22-L32
 [olizilla]: https://github.com/olizilla
 [Protocol Labs]: https://protocol.ai
+[web3.storage]: https://web3.storage
