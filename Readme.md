@@ -4,7 +4,7 @@ This repository contains the specs for the `w3up` protocol and associated subsys
 
 The implementations of these specs can be found in <https://github.com/web3-storage/w3up>
 
-## specs List
+## Overview
 
 ### ![status=stable](https://img.shields.io/badge/status-stable-brightgreen.svg?style=flat-square) specs
 
