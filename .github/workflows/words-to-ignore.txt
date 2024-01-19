@@ -134,6 +134,7 @@ Irakli
 Gozalishvili
 Vasco
 invoker
+upload-api
 DIDs
 dns
 DNS
