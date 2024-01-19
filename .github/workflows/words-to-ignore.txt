@@ -134,3 +134,12 @@ Irakli
 Gozalishvili
 Vasco
 invoker
+DIDs
+dns
+DNS
+RFC1035
+RFC1123
+RFC2181
+RFC2822
+SMTP
+publicness
