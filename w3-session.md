@@ -172,6 +172,10 @@ In general, it is RECOMMENDED that [agents] only request the set of capabilities
 }
 ```
 
+### Implementations
+
+- [`{ authorize }` from `@web3-storage/capabilities/access`](https://github.com/web3-storage/w3up/blob/10a1a4bfc5ec79ea0b7b2049fd7d1953ca0810ef/packages/capabilities/src/access.js#L65)
+
 ## Authorization
 
 An [oracle] MUST provide `access/authorize` capability. When this capability is invoked, the [oracle] MUST facilitate an out-of-bound authorization flow that allows the [account] holder to select which capabilities they wish to grant. It is RECOMMENDED that the [oracle] by default presents only a subset of capabilities that match the request criteria.
@@ -201,6 +205,17 @@ If the user denies the authorization request, the corresponding `access/authoriz
   }
 }
 ```
+
+### Implementations
+
+#### @web3-storage/capabilities
+
+- [`access/authorize` capability parser](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/capabilities/src/access.js#L65) nb field is [`AuthorizationRequest`](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/capabilities/src/access.js#L40) parser
+
+#### @web3-storage/upload-api
+
+- has an [access service](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/upload-api/src/access.js#L10) that acts as this authorization oracle and sends authorization request emails in response to `access/authorize` invocations that mention `did:mailto` accounts
+- `access/authorize` invocation handler [generates `access/confirm` invocation](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/upload-api/src/access/authorize.js#L57), encodes it into a clickable URL, and then includes a link to that URL (with self-signed `access/confirm` invocation) in confirmation email. The `access/confirm` is not invoked unless the confirmation link in the confirmation email is followed.
 
 ## Authorization Session
 
@@ -279,6 +294,26 @@ The value of the `with` field MUST be the DID of the [authority], indicating tha
 ### Session Scope
 
 Authorization sessions only apply to UCANs that have a [proof] linking to them. They are subject to UCAN [time bounds] and [revocation]s. The session only covers UCANs that meet the standard [principal alignment] requirement.
+
+### Implementations
+
+#### @ucanto/validator
+
+- tested in [session.spec.js](https://github.com/web3-storage/ucanto/blob/main/packages/validator/test/session.spec.js)
+
+#### @web3-storage/capabilities
+
+- [`ucan/attest` capability parser](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/capabilities/src/ucan.js#L102)
+
+#### @web3-storage/upload-api
+
+- supports w3-session [via `@ucanto/server`](https://github.com/web3-storage/w3up/blob/main/packages/upload-api/src/lib.js#L28)
+- deployed to [up.web3.storage](https://up.web3.storage) via [w3infra](https://github.com/web3-storage/w3infra)
+- `access/confirm` handler [creates session proofs](https://github.com/web3-storage/w3up/blob/main/packages/upload-api/src/access/confirm.js#L60) and [includes in result](https://github.com/web3-storage/w3up/blob/main/packages/upload-api/src/access/confirm.js#L93)
+
+#### @web3-storage/access
+
+- [Agent.proofs](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/access-client/src/agent.js#L275) is aware of w3-session proofs
 
 [`did:mailto`]: https://github.com/ucan-wg/did-mailto/
 [`did:key`]: https://w3c-ccg.github.io/did-method-key/
