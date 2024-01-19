@@ -241,6 +241,10 @@ The issued receipt MUST have a `fx.fork` [effect] that links to the [`filecoin/s
 }
 ```
 
+##### Implementations
+
+* `@web3-storage/capabilities` `filecoin/offer` [capability validator](https://github.com/web3-storage/w3up/blob/adb24424d1faf50daf2339b77c22fdd44faa236a/packages/capabilities/src/filecoin/storefront.js#L20)
+
 #### `filecoin/accept`
 
 This task is effectively a shortcut allowing an observer to find out the result of the [`filecoin/offer`] task chain without having to follow each step. The [Storefront] MUST issue a signed receipt with a [`DataAggregationProof`] result or an error.
@@ -297,6 +301,10 @@ This task is effectively a shortcut allowing an observer to find out the result 
   }
 }
 ```
+
+##### Implementations
+
+* `@web3-storage/capabilities` `filecoin/accept` [capability validator](https://github.com/web3-storage/w3up/blob/adb24424d1faf50daf2339b77c22fdd44faa236a/packages/capabilities/src/filecoin/storefront.js#L82)
 
 #### `filecoin/submit`
 
@@ -364,6 +372,10 @@ If the added piece is invalid, the reason for the failure is also reported:
   "prf": []
 }
 ```
+
+##### Implementations
+
+* `@web3-storage/capabilities` `filecoin/submit` [capability validator](https://github.com/web3-storage/w3up/blob/adb24424d1faf50daf2339b77c22fdd44faa236a/packages/capabilities/src/filecoin/storefront.js#L50)
 
 #### `filecoin/info`
 
@@ -455,6 +467,10 @@ An agent MAY invoke the `filecoin/info` capability to request known information 
 }
 ```
 
+##### Implementations
+
+* `@web3-storage/capabilities` `filecoin/info` [capability validator](https://github.com/web3-storage/w3up/blob/adb24424d1faf50daf2339b77c22fdd44faa236a/packages/capabilities/src/filecoin/storefront.js#L114)
+
 ### _Aggregator_ Capabilities
 
 #### `piece/offer`
@@ -506,6 +522,10 @@ An [Aggregator] MUST issue a signed receipt to acknowledge the received request.
 
 See the [`piece/accept`] section for the subsequent task.
 
+##### Implementations
+
+* `@web3-storage/capabilities` `piece/offer` [capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-client/src/aggregator.js#L22)
+
 #### `piece/accept`
 
 An [Aggregator] MUST issue a receipt for the [`piece/accept`] task for the offered piece that was included in an aggregate. The receipt MUST contain an [`InclusionProof`] in the result and an `fx.join` [effect] linking to [`aggregate/offer`] task, or an error detailing the reason.
@@ -541,6 +561,10 @@ An [Aggregator] MUST issue a receipt for the [`piece/accept`] task for the offer
   "prf": []
 }
 ```
+
+##### Implementations
+
+* `@web3-storage/capabilities` `piece/accept` [capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-client/src/aggregator.js#L66)
 
 ### _Dealer_ Capabilities
 
@@ -611,7 +635,11 @@ The [Dealer] MUST issue a signed receipt to acknowledge the request. The issued 
 
 See the [`aggregate/accept`](#aggregateaccept) section for the subsequent task.
 
-### `aggregate/accept`
+##### Implementations
+
+* `@web3-storage/capabilities` `aggregate/offer` [capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-client/src/aggregator.js#L66)
+
+#### `aggregate/accept`
 
 The [Dealer] MUST issue a receipt for the [`aggregate/accept`] task once it arranges deals with Storage Providers and they are live on the Filecoin chain. The receipt MUST either succeed with the [`DataAggregationProof`] or fail (with an `error` describing the problem with the `aggregate`).
 
@@ -669,6 +697,10 @@ If a deal fails due to an invalid piece, the issued receipt MUST contain `fx.for
   "prf": []
 }
 ```
+
+##### Implementations
+
+* `@web3-storage/capabilities` `aggregate/accept` [capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/capabilities/src/filecoin/dealer.js#L48)
 
 ### _Deal Tracker_ Capabilities
 
@@ -750,6 +782,10 @@ The invocation to the [Deal Tracker] MUST fail if the deal information for the a
   "prf": []
 }
 ```
+
+##### Implementations
+
+* `@web3-storage/capabilities` `deal/info` [capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/capabilities/src/filecoin/deal-tracker.js#L17)
 
 ## Schema
 
