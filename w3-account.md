@@ -27,7 +27,7 @@ In w3 family of protocols, a namespace is identified by a [`did:key`] identifier
 
 To address these issues, we propose the concept of an account as a way to aggregate and manage capabilities under a human-meaningful identifier such as an email address.
 
-Specifically, with did:mailto Accounts we propose deriving an account identifier from a user-controlled email address in the form of a [`did:mailto`] identifier, which can act as the [principal] in [UCAN] delegation chains.
+Specifically, we propose deriving an account identifier from a user-controlled email address in the form of a [`did:mailto`] identifier, which can act as the [principal] in [UCAN] delegation chains.
 
 Using an account identifier based on a memorable email address solves the discovery problem, and email-based authorization flows provide a smoother onboarding experience by hiding the complexity of [PKI]. With this approach, users can aggregate all of their delegations under a single account identifier and re-delegate desired capabilities to other agents.
 
