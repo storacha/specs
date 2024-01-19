@@ -16,7 +16,6 @@ A Space can be defined as a namespace for stored content. It is created locally,
 
 - [Capabilities](#capabilities)
   - [`space/info`](#spaceinfo)
-  - [`space/allocate`](#spaceallocate)
 
 ## Language
 
@@ -70,54 +69,6 @@ Get information about a given space, such as registered providers.
         "did:web:free.web3.storage"
       ]
     }
-  }
-}
-```
-
-### `space/allocate`
-
-Allocate space to write content into the space
-
-> `did:key:zAliceAgent` invokes `space/allocate` capability provided by `did:web:web3.storage`
-
-```json
-{
-  "iss": "did:key:zAliceAgent",
-  "aud": "did:web:web3.storage",
-  "att": [
-    {
-      "with": "did:key:zAlice",
-      "can": "space/allocate",
-      "nb": {
-        "size": 1000
-      }
-    }
-  ],
-  "prf": [],
-  "sig": "..."
-}
-```
-
-#### Space Allocate Failure
-
-```json
-{
-  "ran": "bafy...spaceAllocate",
-  "out": {
-    "error": {
-      "name": "InsufficientStorage"
-    }
-  }
-}
-```
-
-#### Space Allocate Success
-
-```json
-{
-  "ran": "bafy...spaceAllocate",
-  "out": {
-    "ok": {}
   }
 }
 ```
