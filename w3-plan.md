@@ -12,7 +12,7 @@
 
 ## Abstract
 
-A Plan that accounts can register to, in order to have an associated billing plan for their spaces.
+A plan specifies limits and restrictions on usage. Different plans have different limits and different price points. Accounts select a plan so that they can be billed the correct amount each period.
 
 - [Capabilities](#capabilities)
   - [`plan/get`](#planget)
