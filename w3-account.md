@@ -1,6 +1,6 @@
 # Account
 
-![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
+![status=reliable](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square)
 
 ## Editors
 
@@ -25,7 +25,9 @@ In w3 family of protocols, a namespace is identified by a [`did:key`] identifier
 1. Synchronizing delegations to namespaces across multiple user agents on multiple devices is difficult because of the use of non-memorable [`did:key`] identifiers.
 2. Recovering access if the user loses access to all devices is also a challenge.
 
-To address these issues, we propose the concept of an account as a way to aggregate and manage capabilities under a human-meaningful identifier such as an email address. Specifically, we propose deriving an account identifier from a user-controlled email address in the form of a [`did:mailto`] identifier, which can act as the [principal] in [UCAN] delegation chains.
+To address these issues, we propose the concept of an account as a way to aggregate and manage capabilities under a human-meaningful identifier such as an email address.
+
+Specifically, with did:mailto Accounts we propose deriving an account identifier from a user-controlled email address in the form of a [`did:mailto`] identifier, which can act as the [principal] in [UCAN] delegation chains.
 
 Using an account identifier based on a memorable email address solves the discovery problem, and email-based authorization flows provide a smoother onboarding experience by hiding the complexity of [PKI]. With this approach, users can aggregate all of their delegations under a single account identifier and re-delegate desired capabilities to other agents.
 
@@ -140,6 +142,37 @@ The authorization session signature is denoted by a [Nonstandard `VarSig` signat
 ```jSON
 { "/": { "bytes": "gKADAA" } }
 ```
+
+## Implementations
+
+### [`w3 login <email>` in w3cli](https://github.com/web3-storage/w3cli#w3-login-email)
+
+* invokes [Account.login](https://github.com/web3-storage/w3cli/blob/fc97ee1b76551bced861f08a4d1e7a31440a6a14/bin.js#L56) which calls `login` on a `@web3-storage/w3up-client`
+
+### [@web3-storage/w3up-client]()
+
+* login method [returns](https://github.com/web3-storage/w3up/blob/main/packages/w3up-client/src/account.js#L82) an `Account` instance
+    * [used](https://github.com/web3-storage/w3cli/blob/fc97ee1b76551bced861f08a4d1e7a31440a6a14/account.js#L1) by w3cli
+
+### [@ucanto/*](https://github.com/web3-storage/ucanto/tree/main)
+
+ucanto contains all kinds of tools for building application layer services aligned with the w3-account model.
+
+Examples
+* [@web3-storage/upload-api](https://github.com/web3-storage/w3up/tree/main/packages/upload-api) - application logic for up.web3.storage
+    * `createServer` [uses `@ucanto/server`](https://github.com/web3-storage/w3up/blob/main/packages/upload-api/src/lib.js#L29)
+    * example [invocation handler for `access/delegate`](https://github.com/web3-storage/w3up/blob/main/packages/upload-api/src/access/delegate.js#L17) using `@ucanto/types`
+* [@web3-storage/access-client](https://github.com/web3-storage/w3up/tree/main/packages/access-client) - uses `@ucanto/client` to invoke `@web3-storage/upload/api`
+
+### [@web3-storage/did-mailto](https://github.com/web3-storage/w3up/tree/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/did-mailto)
+
+* `fromEmail` and `toEmail` functions to encoded/decode `did:mailto` from email addresses.
+* has `import("@web3-storage/did-mailto/types").DidMailto` typescript type
+
+Examples
+* [@web3-storage/w3cli for account management cli](https://github.com/web3-storage/w3cli/blob/fc97ee1b76551bced861f08a4d1e7a31440a6a14/account.js#L3)
+* [@w3up-client](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/w3up-client/src/types.ts#L18)
+
 
 [Protocol Labs]:https://protocol.ai/
 [Irakli Gozalishvili]:https://github.com/Gozala
