@@ -1,6 +1,6 @@
 # Account
 
-![status=reliable](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square)
+![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
 
 ## Editors
 
