@@ -709,7 +709,8 @@ If a deal fails due to an invalid piece, the issued receipt MUST contain `fx.for
 ##### Implementations
 
 * `@web3-storage/capabilities` [`aggregate/accept` capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/capabilities/src/filecoin/dealer.js#L48)
-* `@web3-storage/filecoin-api` [`aggregate/offer` method ➡ `aggregate/accept` effect](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/dealer/service.js#L69)
+* `@web3-storage/filecoin-api` [dealer `aggregate/offer` method ➡ `aggregate/accept` effect](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/dealer/service.js#L69)
+* `@web3-storage/filecoin-api` [dealer `aggregate/accept` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/dealer/service.js#L92)
 
 ### _Deal Tracker_ Capabilities
 
