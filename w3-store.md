@@ -145,6 +145,11 @@ If `status == 'upload'`, the response will include additional fields containing 
 
 The client should then make an HTTP `PUT` request to the `url` specified in the response, attaching all the included `headers`. The body of the request MUST be CAR data, whose size exactly equals the size specified in the `store/add` invocation's `size` caveat. Additionally, the CID of the uploaded CAR must match the invocation's `link` caveat. In other words, attempting to upload any data other than that authorized by the `store/add` invocation will fail.
 
+#### Implementations
+
+- @web3-storage/capabilities [`store/add` capability validator](https://github.com/web3-storage/w3up/blob/main/packages/capabilities/src/store.js#L30)
+- @web3-storage/upload-api [`store/add` method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/store/add.js#L12)
+
 ### `store/get`
 
 > Get metadata about a CAR shard from a space
@@ -205,6 +210,11 @@ interface StoreListItem {
 }
 ```
 
+#### Implementations
+
+- @web3-storage/capabilities [store/get validator](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/capabilities/src/store.js#L90)
+- @web3-storage/upload-api [store/get method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/store/get.js)
+
 ### `store/remove`
 
 > Remove a stored CAR from a space
@@ -250,6 +260,11 @@ Executing a `store/remove` invocation with a service provider should return a re
 If a failure occurs, the response will have an `error` field with a value of `true`, and a `message` string field with details about the error.
 
 On success, the response object will be empty.
+
+#### Implementations
+
+- @web3-storage/capabilities [store/remove validator](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/capabilities/src/store.js#L106)
+- @web3-storage/upload-api [store/remove method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/store/remove.js#L11)
 
 ### `store/list`
 
@@ -327,6 +342,11 @@ interface StoreListItem {
 }
 ```
 
+#### Implementations
+
+- @web3-storage/capabilities [store/list validator](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/capabilities/src/store.js#L126)
+- @web3-storage/upload-api [store/list method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/store/list.js#L10)
+
 ## `upload/` namespace
 
 The `upload/` namespace contains capabilities relating to "uploads", which represent user data that is contained in one or more CAR files that have previously been stored using [`store/add`](#storeadd).
@@ -402,6 +422,11 @@ interface UploadAddResponse {
 }
 ```
 
+#### Implementations
+
+- @web3-storage/capabilities [upload/add validator](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/capabilities/src/upload.js#L54)
+- @web3-storage/upload-api [upload/add method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/upload/add.js#L12)
+
 ### `upload/get`
 
 > Get metadata about a upload from a space
@@ -464,6 +489,11 @@ interface UploadListItem {
 }
 ```
 
+#### Implementations
+
+- @web3-storage/capabilities [upload/list validator](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/capabilities/src/upload.js#L142)
+- @web3-storage/upload-api [upload/list method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/upload/list.js#L10)
+
 ### `upload/remove`
 
 > Remove an upload from a space.
@@ -509,6 +539,11 @@ Executing an `upload/remove` invocation with a service provider should return a 
 If a failure occurs, the response will have an `error` field with a value of `true`, and a `message` string field with details about the error.
 
 On success, the response object will be empty.
+
+#### Implementations
+
+- @web3-storage/capabilities [upload/remove validator](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/capabilities/src/upload.js#L117)
+- @web3-storage/upload-api [upload/remove method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/upload/remove.js#L11)
 
 ### `upload/list`
 
@@ -583,6 +618,13 @@ interface UploadListItem {
   updatedAt: string,
 }
 ```
+
+#### Implementations
+
+- @web3-storage/capabilities [upload/list validator](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/capabilities/src/upload.js#L142)
+- @web3-storage/upload-api [upload/list method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/upload/list.js#L10)
+
+<!-- references  -->
 
 [ucan-spec-top]: https://github.com/ucan-wg/spec#52-top
 [invocation-spec-pr]: https://github.com/web3-storage/specs/pull/34
