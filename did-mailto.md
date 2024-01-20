@@ -37,7 +37,7 @@ Mailto DIDs are designed to be used in conjunction with [did:key] and facilitate
 
 Mailto DIDs are more accessible alternative to [did:web] and [did:dns] because a lot more people have an email address than there are people with [did:web] or [did:dns] identifier or skills to acquire one.
 
-Mailto [did document]s are also verifiable offline, when [domain key][] of the email address is known, implying significantly less network requests than with most other DIDs.
+Mailto [did document]s are also verifiable offline, when [domain key] of the email address is known, implying significantly less network requests than with most other DIDs.
 
 ## The `did:mailto` Format
 
@@ -52,15 +52,15 @@ idchar    = ALPHA / DIGIT / "." / "-" / "_" / pct_enc
 pct_enc   = "%" HEXDIG HEXDIG
 ```
 
-##### EXAMPLE 1. A <jsmith@example.com>
+### EXAMPLE 1. <jsmith@example.com>
 
-```
+```txt
 did:mailto:example.com:jsmith
 ```
 
-##### EXAMPLE 2 <tag+alice@web.mail>
+### EXAMPLE 2. <tag+alice@web.mail>
 
-```
+```txt
 did:mailto:web.mail:tag%2Balice
 ```
 
@@ -87,7 +87,7 @@ auth = "I am also known as " did-key-format
 
 ##### EXAMPLE 3
 
-```
+```txt
 I am also known as did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK
 ```
 
@@ -110,7 +110,7 @@ Specification intentionally does not specify how to communicate [DKIM-Signature]
 
 [DID Subject] may deactivate specific [DID document] by:
 
-1. Sending an email from [DID Subject] email address with with a [key revocation] message in the subject.
+1. Sending an email from [DID Subject] email address with a [key revocation] message in the subject.
 
 #### Key Revocation
 
@@ -122,7 +122,7 @@ auth = "I revoke " did-key-format
 
 ##### EXAMPLE 3
 
-```
+```txt
 I revoke did:key:z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK
 ```
 
@@ -142,7 +142,8 @@ This DID Method does not support updating the DID Document.
 [rfc1035]: https://www.rfc-editor.org/rfc/rfc1035
 [rfc1123]: https://www.rfc-editor.org/rfc/rfc1123
 [rfc2181]: https://www.rfc-editor.org/rfc/rfc2181
-[key authentication]: #Key_Authentication
-[key revocation]: #Key_Revocation
+[Key Authentication]: #key-authentication
+[Key Revocation]: #key-revocation
 [dkim-signature]: https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail
 [smtp]: https://en.wikipedia.org/wiki/Simple_Mail_Transfer_Protocol
+[domain key]:https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail
