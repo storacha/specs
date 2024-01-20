@@ -223,9 +223,9 @@ Examples
 [Irakli Gozalishvili]:https://github.com/Gozala
 [PKI]:https://en.wikipedia.org/wiki/Public_key_infrastructure
 [UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
-[`did:mailto`]: ./did-mailto.md
-[`did:key`]: https://w3c-ccg.github.io/did-method-key/
-[principal]:[UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#321-principals
+[`did:mailto`]:./did-mailto.md
+[`did:key`]:https://w3c-ccg.github.io/did-method-key/
+[principal]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#321-principals
 [non-extractable keys]:https://crypto.stackexchange.com/questions/85587/what-do-people-use-non-extractable-webcrypto-keys-for/102695#102695
 [agent]:#agent
 [account]:#account
