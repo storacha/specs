@@ -167,9 +167,9 @@ cid  := z[a-km-zA-HJ-NP-Z1-9]+
 
 Delegation MAY be authorized through an interactive email flow where [account] holder is emailed request to approve an authorization that gives an agent access to specific set of capabilities. If user approves by clicking embedded link signed [attestation] is issued that confirms that delegation has been authorized through an interactive flow.
 
-In this scenario delegation issued by the [`did:mailto`] identifier MAY be signed using _attestation signature_ type. This signature alone MUST NOT be considered as a valid authorization. Delegation signed with _attestation signature_ MUST be accompanied with [ucan attestation] issued by the trusted [authority].
+In this scenario delegation issued by the [`did:mailto`] identifier MAY be signed using _attestation signature_ type. This signature alone MUST NOT be considered as a valid authorization. Delegation signed with _attestation signature_ MUST be accompanied with [UCAN attestation] issued by the trusted [authority].
 
-If delegation is signed with _attestation signature_, but is not accompanied with [ucan attestation] from trusted [authority] it MUST be considered invalid. In this scenario implementer MAY initiate interactive verification flow and issue [ucan attestation] retroactively instead of denying service.
+If delegation is signed with _attestation signature_, but is not accompanied with [UCAN attestation] from trusted [authority] it MUST be considered invalid. In this scenario implementer MAY initiate interactive verification flow and issue [UCAN attestation] retroactively instead of denying service.
 
 > When received delegation is issued by the `did:mailto:web.mail:alice`, signed with _attestation signature_, but is not accompanied by [ucan attestation], receiver could iteratively confirm authorization by sending an email to `alice@web.mail` address with a confirmation link, which when followed issues [attestation] from the receiver resuming the invocation.
 
