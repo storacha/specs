@@ -208,3 +208,4 @@ Enclosing [UCAN] revocation offers a mechanism to revoke authorization that [aut
 [time bounds]: https://github.com/ucan-wg/spec/#322-time-bounds
 [`did:mailto`]: ./did-mailto.md
 [revocation record]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#66-revocation
+[authority]:#authority
