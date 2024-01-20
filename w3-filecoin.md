@@ -243,8 +243,8 @@ The issued receipt MUST have a `fx.fork` [effect] that links to the [`filecoin/s
 
 ##### Implementations
 
-* `@web3-storage/capabilities` [`filecoin/offer` capability validator](https://github.com/web3-storage/w3up/blob/adb24424d1faf50daf2339b77c22fdd44faa236a/packages/capabilities/src/filecoin/storefront.js#L20)
-* `@web3-storage/filecoin-api` [storefront `filecoin/offer` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/storefront/service.js#L20)
+- `@web3-storage/capabilities` [`filecoin/offer` capability validator](https://github.com/web3-storage/w3up/blob/adb24424d1faf50daf2339b77c22fdd44faa236a/packages/capabilities/src/filecoin/storefront.js#L20)
+- `@web3-storage/filecoin-api` [storefront `filecoin/offer` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/storefront/service.js#L20)
 
 #### `filecoin/accept`
 
@@ -305,8 +305,8 @@ This task is effectively a shortcut allowing an observer to find out the result 
 
 ##### Implementations
 
-* `@web3-storage/capabilities` [`filecoin/accept` capability validator](https://github.com/web3-storage/w3up/blob/adb24424d1faf50daf2339b77c22fdd44faa236a/packages/capabilities/src/filecoin/storefront.js#L82)
-* `@web3-storage/filecoin-api` [storefront `filecoin/accept` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/storefront/service.js#L123)
+- `@web3-storage/capabilities` [`filecoin/accept` capability validator](https://github.com/web3-storage/w3up/blob/adb24424d1faf50daf2339b77c22fdd44faa236a/packages/capabilities/src/filecoin/storefront.js#L82)
+- `@web3-storage/filecoin-api` [storefront `filecoin/accept` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/storefront/service.js#L123)
 
 #### `filecoin/submit`
 
@@ -377,8 +377,8 @@ If the added piece is invalid, the reason for the failure is also reported:
 
 ##### Implementations
 
-* `@web3-storage/capabilities` [`filecoin/submit` capability validator](https://github.com/web3-storage/w3up/blob/adb24424d1faf50daf2339b77c22fdd44faa236a/packages/capabilities/src/filecoin/storefront.js#L50)
-* `@web3-storage/filecoin-api` [storefront `filecoin/submit` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/storefront/service.js#L82)
+- `@web3-storage/capabilities` [`filecoin/submit` capability validator](https://github.com/web3-storage/w3up/blob/adb24424d1faf50daf2339b77c22fdd44faa236a/packages/capabilities/src/filecoin/storefront.js#L50)
+- `@web3-storage/filecoin-api` [storefront `filecoin/submit` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/storefront/service.js#L82)
 
 #### `filecoin/info`
 
@@ -472,8 +472,8 @@ An agent MAY invoke the `filecoin/info` capability to request known information 
 
 ##### Implementations
 
-* `@web3-storage/capabilities` [`filecoin/info` capability validator](https://github.com/web3-storage/w3up/blob/adb24424d1faf50daf2339b77c22fdd44faa236a/packages/capabilities/src/filecoin/storefront.js#L114)
-* `@web3-storage/filecoin-api` [storefront `filecoin/info` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/storefront/service.js#L239)
+- `@web3-storage/capabilities` [`filecoin/info` capability validator](https://github.com/web3-storage/w3up/blob/adb24424d1faf50daf2339b77c22fdd44faa236a/packages/capabilities/src/filecoin/storefront.js#L114)
+- `@web3-storage/filecoin-api` [storefront `filecoin/info` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/storefront/service.js#L239)
 
 ### _Aggregator_ Capabilities
 
@@ -528,8 +528,8 @@ See the [`piece/accept`] section for the subsequent task.
 
 ##### Implementations
 
-* `@web3-storage/capabilities` [`piece/offer` capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-client/src/aggregator.js#L22)
-* `@web3-storage/filecoin-api` [aggregator `piece/offer` method](https://github.com/web3-storage/w3up/blob/main/packages/filecoin-api/src/aggregator/service.js#L19)
+- `@web3-storage/capabilities` [`piece/offer` capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-client/src/aggregator.js#L22)
+- `@web3-storage/filecoin-api` [aggregator `piece/offer` method](https://github.com/web3-storage/w3up/blob/main/packages/filecoin-api/src/aggregator/service.js#L19)
 
 #### `piece/accept`
 
@@ -569,8 +569,8 @@ An [Aggregator] MUST issue a receipt for the [`piece/accept`] task for the offer
 
 ##### Implementations
 
-* `@web3-storage/capabilities` [`piece/accept` capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-client/src/aggregator.js#L66)
-* `@web3-storage/filecoin-api` [aggregator `piece/accept` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/aggregator/service.js#L62)
+- `@web3-storage/capabilities` [`piece/accept` capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-client/src/aggregator.js#L66)
+- `@web3-storage/filecoin-api` [aggregator `piece/accept` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/aggregator/service.js#L62)
 
 ### _Dealer_ Capabilities
 
@@ -643,9 +643,9 @@ See the [`aggregate/accept`](#aggregateaccept) section for the subsequent task.
 
 ##### Implementations
 
-* `@web3-storage/capabilities` `aggregate/offer` [capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/capabilities/src/filecoin/dealer.js#L20)
-* `@web3-storage/filecoin-api` [`piece/accept` method creates `aggregate/offer` delegation](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/aggregator/service.js#L91)
-* `@web3-storage/filecoin-api` [dealer service `aggregate/offer` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/dealer/service.js#L14)
+- `@web3-storage/capabilities` `aggregate/offer` [capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/capabilities/src/filecoin/dealer.js#L20)
+- `@web3-storage/filecoin-api` [`piece/accept` method creates `aggregate/offer` delegation](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/aggregator/service.js#L91)
+- `@web3-storage/filecoin-api` [dealer service `aggregate/offer` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/dealer/service.js#L14)
 
 #### `aggregate/accept`
 
@@ -708,9 +708,9 @@ If a deal fails due to an invalid piece, the issued receipt MUST contain `fx.for
 
 ##### Implementations
 
-* `@web3-storage/capabilities` [`aggregate/accept` capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/capabilities/src/filecoin/dealer.js#L48)
-* `@web3-storage/filecoin-api` [dealer `aggregate/offer` method ➡ `aggregate/accept` effect](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/dealer/service.js#L69)
-* `@web3-storage/filecoin-api` [dealer `aggregate/accept` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/dealer/service.js#L92)
+- `@web3-storage/capabilities` [`aggregate/accept` capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/capabilities/src/filecoin/dealer.js#L48)
+- `@web3-storage/filecoin-api` [dealer `aggregate/offer` method ➡ `aggregate/accept` effect](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/dealer/service.js#L69)
+- `@web3-storage/filecoin-api` [dealer `aggregate/accept` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/dealer/service.js#L92)
 
 ### _Deal Tracker_ Capabilities
 
@@ -795,8 +795,8 @@ The invocation to the [Deal Tracker] MUST fail if the deal information for the a
 
 ##### Implementations
 
-* `@web3-storage/capabilities` `deal/info` [capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/capabilities/src/filecoin/deal-tracker.js#L17)
-* `@web3-storage/filecoin-api` [deal-tracker service `deal/info` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/deal-tracker/service.js#L15)
+- `@web3-storage/capabilities` `deal/info` [capability validator](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/capabilities/src/filecoin/deal-tracker.js#L17)
+- `@web3-storage/filecoin-api` [deal-tracker service `deal/info` method](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/filecoin-api/src/deal-tracker/service.js#L15)
 
 ## Schema
 
