@@ -144,3 +144,6 @@ RFC2181
 RFC2822
 SMTP
 publicness
+NameDescriptionPrincipalThe
+fieldIssuerPrincipal
+fieldAudiencePrincipal
