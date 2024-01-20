@@ -59,7 +59,7 @@ capability, that enables an [authority] to attest that linked [UCAN] delegation 
 
 This effectively allows distributing verifiable cache records to interested principals so they could include those in subsequent invocations and take advantage of optimizations they unlock.
 
-#### Cached Verifications
+#### Cached Verification
 
 For example verifier could issue an attestation for the [UCAN] chain it validated and hand it back to the caller. In subsequent calls caller could include an attestation to take advantage of more optimal execution.
 
@@ -209,3 +209,5 @@ Enclosing [UCAN] revocation offers a mechanism to revoke authorization that [aut
 [`did:mailto`]: ./did-mailto.md
 [revocation record]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#66-revocation
 [authority]:#authority
+[Protocol Labs]:https://protocol.ai/
+[Irakli Gozalishvili]:https://github.com/Gozala
