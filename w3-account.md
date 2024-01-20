@@ -171,7 +171,7 @@ In this scenario delegation issued by the [`did:mailto`] identifier MAY be signe
 
 If delegation is signed with _attestation signature_, but is not accompanied with [UCAN attestation] from trusted [authority] it MUST be considered invalid. In this scenario implementer MAY initiate interactive verification flow and issue [UCAN attestation] retroactively instead of denying service.
 
-> When received delegation is issued by the `did:mailto:web.mail:alice`, signed with _attestation signature_, but is not accompanied by [ucan attestation], receiver could iteratively confirm authorization by sending an email to `alice@web.mail` address with a confirmation link, which when followed issues [attestation] from the receiver resuming the invocation.
+> When received delegation is issued by the `did:mailto:web.mail:alice`, signed with _attestation signature_, but is not accompanied by [UCAN attestation], receiver could iteratively confirm authorization by sending an email to `alice@web.mail` address with a confirmation link, which when followed issues [attestation] from the receiver resuming the invocation.
 
 #### Attestation Signature Format
 
