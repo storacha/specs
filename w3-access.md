@@ -155,7 +155,7 @@ type AgentDID = string
 
 The `with` field MUST be set to the [`did:key`] identifying the [space] where delegations will be stored.
 
-An implementation MAY deny a request if tje specified [space] has no capacity to store the supplied [UCAN]s, or if the space does not have the `access/delegate` capability provisioned.
+An implementation MAY deny a request if the specified [space] has no capacity to store the supplied [UCAN]s, or if the space does not have the `access/delegate` capability provisioned.
 
 The protocol intentionally does not prescribe how to transfer linked [UCAN]s leaving it up to implementations.
 
