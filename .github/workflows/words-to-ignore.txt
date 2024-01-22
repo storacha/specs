@@ -151,3 +151,4 @@ verifier
 fieldAccountPrincipal
 installationIssuerPrincipal
 iteratively
+base32
