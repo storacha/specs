@@ -149,8 +149,7 @@ In other words it is desired to have ability to grant revocation power to some a
 
 ### Proposal
 
-We propose extension to the core [UCAN] specification and define `ucan/revoke`
-capability, that can be invoked to revoke a linked [UCAN].
+We propose extension to the core [UCAN] specification and define `ucan/revoke` capability, that can be invoked to revoke a linked [UCAN].
 
 By making revocation a [UCAN] itself we allow delegating the ability to revoke to another principal, which is desired in scenario described above.
 
