@@ -397,7 +397,7 @@ The resource (`with` field) MUST be set to the [DID] of the principal requesting
 
 #### Authorization Authorizing Principal
 
-The [`nb.iss`] MUST be set to the [account] [DID] from which authorization is being requested.
+The [`nb.iss`] MUST be set to the [account] [DID] from which the authorization is being requested.
 
 #### Authorization Level
 
@@ -512,7 +512,7 @@ When the invocation is received, the service sends an authorization confirmation
 }
 ```
 
-In the background, the new device polled [access claim] and once the request was authorized it received the delegation from an account along with an [attestation] from the service proving that Alice has authorized it. This allows the new device to acces the [space].
+In the background, the new device polled [access claim] and once the request was authorized it received the delegation from an account along with an [attestation] from the service proving that Alice has authorized it. This allows the new device to access the [space].
 
 ### Sharing access with a friend
 
