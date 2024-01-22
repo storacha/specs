@@ -22,31 +22,31 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 # Introduction
 
-[Space] [access] is represented as a signed authorization in [UCAN] format. It is not enough to issue the [UCAN] authorization, issuer needs some channel to deliver it to an audience.
+[Space] [access] is represented as a signed authorization in [UCAN] format. It is not enough to issue the [UCAN] authorization, the issuer needs some channel to deliver it to an audience.
 
-We propose a protocol where implementation can act as a delivery channel.
+We propose a protocol where an implementation can act as a delivery channel.
 
 ## Intuition
 
 ### Message Channel
 
-At the very high level signed authorization is a message addressed to a specific recipient (audience). Implementer of this protocol represent a [message channel] allowing sender (issuer) to send a message and allow recipient (audience) to receive massages sent to them.
+At the very high level signed authorization is a message addressed to a specific recipient (audience). The implementer of this protocol represents a [message channel] allowing the sender (issuer) to send a message and allowing the recipient (audience) to receive messages sent to them.
 
 ### Shared Space
 
-Alice has set up space for sharing photos with her family and friends. She wants to authorize her partner Bob with write access so he can also upload photos. She wants to authorize her less tech savvy parent Mallory with just read access so she can look at photos but not add or delete them.
+Alice has set up a space for sharing photos with her family and friends. She wants to authorize her partner Bob with write access so he can also upload photos. She wants to authorize her less tech savvy parent Mallory with just read access so she can look at photos but not add or delete them.
 
-> In this scenario Alice delegates `upload/add` capability to Bob and `upload/list` capability to Mallory. Application used by Alice leverages access protocol to send issued delegations to Bob and Mallory. Applications used by Bob and Mallory leverage access protocol to receive messages sent to them transparently gaining access to the space Alice has shared access to.
+> In this scenario Alice delegates `upload/add` capability to Bob and `upload/list` capability to Mallory. The application used by Alice leverages the access protocol to send issued delegations to Bob and Mallory. Applications used by Bob and Mallory leverage the access protocol to receive messages sent to them, transparently gaining access to the space that Alice has shared access to.
 
-### Multidevice Access
+### Multi-device Access
 
-Alice has created a new space for storing photos on her laptop and uploaded some photos. Later she picks up her phone logs with her account and upload some photos to her space.
+Alice has created a new space for storing photos on her laptop and uploaded some photos. Later she picks up her phone and logs in with her account to upload some photos to her space.
 
-> In this scenario after space is created access protocol is used to delegate full authority over to Alice's [account]. Later, when Alice logs in on her phone her [account] receives delegated capabilities over access protocol gaining access to the space.
+> In this scenario after the space is created the access protocol is used to delegate full authority over to Alice's [account]. Later, when Alice logs in on her phone her [account] receives delegated capabilities over the access protocol, thereby gaining access to the space.
 
 ## Serialization
 
-[UCAN]s MUST be encoded with some [IPLD] codec. [DAG-CBOR] is RECOMMENDED.
+[UCAN]s MUST be encoded with an [IPLD] codec. [DAG-CBOR] is RECOMMENDED.
 
 ## Concepts
 
@@ -62,15 +62,15 @@ Alice has created a new space for storing photos on her laptop and uploaded some
 
 Namespace or space for short is an owned resource that can be shared. It corresponds to the asymmetric keypair and is identified by the [`did:key`] URI.
 
-Space is always listed in the `with` field of the [UCAN] capability.
+A space is always listed in the `with` field of the [UCAN] capability.
 
 ### Owner
 
-The [owner] of the [space] is the holder of its private key. Space owner can share limited or full access to owned space via [UCAN] delegation issued by the [space] [`did:key`] and signed with the [space] private key.
+The [owner] of the [space] is the holder of its private key. The space owner can share limited or full access to their space via a [UCAN] delegation issued by the [space] [`did:key`] and signed with the [space]'s private key.
 
 ### Access
 
-Access is defined in terms of [UCAN] delegation, where level of the access is denoted by the set of capabilities delegated.
+Access is defined in terms of [UCAN] delegation, where the level of the access is denoted by the set of capabilities delegated.
 
 #### Example in [DAG-JSON]
 
@@ -110,11 +110,11 @@ type Access union {
 
 ### Access Delegate
 
-The `access/delegate` capability MAY be invoked by an authorized agent to send set of delegations to their respective audiences.
+The `access/delegate` capability MAY be invoked by an authorized agent to send a set of delegations to their respective audiences.
 
 #### Access Delegate Example
 
-Example illustrates `did:key:zAlice` invoking `access/delegate` capability with web3.storage requesting it to send a delegation from [access example] to their audience.
+The following example illustrates `did:key:zAlice` invoking `access/delegate` capability with web3.storage, requesting it to send a delegation from [access example] to their audience.
 
 ```json
 {
@@ -153,35 +153,35 @@ type AgentDID = string
 
 ##### Delegate `with`
 
-The `with` field MUST be set the [`did:key`] identifying the [space] where delegations will be stored.
+The `with` field MUST be set to the [`did:key`] identifying the [space] where delegations will be stored.
 
-Implementation MAY deny request if specified [space] has no capacity to store supplied [UCAN]s, or if the give space does not have `access/delegate` capability provisioned.
+An implementation MAY deny a request if tje specified [space] has no capacity to store the supplied [UCAN]s, or if the space does not have the `access/delegate` capability provisioned.
 
-Protocol intentionally does not prescribe how to transfer linked [UCAN]s leaving it up to implementations.
+The protocol intentionally does not prescribe how to transfer linked [UCAN]s leaving it up to implementations.
 
-> ⁂ [w3up] implementation REQUIRES that all linked [UCAN]s be bundled in the invocation.
+> ⁂ [w3up] implementation REQUIRES all linked [UCAN]s be bundled in the invocation.
 
-Please note that all the following [DID]s could be differnt from one another
+Please note that all the following [DID]s could be different from one another
 
 1. Issuer of the linked delegations (in the `nb.delegation`)
 1. Issuer of the invocation.
 1. [Space] where delgations will be stored
 
-To put it differently delegation MAY be sent by anyone, it does not have to be the issuer of the delegation. Send delegation MAY be delegating capability to resource different from the [space] where sent delegation will be stored.
+In other words, a delegation MAY be sent by anyone, it does not have to be the issuer of the delegation. Sent delegation MAY be delegating capability to a resource different from the [space] where sent delegation will be stored.
 
 ##### Delegate `nb.delegations`
 
-Field MUST be set to a set of [UCAN] [IPLD Link]s represented via [IPLD Map]. Map keys SHOULD be their corresponding values encoded as strings.  It is RECOMMENDED to use base32 encoding.
+This field MUST be set to a set of [UCAN] [IPLD Link]s represented by an [IPLD Map]. Map keys SHOULD be their corresponding values encoded as strings.  It is RECOMMENDED to use base32 encoding.
 
-Protocol intentionally does not specify how to transfer linked [UCAN]s leaving it up to the implementations to decide.
+The protocol intentionally does not specify how to transfer linked [UCAN]s leaving it up to the implementations to decide.
 
 > ⁂ [w3up] implementation REQUIRES that all linked [UCAN]s be bundled with the invocation.
 
 ##### Delegate Receipt
 
-Implementation MUST respond with [UCAN Receipt]. On success result MUST be a `Unit` (empty [IPLD Map]) type.
+The implementation MUST respond with [UCAN Receipt]. On success result MUST be a `Unit` (empty [IPLD Map]) type.
 
-On failure result MUST have `message` string field describing the error.
+On failure, the result MUST have a `message` string field describing the error.
 
 ### Access Claim
 
@@ -190,7 +190,7 @@ capabilities that were delegated to the audience corresponding to the `with` fie
 
 #### Access Claim Example
 
-Example illustrates `did:key:zBob` invoking `access/claim` capability with web3.storage requesting delegations where `did:key:zBob` is an audience like one in the [access example].
+The following example illustrates `did:key:zBob` invoking `access/claim` capability with web3.storage requesting delegations where `did:key:zBob` is an audience like one in the [access example].
 
 ```json
 {
@@ -226,9 +226,9 @@ delegations.
 
 #### Access Claim Receipt
 
-Implementation MUST respond with [UCAN Receipt]. On success result MUST set of [UCAN] [IPLD Link]s represented via [IPLD Map] where keys SHOULD be corresponding values encoded as strings.  It is RECOMMENDED to use base32 base encoding for the keys.
+The implementation MUST respond with a [UCAN Receipt]. On success, the result MUST include the set of [UCAN] [IPLD Link]s represented as an [IPLD Map] where keys SHOULD be corresponding values encoded as strings.  It is RECOMMENDED to use base32 encoding for the keys.
 
-Protocol intentionally does not specify how to transfer linked [UCAN]s leaving it up to implementations to prescsribe.
+The protocol intentionally does not specify how to transfer linked [UCAN]s leaving it up to implementations.
 
 > ⚠️ [w3up] implementation currently is incompatible as it sends binary encoded [UCAN]s as values of the map as opposed to links.
 
@@ -334,7 +334,7 @@ The resource (`with` field) MUST be set to the [DID] of the principal requesting
 
 #### Authorizing Principal
 
-The [audience] (`aud` field) MUST be set to the [account] [DID] from which authorization is being requested.
+The [audience] (`aud` field) MUST be set to the [account] [DID] from which the authorization is being requested.
 
 > ℹ️ Implementations MAY choose to support requests from non [account] principals if they choose so.
 
@@ -402,14 +402,14 @@ The [`nb.iss`] MUST be set to the [account] [DID] from which authorization is be
 #### Authorization Level
 
 The `nb.att` field MUST be an array of objects. Each object in `nb.att` field MUST
-have `can` field set to requested ability. All requested abilities SHOULD be for
+have the `can` field set to the requested ability. All requested abilities SHOULD be for
 the same resource [space].
 
 ## Usage Patterns
 
 ### Access across multiple devices
 
-Alice installs `w3up` program and runs it the first time. Program asks what email address to use for the [account]. Alice types `alice@web.mail`. Program derives `did:mailto:web.mail:alice` [DID] and requests authorization from it. Program invokes [access claim] capability and discovers that [account] has no [space] so it creates a new keypair and a corresponding space `did:key:zAliceSpace`, provisions it and after confirmation from Alice sets up space recovery by delegating full authority to Alice's [account]:
+Alice installs the `w3up` program and runs it the first time. The program asks what email address to use for the [account]. Alice types `alice@web.mail`. The program derives a `did:mailto:web.mail:alice` [DID] and requests authorization from it. Next the program invokes an [access claim] capability and discovers that the [account] has no [space] so it creates a new keypair and a corresponding space `did:key:zAliceSpace`, provisions it and after confirmation from Alice sets up space recovery by delegating full authority to Alice's [account]:
 
 ```json
 {
@@ -432,7 +432,7 @@ Alice installs `w3up` program and runs it the first time. Program asks what emai
 }
 ```
 
-Program invokes [access delegate] capability with the account delegation so it can be received anywhere Alice logs in with her account.
+The program invokes an [access delegate] capability with the account delegation so it can be received anywhere that Alice logs in with her account.
 
 ```json
 {
@@ -459,7 +459,7 @@ Program invokes [access delegate] capability with the account delegation so it c
 }
 ```
 
-When Alice runs `w3up` program on her other device, and logs in to her account, program invokes [access authorize] capability to get access on this device.
+When Alice runs the `w3up` program on her other device, and logs in to her account, the program invokes an [access authorize] capability to get access on this device.
 
 ```json
 {
@@ -486,7 +486,7 @@ When Alice runs `w3up` program on her other device, and logs in to her account, 
 }
 ```
 
-On invocation service sends an authorization confirmation email to `alice@web.mail`. Alice clicks a link in the email to approving requested authorization, on which service issues [attestation] proving that Alice has authorized requested authorization to `did:key:zAli` (an agent DID on new device).
+When the invocation is received, the service sends an authorization confirmation email to `alice@web.mail`. Alice clicks the link in the email to approve the requested authorization. The service then issues an [attestation] proving that Alice has authorized requested authorization to `did:key:zAli` (an agent DID on new device).
 
 ```json
 {
@@ -512,7 +512,7 @@ On invocation service sends an authorization confirmation email to `alice@web.ma
 }
 ```
 
-In the background new device polled [access claim] and once request was authorized it received delegation from an account along with the [attestation] from the service proving that Alice has authorized it. This allows new device to access to the [space].
+In the background, the new device polled [access claim] and once the request was authorized it received the delegation from an account along with an [attestation] from the service proving that Alice has authorized it. This allows the new device to acces the [space].
 
 ### Sharing access with a friend
 
@@ -535,7 +535,7 @@ Alice wants to share access to her [space] with her friend Bob. She does not kno
 }
 ```
 
-And [access delegate] capability allows her to send the delegation so it could be claimed by Bob.
+...and the [access delegate] capability allows her to send the delegation so it can be claimed by Bob.
 
 ```json
 {
@@ -558,7 +558,7 @@ And [access delegate] capability allows her to send the delegation so it could b
 }
 ```
 
-When Bob runs `w3up` agent the first time and authorizes as `bob@gmail.com`, the program invokes [access claim] capability and collects all capabilities available to the account, including one sent by Alice, gaining access to her space.
+When Bob runs the `w3up` agent the first time and authorizes as `bob@gmail.com`, the program invokes the [access claim] capability and collects all capabilities available to the account, including the one sent by Alice, gaining access to her space.
 
 [`did:key`]: https://w3c-ccg.github.io/did-method-key/
 [UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
