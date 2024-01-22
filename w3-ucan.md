@@ -198,12 +198,6 @@ It is RECOMMENDED to treat revocations as permanent. Even though enclosing [UCAN
 
 Enclosing [UCAN] [time-bounds] MUST be interpreted as the time frame within which an authorized issuer is able to exercise revocation on behalf of the [authority]. More simply it is a mechanism to limit an issuers ability to perform revocation on behalf of the [authority].
 
-### Revocation Revocation
-
-It is RECOMMENDED to treat revocations permanent. Even though enclosing [UCAN] could be revoked it MUST NOT be interpreted as revocation of the revocation.
-
-Enclosing [UCAN] revocation offers a mechanism to revoke authorization that [authority] MAY have given to another principal to revoke [UCAN]s on their behalf.
-
 [UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
 [DID]:https://www.w3.org/TR/did-core/
 [link]:https://ipld.io/docs/schemas/features/links/
