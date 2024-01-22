@@ -14,7 +14,7 @@
 
 The W3 protocol governs user interactions within self-certified Public Key Infrastructure (PKI)-based namespaces. Access control to these namespaces, for simplicity referred to as spaces, is managed through delegated capabilities in [UCAN] format.
 
-Users access their spaces across various user agents operating on multiple devices. Here we introduce [account] primitive designed to enable synchronization of the access across authorized user agents with a user-friendly experience.
+Users access their spaces across various user agents operating on multiple devices. Here we introduce an [account] primitive designed to enable synchronization of access across authorized user agents with a user-friendly experience.
 
 ## Language
 
@@ -22,17 +22,17 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 # Introduction
 
-In W3 protocol, a namespace, or space for short, corresponds to an asymmetric keypair and is identified by a [`did:key`] URI. The private key holder, is the [owner] of that namespace and has absolute authority over it. They can delegate limited or absolute authority over the namespace to any other [principal]. However, managing delegations across multiple user agents on multiple devices presents several user experience challenges:
+In the W3 protocol, a namespace, or space for short, corresponds to an asymmetric keypair and is identified by a [`did:key`] URI. The private key holder, is the [owner] of that namespace and has absolute authority over it. They can delegate limited or absolute authority over the namespace to any other [principal]. However, managing delegations across multiple user agents on multiple devices presents several user experience challenges:
 
 1. To synchronizing namespace access across user agents they need to discover their [`did:key`] identifiers and level of access granted to them.
-2. Recovering access in case when all devices are lost becomes impossible.
+2. Recovering access in the case when all devices are lost becomes impossible.
 
-To address these issues, we propose the concept of an account. Account SHOULD have a human-meaningful identifier such as email address. We propose use of email addresses as account identifiers so that derived [`did:mailto`] can act as the [principal] in the [UCAN] delegation chain. This creates [principal] that can be used to aggregate capabilities and manage them.
+To address these issues, we propose the concept of an account. An account SHOULD have a human-meaningful identifier such as email address. We propose use of email addresses as account identifiers so that derived [`did:mailto`] can act as the [principal] in the [UCAN] delegation chain. This creates [principal] that can be used to aggregate capabilities and manage them.
 
 Account can be used to solve both discovery and recovery problems:
 
-1. Instead of user agents trying discovering each to delegate capabilities with one another, all capabilities get delegated to an account which is then used to re-delegate them as necessary to individual agents.
-2. Recovery is possible even if all devices has been lost as long as the user retains control of their email, because account can always delegate capabilities to new agents.
+1. Instead of user agents trying to discover each other in order to delegate capabilities, all capabilities get delegated to an account which is then used to re-delegate them as necessary to individual agents.
+2. Recovery is possible even if all devices have been lost as long as the user retains control of their email, because an account can always delegate capabilities to new agents.
 
 Agent authorization can use familiar email-based authorization flows providing a smooth onboarding experience and hide complexity of the underlying [PKI]. This approach also better reflects user intuition: they have ambient authority over owned spaces and can authorize user agents (think apps) giving them necessary level of access.
 
@@ -62,27 +62,27 @@ There are several distinct roles that [principals] may assume in described speci
 
 Namespace, or space for short, is an owned resource that can be shared. It corresponds to the asymmetric keypair and is identified by the [`did:key`] URI.
 
-Space is always listed in the `with` field of the [UCAN] capability.
+A space DID is always listed in the `with` field of the [UCAN] capability.
 
 ### Owner
 
-The [owner] of the [space] is the holder of its private key. Space owner can share limited or full access to owned space via [UCAN] delegation issued by the [space] [`did:key`] and signed with a [space] private key.
+The [owner] of the [space] is the holder of its private key. The space owner can share limited or full access to their owned space via a [UCAN] delegation issued by the [space] [`did:key`] and signed with the [space]'s private key.
 
 ### Account
 
 An _account_ is a principal identified by a memorable identifier such as [`did:mailto`]. It is a principal that aggregates access to user spaces and that manages access of various user [agent]s.
 
-Account enables familiar authorization and recovery email flows.
+An account enables familiar authorization and recovery email flows.
 
 ### Agent
 
-An _agent_ is a principal identified by a [`did:key`] identifier. Users interact with a system through different _agents_ across multiple devices and applications. It is strongly RECOMMENDED that _agents_ use [non-extractable keys] where possible.
+An _agent_ is a principal identified by a [`did:key`] identifier. Users interact with a system through different _agents_ across multiple devices and applications. _Agents_ SHOULD use [non-extractable keys] where possible.
 
 > ℹ️ Note that _agents_ are meant to be ephemeral, implying that they could be disposed of or created on demand.
 
 ### Authority
 
-Authority is trusted [DID] identifier. For example various subsystems may recognize and signatures from a global service authority.
+Authority is a trusted [DID] identifier. For example various subsystems may recognize signatures from a global service authority.
 
 Various services run by different entities MAY also recognize each others authority and choose to trust their signatures as opposed to performing verification work.
 
@@ -111,7 +111,7 @@ Space ->> Email: 🎫 Delegate capabilities
 note over Space,Email:can:*<br/>with: did:key:z7Gf…xSpace
 ```
 
-> On first run, application creates a new namespace and delegates full authority to the user account. For the simplicity we omit steps where application first requests access from an account before deciding to create new space.
+> On first run, an application creates a new namespace and delegates full authority to the user account. For simplicity we omit steps where the application first requests access from an account before deciding to create a new space.
 
 ### Delegating capabilities
 
@@ -132,11 +132,11 @@ Email ->> Bob: 🎫 Delegate capabilities
 
 ### Authorization
 
-Delegations issued by [`did:key`] principal are authorized by signing payload with private key. Delegations issued by a [`did:mailto`] principal are not authorized by signing over payload as there is no public key associated with [`did:mailto`] to sign it with. Instead, such delegations are authorized through an interactive email flow in which [account] holder is able to review and approve requested authorization through an action.
+Delegations issued by a [`did:key`] principal are authorized by signing the payload with their private key. Delegations issued by a [`did:mailto`] principal are not authorized by signing over the payload as there is no private key associated with [`did:mailto`] to sign it with. Instead, such delegations are authorized through an interactive email flow in which the [account] holder is able to review and approve the requested authorization through an action.
 
-Since there is no public key to sign the [UCAN] payload define an extension to the [UCAN] specification introducing two new signature types that can be used in delegations issued by [`did:mailto`] principals.
+Since there is no private key to sign the [UCAN] payload, we define an extension to the [UCAN] specification that introduces two new signature types that can be used in delegations issued by [`did:mailto`] principals.
 
-We also define verification mechanism for these signature types.
+We also define a verification mechanism for these signature types.
 
 > ℹ️ The signatures for [account]s identified by other [DID methods] are not defined.
 
@@ -165,13 +165,13 @@ cid  := z[a-km-zA-HJ-NP-Z1-9]+
 
 ### Attestation Signature
 
-Delegation MAY be authorized through an interactive email flow where [account] holder is emailed request to approve an authorization that gives an agent access to specific set of capabilities. If user approves by clicking embedded link signed [attestation] is issued that confirms that delegation has been authorized through an interactive flow.
+Delegation MAY be authorized through an interactive email flow where the [account] holder is emailed a request to approve an authorization that gives an agent access to specific set of capabilities. If the user approves by clicking the embedded link, a signed [attestation] is issued that confirms that the delegation has been authorized through the interactive flow.
 
-In this scenario delegation issued by the [`did:mailto`] identifier MAY be signed using _attestation signature_ type. This signature alone MUST NOT be considered as a valid authorization. Delegation signed with _attestation signature_ MUST be accompanied with [UCAN attestation] issued by the trusted [authority].
+In this scenario a delegation issued by the [`did:mailto`] identifier MAY be signed using the _attestation signature_ type. This signature alone MUST NOT be considered as a valid authorization. A delegation signed with an _attestation signature_ MUST be accompanied with a [UCAN attestation] issued by the trusted [authority].
 
-If delegation is signed with _attestation signature_, but is not accompanied with [UCAN attestation] from trusted [authority] it MUST be considered invalid. In this scenario implementer MAY initiate interactive verification flow and issue [UCAN attestation] retroactively instead of denying service.
+If delegation is signed with an _attestation signature_, but is not accompanied with a [UCAN attestation] from a trusted [authority] it MUST be considered invalid. In this scenario the implementer MAY initiate an interactive verification flow and issue the [UCAN attestation] retroactively instead of denying service.
 
-> When received delegation is issued by the `did:mailto:web.mail:alice`, signed with _attestation signature_, but is not accompanied by [UCAN attestation], receiver could iteratively confirm authorization by sending an email to `alice@web.mail` address with a confirmation link, which when followed issues [attestation] from the receiver resuming the invocation.
+> When the received delegation is issued by the `did:mailto:web.mail:alice`, signed with _attestation signature_, but is not accompanied by a [UCAN attestation], the receiver could iteratively confirm authorization by sending an email to `alice@web.mail` with a confirmation link, which, when followed, issues an [attestation] from the receiver resuming the invocation.
 
 #### Attestation Signature Format
 

@@ -16,7 +16,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Abstract
 
-[UCAN] specification reserves `ucan/` ability namespace for the core functionality that may be introduced in future versions. Here we define W3 protocol extensions to the core namespace that we hope to standardize in core [UCAN] specification.
+The [UCAN] specification reserves the `ucan/` ability namespace for the core functionality that may be introduced in future versions. Here we define W3 protocol extensions to the core namespace that we hope to standardize in core [UCAN] specification.
 
 # Terminology
 
@@ -32,7 +32,7 @@ There are several roles that agents in the authorization flow may assume:
 
 ### Authority
 
-Authority is trusted [DID] identifier. For example various subsystems may recognize and signatures from a global service authority.
+Authority is trusted [DID] identifier. For example various subsystems may recognize signatures from a global service authority.
 
 Various services run by different entities MAY also recognize each others authority and choose to trust their signatures as opposed to performing verification work.
 
@@ -46,7 +46,7 @@ Subsystem that performs [UCAN] validation.
 
 ### Motivation
 
-[UCAN] verification process involves going through a delegation chain and verifying that every delegation has a valid signature from the private key if the issuer and that principals in the chain align. As described it has following implications:
+The [UCAN] verification process involves going through a delegation chain and verifying that every delegation has a valid signature from the private key of the issuer and that the principals in the chain align. As described it has the following implications:
 
 1. Verifier MAY end up verifying same potentially long chain over and over. As an optimization they could implement caching strategy, but that may require access to some storage.
 1. Invocations MAY have to send potentially long delegation chains over and over as validator MAY prune cache and may not even persist previously seen delegations.
@@ -54,28 +54,28 @@ Subsystem that performs [UCAN] validation.
 
 ### Proposal
 
-We propose extension to the core [UCAN] specification and define `ucan/attest`
-capability, that enables an [authority] to attest that linked [UCAN] delegation is valid.
+We propose an extension to the core [UCAN] specification and define a `ucan/attest`
+capability, that enables an [authority] to attest that a linked [UCAN] delegation is valid.
 
-This effectively allows distributing verifiable cache records to interested principals so they could include those in subsequent invocations and take advantage of optimizations they unlock.
+This effectively allows distributing verifiable cache records to interested principals so they can include those in subsequent invocations and take advantage of the optimizations they unlock.
 
 #### Cached Verification
 
-For example verifier could issue an attestation for the [UCAN] chain it validated and hand it back to the caller. In subsequent calls caller could include an attestation to take advantage of more optimal execution.
+For example, a verifier could issue an attestation for the [UCAN] chain it validated and hand it back to the caller. In subsequent calls the caller could include an attestation to take advantage of more optimal execution.
 
 #### Proof chain compaction
 
-Just like in the above scenario except not only caller can take advantage of more optimal execution they could also transfer proof chain up to a proof they have attestation for reducing size of the payload.
+Just like in the above scenario except not only can a caller take advantage of more optimal execution, they can also transfer a proof chain up to a proof they have an attestation for, thereby reducing the size of the payload.
 
 #### Out of bound verification
 
-Attestations CAN be issued as a part of authorization process. For example [UCAN]s issued by [`did:mailto`] require out of bound authorization flow in which service sends confirmation email to the user. If user confirms through a link in the email service issues an attestation declaring that [UCAN] has been verified.
+Attestations CAN be issued as a part of authorization process. For example [UCAN]s issued by [`did:mailto`] require out of bound authorization flow in which a service sends a confirmation email to the user. If the user confirms through a link in the email, the service issues an attestation declaring that the [UCAN] has been verified.
 
 ### Notes on compatibility
 
-Attestations effectively are a cache records that if provided enables certain optimizations, when not provided, correct implementation SHOULD fallback to a less optimal path.
+Attestations are effectively cached records that, if provided, enable certain optimizations. When not provided, correct implementations SHOULD fallback to a less optimal path.
 
-Implementations that do not support this extension will simply disregard attestations in the proof chain as irrelevant and just under less optimal path.
+Implementations that do not support this extension will simply disregard attestations in the proof chain as irrelevant and just take a less optimal path.
 
 ### IPLD Schema
 
@@ -106,11 +106,11 @@ The `nb.proof` field MUST be a [link] to the [UCAN] delegation covered by the at
 
 ### Attestation Lifetime
 
-Attestation MUST be considered valid ONLY within the [time bounds] of enclosing [UCAN]. In other words enclosing [UCAN] `nbf` and `exp` fields SHOULD be used to specify [time bounds] within which attestation is valid.
+The attestation MUST be considered valid ONLY within the [time bounds] of the enclosing [UCAN]. In other words the enclosing [UCAN]'s `nbf` and `exp` fields SHOULD be used to specify [time bounds] within which the attestation is valid.
 
 ### Attestation Revocation
 
-Attestation MUST be considered revoked if enclosing [UCAN] has been revoked. This also implies that attestation can be revoked by revoking their enclosing [UCAN]s.
+The attestation MUST be considered revoked if the enclosing [UCAN] has been revoked. This also implies that the attestation can be revoked by revoking its enclosing [UCAN]s.
 
 ### Attestation Example in DAG-JSON
 
@@ -143,14 +143,15 @@ Attestation MUST be considered revoked if enclosing [UCAN] has been revoked. Thi
 
 ### Motivation
 
-[UCAN] specification defines [revocation record] that MUST be signed by the issuer in the delegation chain of the [UCAN] been revoked. From real world experience we find that requirement unfortunate. In plenty of cases various actors are delegated specific subset of capabilities from the supervisor to carry out their work. Supervisor MAY want give specific actor to revoke some capabilities on its behalf without giving it ability to invoke them and [revocation record] does not allow that.
+[UCAN] specification defines [revocation record] that MUST be signed by the issuer in the delegation chain of the [UCAN] been revoked. From real world experience we find this requirement problematic, it is common to have a primary authority that delegates subset of their capability to various actors based on their role. In such setup it is often desired to have auditors that can revoke capabilities from misbehaving actors without been in the delegation chain.
+
+In other words it is desired to have ability to grant revocation power to some actor without granting them invocation power.
 
 ### Proposal
 
-We propose extension to the core [UCAN] specification and define `ucan/revoke`
-capability, that can be invoked to revoke linked [UCAN].
+We propose extension to the core [UCAN] specification and define `ucan/revoke` capability, that can be invoked to revoke a linked [UCAN].
 
-By making revocation a [UCAN] itself we gain ability to delegate ability to revoke to another principal, which is desired in scenario described above.
+By making revocation a [UCAN] itself we allow delegating the ability to revoke to another principal, which is desired in scenario described above.
 
 ### IPLD Schema
 
@@ -174,15 +175,15 @@ type Revocation struct {
 
 ### Revocation Authority
 
-The value of the `with` field MUST be the [DID] of the principal that issued the [UCAN] been revoked or some [UCAN] in its proof chain.
+The value of the `with` field MUST be the [DID] of the principal that issued the [UCAN] being revoked or some [UCAN] in its proof chain.
 
 Revocation where [DID] in the `with` field is not an issuer of the [UCAN] or the proofs it depends on SHOULD be considered obsolete.
 
-Implementations MAY choose to consider revocations from certain [authority] even if they are not part of the proof chain. For example service could proactively revoke [UCAN] chain when actual issuer keys are is compromised.
+Implementations MAY choose to consider revocations from a certain [authority] even if they are not part of the proof chain. For example service could proactively revoke [UCAN] chain when an issuer's keys are compromised.
 
 ### Revocation Subject
 
-The `nb.ucan` field MUST be a [link] to the [UCAN] been revoked.
+The `nb.ucan` field MUST be a [link] to the [UCAN] being revoked.
 
 ### Revocation Proof
 
@@ -192,9 +193,9 @@ Implementations MAY choose to require a valid `nb.proof` to avoid storing potent
 
 ### Revocation Lifetime
 
-It is RECOMMENDED to treat revocations permanent. Even though enclosing [UCAN] will have [time bounds] those MUST NOT be interpreted as a time frame within which revocation is active.
+It is RECOMMENDED to treat revocations as permanent. Even though enclosing [UCAN] will have [time bounds] those MUST NOT be interpreted as a time frame within which the revocation is active.
 
-Enclosing [UCAN] [time-bounds] MUST be interpreted as time frame within which authorized issuer is able to exercise revocation on behalf of the [authority]. More simply it is a mechanism to limit issuers ability to perform revocation on behalf of the [authority].
+Enclosing [UCAN] [time-bounds] MUST be interpreted as the time frame within which an authorized issuer is able to exercise revocation on behalf of the [authority]. More simply it is a mechanism to limit an issuers ability to perform revocation on behalf of the [authority].
 
 ### Revocation Revocation
 
