@@ -1,7 +1,6 @@
-# User Access
+# W3 Access Protocol
 
-![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
-[![hackmd-github-sync-badge](https://hackmd.io/8NywALT8Qp-cf0MSugZMDw/badge)](https://hackmd.io/8NywALT8Qp-cf0MSugZMDw)
+![stable](https://img.shields.io/badge/status-stable-brightgreen.svg?style=flat-square)
 
 ## Editors
 
@@ -13,7 +12,9 @@
 
 # Abstract
 
-In web3.storage we manage access across various user spaces and agents through delegated capabilities. Here we define the protocol for aggregating and managing delegated capabilities across various user agents.
+The W3 protocol governs user interactions within self-certified Public Key Infrastructure (PKI)-based namespaces. Access to these namespaces, for simplicity referred to as spaces, is authorized through delegated capabilities in [UCAN] format.
+
+Here we define the protocol for delivering authorized delegations to their audience.
 
 ## Language
 
@@ -21,42 +22,103 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 # Introduction
 
-## Motivation
+[Space] [access] is represented as a signed authorization in [UCAN] format. It is not enough to issue the [UCAN] authorization, issuer needs some channel to deliver it to an audience.
 
-In web3.storage users may create (name)space by generating an asymmetric keypair and deriving [`did:key`] identifier from it. (Name)space owner (private key owner) can delegate some or all capabilities to other identifiers without anyone's permission, however managing keypairs across multiple agents and devices can be complicated.
+We propose a protocol where implementation can act as a delivery channel.
 
-Here we propose protocol for relaying delegations between agents that have no direct channel between them.
+## Intuition
 
-# Terminology
+### Message Channel
 
-## Delegate Access
+At the very high level signed authorization is a message addressed to a specific recipient (audience). Implementer of this protocol represent a [message channel] allowing sender (issuer) to send a message and allow recipient (audience) to receive massages sent to them.
 
-An agent MAY delegate some capabilities to any other agent
+### Shared Space
 
-> `did:key:zAlice` delegates `store/*` capabilities to `did:key:zBob`
+Alice has set up space for sharing photos with her family and friends. She wants to authorize her partner Bob with write access so he can also upload photos. She wants to authorize her less tech savvy parent Mallory with just read access so she can look at photos but not add or delete them.
+
+> In this scenario Alice delegates `upload/add` capability to Bob and `upload/list` capability to Mallory. Application used by Alice leverages access protocol to send issued delegations to Bob and Mallory. Applications used by Bob and Mallory leverage access protocol to receive messages sent to them transparently gaining access to the space Alice has shared access to.
+
+### Multidevice Access
+
+Alice has created a new space for storing photos on her laptop and uploaded some photos. Later she picks up her phone logs with her account and upload some photos to her space.
+
+> In this scenario after space is created access protocol is used to delegate full authority over to Alice's [account]. Later, when Alice logs in on her phone her [account] receives delegated capabilities over access protocol gaining access to the space.
+
+## Serialization
+
+[UCAN]s MUST be encoded with some [IPLD] codec. [DAG-CBOR] is RECOMMENDED.
+
+## Concepts
+
+### Roles
+
+| Name   | Description |
+| ------ |-------------|
+| Principal | The general class of entities that interact with with a UCAN. Listed in the `iss` or `aud` field |
+| Issuer | Principal sharing access. It is the signer of the [UCAN]. Listed in the `iss` field |
+| Audience | Principal access is shared with. Listed in the `aud` field |
+
+### Space
+
+Namespace or space for short is an owned resource that can be shared. It corresponds to the asymmetric keypair and is identified by the [`did:key`] URI.
+
+Space is always listed in the `with` field of the [UCAN] capability.
+
+### Owner
+
+The [owner] of the [space] is the holder of its private key. Space owner can share limited or full access to owned space via [UCAN] delegation issued by the [space] [`did:key`] and signed with the [space] private key.
+
+### Access
+
+Access is defined in terms of [UCAN] delegation, where level of the access is denoted by the set of capabilities delegated.
+
+#### Example in [DAG-JSON]
+
+[Space] [owner] authorizes `did:key:zBob` _(`aud` field)_ by delegating `store/*` capabilities _(`can` field)_ for `did:key:zSpace` space _(`iss` field)_.
 
 ```json
 {
-  "iss": "did:key:zAlice",
+  "v": "0.9.1",
+  "iss": "did:key:zSpace",
   "aud": "did:key:zBob",
-  "att": [{ "with": "did:key:zAlice", "can": "store/*" }],
-  "exp": null,
-  "sig": "..."
+  "att": [
+    {
+      "can": "store/*"
+      "with": "did:key:zSpace",
+    }
+  ],
+  "prf": [],
+  "fct": [],
+  "exp": 1740357624,
+   "s": {"/": {"bytes": "7aED...A0"}},
 }
 ```
 
-Agent MAY send such a delegation(s) to the service implementing this protocol so that it's there for the audience to collect at their convenience.
+## Capabilities
 
-### `access/delegate`
+### IPLD Schema
 
-Agent CAN invoke `access/delegate` capability with arbitrary delegations which will be stored and made available for collection to their respective audiences.
+```ipldsch
+type Access union {
+  | AccessDelegate   "access/delegate"
+  | AccessClaim      "access/claim"
+  | AccessRequest    "access/request"
+} representation inline {
+  discriminantKey "can"
+}
+```
 
-#### Example
+### Access Delegate
 
-> Invoke `access/delegate` asking web3.storage to record delegation from the previous example
+The `access/delegate` capability MAY be invoked by an authorized agent to send set of delegations to their respective audiences.
+
+#### Access Delegate Example
+
+Example illustrates `did:key:zAlice` invoking `access/delegate` capability with web3.storage requesting it to send a delegation from [access example] to their audience.
 
 ```json
 {
+  "v": "0.9.1",
   "iss": "did:key:zAlice",
   "aud": "did:web:web3.storage",
   "att": [
@@ -64,177 +126,294 @@ Agent CAN invoke `access/delegate` capability with arbitrary delegations which w
       "with": "did:key:zAlice",
       "can": "access/delegate",
       "nb": {
-        // Map of delegation links to be stored for their audiences.
         "delegations": { "bafy...prf1": { "/": "bafy...prf1" } }
       }
     }
   ],
-  "prf": [
-    {
-      "iss": "did:key:zAlice",
-      "aud": "did:key:zBob",
-      "att": [
-        {
-          "with": "did:key:zAlice",
-          "can": "store/*"
-        }
-      ],
-      "exp": null,
-      "sig": "..."
-    }
-  ],
-  "sig": "..."
+  "prf": [],
+  "exp": 1705622469,
+   "s": {"/": {"bytes": "7aED...A0"}},
 }
 ```
 
-#### delegate `with`
+##### Delegate IPLD Schema
 
-Field MUST be a space DID with a storage provider. Delegation will be stored just like any other DAG stored using `store/add` capability.
+```ipldsch
+type AccessDelegate struct {
+  with AgentDID
+  nb Delegate
+}
 
-Provider SHOULD deny service if DID in the `with` field has no storage provider.
+type Delegate struct {
+  delegations { String: &UCAN }
+}
 
-#### delegate `nb`
+type AgentDID = string
+```
 
-##### delegate `nb.delegations`
+##### Delegate `with`
 
-Field is a set of delegation links represented as JSON. Keys SHOULD be CID strings of the values to make encoding deterministic.
+The `with` field MUST be set the [`did:key`] identifying the [space] where delegations will be stored.
 
-Delegations MUST be included with an invocation. Invocations that link to delegations not included with invocation MUST be denied.
+Implementation MAY deny request if specified [space] has no capacity to store supplied [UCAN]s, or if the give space does not have `access/delegate` capability provisioned.
 
-> ⚠️ Note that currently only way to include delegations with invocation requires putting them in proofs, which will be addressed by [#39](https://github.com/web3-storage/ucanto/issues/39)
+Protocol intentionally does not prescribe how to transfer linked [UCAN]s leaving it up to implementations.
 
-## Claim Access
+> ⁂ [w3up] implementation REQUIRES that all linked [UCAN]s be bundled in the invocation.
 
-Agent MAY claim capabilities that delegated to it using `access/claim` capability.
+Please note that all the following [DID]s could be differnt from one another
 
-<!-- When user is [authorizing][authorization] a new agent, the service MAY include all the valid, _(not yet expired or revoked)_ delegations with an authorization proof, that grant the agent access to all capabilities across all of the spaces.
+1. Issuer of the linked delegations (in the `nb.delegation`)
+1. Issuer of the invocation.
+1. [Space] where delgations will be stored
 
-However a user may also add new delegations on one device and expect to have access to them on another device without having having to go through another email [authorization][] flow. To address this service MUST provide `access/claim` capability, which an agent MAY invoke to collect (new) delegations for the account -->
+To put it differently delegation MAY be sent by anyone, it does not have to be the issuer of the delegation. Send delegation MAY be delegating capability to resource different from the [space] where sent delegation will be stored.
 
-### `access/claim`
+##### Delegate `nb.delegations`
 
-Agent CAN invoke `access/claim` capability to the service implementing this protocol to collect all the valid delegations where audience matches `with` field.
+Field MUST be set to a set of [UCAN] [IPLD Link]s represented via [IPLD Map]. Map keys SHOULD be their corresponding values encoded as strings.  It is RECOMMENDED to use base32 encoding.
+
+Protocol intentionally does not specify how to transfer linked [UCAN]s leaving it up to the implementations to decide.
+
+> ⁂ [w3up] implementation REQUIRES that all linked [UCAN]s be bundled with the invocation.
+
+##### Delegate Receipt
+
+Implementation MUST respond with [UCAN Receipt]. On success result MUST be a `Unit` (empty [IPLD Map]) type.
+
+On failure result MUST have `message` string field describing the error.
+
+### Access Claim
+
+The `access/claim` capability MAY be invoked by an authorized agent to receive the
+capabilities that were delegated to the audience corresponding to the `with` field.
+
+#### Access Claim Example
+
+Example illustrates `did:key:zBob` invoking `access/claim` capability with web3.storage requesting delegations where `did:key:zBob` is an audience like one in the [access example].
 
 ```json
 {
+  "v": "0.9.1",
   "iss": "did:key:zBob",
   "aud": "did:web:web3.storage",
   "att": [
     {
       "with": "did:key:zBob",
-      "can": "access/claim"
+      "can": "access/claim",
     }
   ],
-  "sig": "..."
+  "prf": [],
+  "exp": 1705622469,
+   "s": {"/": {"bytes": "7aED...A0"}},
 }
 ```
 
-# Examples
+#### Access Claim Schema
 
-## Access across multiple devices
-
-> Access protocol implies that delegation issuer be aware of the audience DID. Often complementary [authorization] protocol can be utilized to remove need for passing around cryptographic [`did:key`] identifiers as following example attempt to illustrate.
-
-When Alice first runs `w3up` program it asks for the user identity she'd like to use. After Alice types `alice@web.mail` program initiates [authorization] protocol and creates a new (user) space by deriving `did:key:zAliceSpace` [`did:key`] from it. It immediately delegates capabilities to this space to Alice's identity:
-
-```json
-{
-  "iss": "did:key:zAliceSpace",
-  "aud": "did:web:web3.storage",
-  "att": [
-    {
-      "with": "did:key:zAliceSpace",
-      "can": "access/delegate",
-      "nb": {
-        // Map of delegation links to be stored for their audiences.
-        "delegations": { "bafy...prf1": { "/": "bafy...prf1" } }
-      }
-    }
-  ],
-  "prf": [
-    // delegation to
-    {
-      "iss": "did:key:zAliceSpace",
-      "aud": "did:mailto:web.mail:alice",
-      "att": [
-        {
-          "with": "did:key:zAliceSpace",
-          "can": "*"
-        }
-      ],
-      "exp": null,
-      "sig": "..."
-    }
-  ],
-  "sig": "..."
+```ipldsch
+type AccessClaim struct {
+  with DID
 }
+
+type DID = string
 ```
 
-When Alice runs `w3up` program on her other device, and she enters the same email address, it also initiates [authorization] flow to obtain access on a new device.
+#### Access Claim `with`
+
+The `with` field MUST be set to the [DID] identifying the audience of the
+delegations.
+
+#### Access Claim Receipt
+
+Implementation MUST respond with [UCAN Receipt]. On success result MUST set of [UCAN] [IPLD Link]s represented via [IPLD Map] where keys SHOULD be corresponding values encoded as strings.  It is RECOMMENDED to use base32 base encoding for the keys.
+
+Protocol intentionally does not specify how to transfer linked [UCAN]s leaving it up to implementations to prescsribe.
+
+> ⚠️ [w3up] implementation currently is incompatible as it sends binary encoded [UCAN]s as values of the map as opposed to links.
+
+### Access Request
+
+The `access/request` capability MAY be invoked by a user agent / application to get access to the required capabilities.
+
+> ⚠️ [w3up] implementation currently does not support this capability.
+
+#### Access Request Example
+
+User [agent] `did:key:z6Mkk...xALi` (`with` field) is requesting authorization from `alice@web.mail` [account] (`aud` field) on a [space] with following capabilities:
+
+- `store/add` where `size` is greater or equal than `1024`.
+- `store/list`
+- `store/get`
 
 ```json
 {
-  "iss": "did:key:zAli",
-  "aud": "did:web:web3.storage",
-  "att": [
-    {
-      "with": "did:key:zAli",
-      "can": "access/authorize",
-      "nb": { "as": "did:mailto:web.mail:alice" }
-    }
-  ],
-  "sig": "..."
-}
-```
-
-After receiving an email and clicking a link to approve authorization, an agent on a new device receives a delegation allowing that agent to sign delegations via local (non-extractable) `did:key:zAli` key
-
-```json
-{
-  "iss": "did:web:web3.storage",
+  "v": "0.9.1",
+  "iss": "did:key:z6Mkk...xALi",
   "aud": "did:mailto:web.mail:alice",
   "att": [
     {
-      "with": "did:web:web3.storage",
-      "can": "./update",
-      "nb": { "key": "did:key:zAli" }
+      "with": "did:key:z6Mkk...xALi",
+      "can": "access/request",
+      "nb": {
+        "can": {
+          "store/add": [
+            {">=": {"size": 1024}}
+          ],
+          "store/list": [],
+          "store/get": []
+        },
+      }
     }
   ],
-  "sig": "..."
+  "prf": [],
+  "exp": 1685602800,
+  "s": {
+    "/": {
+      "bytes": "7aEDQJbJqmyMxTxcK05XQKWfvxG+Tv+LWCJeE18RSMnciCZ/RQ21U75LA0uFSvIjdqnF5RaauZTE8mh2ZYMBBejdJQ4"
+    }
+  }
 }
 ```
 
-Using this authorization, a new device can claim capabilities that were delegated to it
+#### Access Request Schema
+
+```ipldsch
+type AccessRequest struct {
+  can   { Ability: [Clause] }
+}
+type Ability = string
+
+
+type Clause union {
+  # Logic combinators
+  "not":  Clause
+  "or":   Clause
+  "and":  Clause
+  # Predicates
+  ">":    CompareClause
+  "<":    CompareClause
+  ">=":   CompareClause
+  "<="    CompareClause
+  "="     CompareClause
+  "!="    CompareClause
+  "like"  LikeClause
+} representation keyed
+
+
+type CompareClause = { Attribute: Compare }
+type Compare union {
+  | CompareClause       map
+  | Float               float
+  | Int                 int
+  | String              string
+  | Bytes               bytes
+  | Link                link
+} representation kinded
+
+
+type LikeClause { Attribute: Like }
+type Like union {
+  | LikePattern         string
+  | LikeClause          map
+} representation kinded
+
+
+# Similar to SQLite like pattern
+# - Any except for "%" and "_" characters matches itself.
+# - An underscore "_" matches any single character.
+# - A percent "%" symbol matches any single character.
+type LikePattern = string
+```
+
+#### Requesting Principal
+
+The resource (`with` field) MUST be set to the [DID] of the principal requesting an authorization.
+
+> ℹ️ It should be noted that the resource specified in the `with` field of the authorization request is NOT REQUIRED to be the same as the issuer of the request.
+
+#### Authorizing Principal
+
+The [audience] (`aud` field) MUST be set to the [account] [DID] from which authorization is being requested.
+
+> ℹ️ Implementations MAY choose to support requests from non [account] principals if they choose so.
+
+#### Requested Capabilities
+
+The `nb.can` field MUST be an [IPLD Map] describing requested capabilities. Keys of `nb.can` map MUST be abilities requested. Values of the `nb.can` map MUST be constraints that capability corresponding to the key SHOULD satisfy. All requested capabilities SHOULD be for the same resource [space].
+
+### Access Authorize
+
+![deprecated](https://img.shields.io/badge/status-deprecated-red.svg?style=flat-square)
+
+> ⚠️ Has been deprecated in favor of [access request]
+
+The `access/authorize` capability MAY be invoked by a user agent / application to get access to the required capabilities.
+
+#### Access Authorize Example
 
 ```json
 {
-  "iss": "did:mailto:web.mail:alice",
-  "aud": "did:web:web3.storage",
-  "att": {
-    "with": "did:mailto:web.mail:alice",
-    "can": "access/claim"
-  },
-  "prf": [
+  "v": "0.9.1",
+  "iss": "did:key:z6Mkk...xALi",
+  "aud": "did:mailto:web.mail:alice",
+  "att": [
     {
-      "iss": "did:web:web3.storage",
-      "aud": "did:mailto:web.mail:alice",
-      "att": [
-        {
-          "with": "did:web:web3.storage",
-          "can": "./update",
-          "nb": { "key": "did:key:zAli" }
-        }
-      ]
+      "with": "did:key:z6Mkk...xALi",
+      "can": "access/request",
+      "nb": {
+        "iss": "did:mailto:web.mail:alice",
+        "att": [{"can": "store/add"}]
+      }
     }
   ],
-  "sig": "..."
+  "prf": [],
+  "exp": 1685602800,
+  "s": {
+    "/": {
+      "bytes": "7aEDQJb...dJQ4"
+    }
+  }
 }
 ```
 
-Service will respond with delegations where audience is `did:mailto:web:mail:alice` which will give agent on this new device access to `did:key:zAliceSpace`:
+#### Access Authorize Schema
+
+```ipldsch
+type AccessAuthorize struct {
+  iss   DID
+  att   [CapabilityRequest]
+}
+
+type CapabilityRequest struct {
+  can   Ability
+}
+type Ability = string
+```
+
+#### Authorization Requesting Principal
+
+The resource (`with` field) MUST be set to the [DID] of the principal requesting an authorization.
+
+#### Authorization Authorizing Principal
+
+The [`nb.iss`] MUST be set to the [account] [DID] from which authorization is being requested.
+
+#### Authorization Level
+
+The `nb.att` field MUST be an array of objects. Each object in `nb.att` field MUST
+have `can` field set to requested ability. All requested abilities SHOULD be for
+the same resource [space].
+
+## Usage Patterns
+
+### Access across multiple devices
+
+Alice installs `w3up` program and runs it the first time. Program asks what email address to use for the [account]. Alice types `alice@web.mail`. Program derives `did:mailto:web.mail:alice` [DID] and requests authorization from it. Program invokes [access claim] capability and discovers that [account] has no [space] so it creates a new keypair and a corresponding space `did:key:zAliceSpace`, provisions it and after confirmation from Alice sets up space recovery by delegating full authority to Alice's [account]:
 
 ```json
 {
+  "v": "0.9.1",
   "iss": "did:key:zAliceSpace",
   "aud": "did:mailto:web.mail:alice",
   "att": [
@@ -243,19 +422,21 @@ Service will respond with delegations where audience is `did:mailto:web:mail:ali
       "can": "*"
     }
   ],
+  "prf": [],
   "exp": null,
-  "sig": "..."
+  "s": {
+    "/": {
+      "bytes": "7aEDQJb...dJQ4"
+    }
+  }
 }
 ```
 
-## Sharing access with a friend
-
-> Access protocol could be utilized to share access with a friend who may have never used web3.storage.
-
-Alice wants to share access to her space with her friend Bob. She does not know if Bob has ever heard of web3.storage, but she knows his email address `bob@gmail.com` allowing her to delegate capabilities to it:
+Program invokes [access delegate] capability with the account delegation so it can be received anywhere Alice logs in with her account.
 
 ```json
 {
+  "v": "0.9.1",
   "iss": "did:key:zAliceSpace",
   "aud": "did:web:web3.storage",
   "att": [
@@ -268,56 +449,78 @@ Alice wants to share access to her space with her friend Bob. She does not know 
       }
     }
   ],
-  "prf": [
-    // delegation to
-    {
-      "iss": "did:key:zAliceSpace",
-      "aud": "did:mailto:gmail.com:bob",
-      "att": [
-        {
-          "with": "did:key:zAliceSpace",
-          "can": "store/list"
-        }
-      ],
-      "exp": "...",
-      "sig": "..."
+  "prf": [{ "/": "bafy...prf1" }],
+  "exp": null,
+  "s": {
+    "/": {
+      "bytes": "7aEDQJb...dJQ4"
     }
-  ],
-  "sig": "..."
+  }
 }
 ```
 
-When Bob runs `w3up` agent the first time and authorizes as `bob@gmail.com` program will collect capabilities delegated to it:
+When Alice runs `w3up` program on her other device, and logs in to her account, program invokes [access authorize] capability to get access on this device.
 
 ```json
 {
-  "iss": "did:mailto:gmail.com:bob",
+  "v": "0.9.1",
+  "iss": "did:key:zAli",
   "aud": "did:web:web3.storage",
-  "att": {
-    "with": "did:mailto:gmail.com:bob",
-    "can": "access/claim"
-  },
-  "prf": [
+  "att": [
     {
-      "iss": "did:web:web3.storage",
-      "aud": "did:mailto:gmail.com:bob",
-      "att": [
-        {
-          "with": "did:web:web3.storage",
-          "can": "./update",
-          "nb": { "key": "did:key:zBobAgent" }
-        }
-      ]
+      "with": "did:key:zAli",
+      "can": "access/authorize",
+      "nb": {
+        "iss": "did:mailto:web.mail:alice",
+        "att": [{"can": "*"}]
+      }
     }
   ],
-  "sig": "..."
+  "prf": [],
+  "exp": null,
+  "s": {
+    "/": {
+      "bytes": "7aEDQJb...dJQ4"
+    }
+  }
 }
 ```
 
-Service responds with a delegation from Alice giving Bob's agent capability to execute `store/list` on `did:key:zAliceSpace` space
+On invocation service sends an authorization confirmation email to `alice@web.mail`. Alice clicks a link in the email to approving requested authorization, on which service issues [attestation] proving that Alice has authorized requested authorization to `did:key:zAli` (an agent DID on new device).
 
 ```json
 {
+  "v": "0.9.1",
+  "iss": "did:web:web3.storage",
+  "aud": "did:key:zAli",
+  "att": [
+    {
+      "with": "did:web:web3.storage",
+      "can": "ucan/attest",
+      "nb": {
+        "proof": { "/": "bafy...auth" }
+      }
+    }
+  ],
+  "prf": [],
+  "exp": null,
+  "s": {
+    "/": {
+      "bytes": "7aEDQJb...dJQ4"
+    }
+  }
+}
+```
+
+In the background new device polled [access claim] and once request was authorized it received delegation from an account along with the [attestation] from the service proving that Alice has authorized it. This allows new device to access to the [space].
+
+### Sharing access with a friend
+
+Alice wants to share access to her [space] with her friend Bob. She does not know if Bob has ever heard of web3.storage, but she knows his email address `bob@gmail.com` allowing her to delegate capabilities:
+
+```json
+{
+  "v": "0.9.1",
   "iss": "did:key:zAliceSpace",
   "aud": "did:mailto:gmail.com:bob",
   "att": [
@@ -326,18 +529,55 @@ Service responds with a delegation from Alice giving Bob's agent capability to e
       "can": "store/list"
     }
   ],
-  "exp": "...",
-  "sig": "..."
+  "prf": [],
+  "exp": 1685602800,
+  "s": { "/": { "bytes": "7aEDQJb...dJQ4" } }
 }
 ```
 
-# Related Notes
+And [access delegate] capability allows her to send the delegation so it could be claimed by Bob.
 
-## Free provider
+```json
+{
+  "v": "0.9.1",
+  "iss": "did:key:zAliceSpace",
+  "aud": "did:web:web3.storage",
+  "att": [
+    {
+      "with": "did:key:zAliceSpace",
+      "can": "access/delegate",
+      "nb": {
+        // Map of delegation links to be stored for their audiences.
+        "delegations": { "bafy...prf1": { "/": "bafy...prf1" } }
+      }
+    }
+  ],
+  "prf": [{ "/": "bafy...prf1" }],
+  "exp": 1685602800,
+  "s": { "/": { "bytes": "7aEDQJb...dJQ4" } }
+}
+```
 
-web3.storage offers one "free provider" per account. It will be denied if a `consumer` space is not specified or if account has already claimed it with a different `consumer` space.
-
-Note that adding the "free provider" to a space more than once has no effect _(even when obtained through different accounts)_, because a space has _set_ of providers, and "free provider" is either in that set or not.
+When Bob runs `w3up` agent the first time and authorizes as `bob@gmail.com`, the program invokes [access claim] capability and collects all capabilities available to the account, including one sent by Alice, gaining access to her space.
 
 [`did:key`]: https://w3c-ccg.github.io/did-method-key/
-[authorization]: w3-session.md#authorization
+[UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
+[UCAN Receipt]:https://github.com/ucan-wg/invocation/tree/f28f682bcb484cb515785b2a268d8a5b4cfc2b58#225-receipt
+[IPLD]: https://ipld.io/
+[DAG-CBOR]: https://ipld.io/specs/codecs/dag-cbor/spec/
+[space]:#space
+[owner]:#owner
+[access]:#access
+[DID]:https://www.w3.org/TR/did-core/
+[DAG-JSON]:ipld.io/specs/codecs/dag-json/spec
+[access example]:#Example_in_DAG-JSON
+[w3up]:https://github.com/web3-storage/w3up
+[IPLD Map]:https://ipld.io/docs/schemas/features/typekinds/#map
+[IPLD Link]:https://ipld.io/docs/schemas/features/links
+[message channel]:https://en.wikipedia.org/wiki/Channel_(programming)
+[account]:./w3-account.md
+[access delegate]:#access-delegate
+[access request]:#access-request
+[access claim]:#access-claim
+[access authorize]:#access-authorize
+[attestation]:./w3-ucan.md#attestation
