@@ -570,7 +570,7 @@ When Bob runs the `w3up` agent the first time and authorizes as `bob@gmail.com`,
 [access]:#access
 [DID]:https://www.w3.org/TR/did-core/
 [DAG-JSON]:https://ipld.io/specs/codecs/dag-json/spec
-[access example]:#Example_in_DAG-JSON
+[access example]:#example-in-dag-json
 [w3up]:https://github.com/web3-storage/w3up
 [IPLD Map]:https://ipld.io/docs/schemas/features/typekinds/#map
 [IPLD Link]:https://ipld.io/docs/schemas/features/links
