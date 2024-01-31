@@ -354,7 +354,7 @@ type SubscriptionList struct {
 
 [did:key]: https://w3c-ccg.github.io/did-method-key/
 [UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
-[principal]:https://github.com/ucan-wg/spec/blob/
+[principal]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#321-principals
 [provider]:#provider
 [`did:mailto`]:./did-mailto.md
 [`did:key`]:https://w3c-ccg.github.io/did-method-key/
