@@ -206,7 +206,7 @@ The `product` field MUST be set to the chosen subscription plan.
 
 ##### Subscription Proof
 
-The `proof` field of the `provider/add` invocation MUST be a link to a valid delegation of `subscription/*` capabilities. 
+The `proof` field of the `provider/add` invocation MUST be a link to a valid delegation of `subscription/*` capabilities.
 
 The audience (`aud` field) of the delegation (the `proof`) MUST be set to the [customer] of the subscription. The subject (`with` field) of the `proof` MUST be set to the [provider] of the subscription. The `nb.customer` field of the `proof` MUST be set to the [customer] of the subscription. The `nb.order` field of the `proof` MUST be set to the unique identifier of the subscription.
 
