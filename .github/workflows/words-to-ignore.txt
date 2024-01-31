@@ -152,3 +152,7 @@ fieldAccountPrincipal
 installationIssuerPrincipal
 iteratively
 base32
+AccountA
+AgentA
+IssuerA
+AudiencePrincipal
