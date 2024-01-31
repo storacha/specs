@@ -359,7 +359,7 @@ type SubscriptionList struct {
 [`did:mailto`]:./did-mailto.md
 [`did:key`]:https://w3c-ccg.github.io/did-method-key/
 [customer]:#customer
-[account]:#account
+[account]:./w3-account.md#account
 [space]:#space
 [subscription]:#subscription
 [provision]:#provision
