@@ -28,7 +28,7 @@ In web2, a user _(which could be an individual or an organization)_ directly cor
 
 > If there is a notion of sharing capabilities it's usually limited & very domain specific. Sharing across applications is extremely rare and usually involves large cross-organizational efforts.
 
-With a [UCAN][] based authorization model, things are different. User creates a (name)space _(addressed by [did:key][] URI)_ locally and can delegate set of capabilities to an agent _(also addressed by [did:key][] URI)_ that acts on user behalf. Agent can invoke any of the delegated capabilities or (re)delegate them. This model enables a wide range of possibilities that are difficult, to impossible, in the web2 model. Capabilities form the protocol, making sharing and interop implicit in every layer of the stack. Inevitably this breaks 1 to 1 correlation between users and spaces. Each user may have access to a multitude of spaces _(that they either own or were delegated access to)_ and multiple users may have access to the same (shared) space.
+With a [UCAN][] based authorization model, things are different. A user creates a (name)space _(addressed by [did:key][] URI)_ locally and can delegate a set of capabilities to an agent _(also addressed by [did:key][] URI)_ that acts on the user's behalf. The user's software "agent" can invoke any of the delegated capabilities or (re)delegate them. This model enables a wide range of possibilities that are difficult or impossible in the web2 model. Capabilities can be assembled into a protocol, making sharing and interop implicit in every layer of the stack. Inevitably this breaks the 1 to 1 correlation between users and spaces. Each user may have access to a multitude of spaces _(that they either own or were delegated access to)_ and multiple users may have access to the same (shared) space.
 
 > The implications of this are tremendous, we are no longer building apps behind walled gardens, but rather tap into the rich network of information with self describing protocols.
 
@@ -36,73 +36,73 @@ With a [UCAN][] based authorization model, things are different. User creates a 
 
 ### Roles
 
-There are several distinct roles that [principal]s may assume in described specification:
+There are several distinct roles that [principal]s may assume in this specification:
 
 | Name        | Description                                                                                                                                    |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Principal | The general class of entities that interact with a UCAN. Listed in the `iss` or `aud` field |
-| Account    | [Principal] identified by memorable identifier like [`did:mailto`]. |
-| Agent       | [Principal] identified by [`did:key`] identifier, representing a user in some application installation |
-| Issuer | Principal sharing access. It is the signer of the [UCAN]. Listed in the `iss` field |
-| Audience | Principal access is shared with. Listed in the `aud` field |
+| Principal | The general class of entities that interact with a UCAN. Identified by a DID that can be used in the `iss` or `aud` field of a UCAN. |
+| Account    | A [Principal] identified by memorable identifier like [`did:mailto`]. |
+| Agent       | A [Principal] identified by [`did:key`] identifier, representing a user in an application. |
+| Issuer | A [principal] delegating capabilities to another [principal]. It is the signer of the [UCAN]. Specified in the `iss` field of a UCAN. |
+| Audience | Principal access is shared with. Specified in the `aud` field of a UCAN. |
 
 ### Provider
 
-Provider is service implementing protocol complaint capability handlers. When [space] is provisioned with a provider, capabilities invoked on that space are routed to a corresponding capability provider.
+A provider is service implementing protocol complaint capability handlers. When a [space] is provisioned with a provider, capabilities invoked on that space are routed to a corresponding capability provider.
 
-As we have above established in the introduction, users create spaces and manage access through delegated capabilities. However, when capability `store/add` of `did:key:zAlice` [space] is invoked, some program needs to perform a task corresponding to that capability.
+As established in the introduction, users create spaces and manage access through delegated capabilities. However, when a capability (say, `store/add`) is invoked on a [space] (say, `did:key:zAlicesSpace`) is invoked, some program needs to perform a task corresponding to that capability.
 
-Programs that perform can perform such tasks in protocol compliant manner are offered by capability providers, or providers for short, through a [subscription]. Users can get a subscription from service by agreeing to their terms of service. [Subscription] can be used to provision [space] with capabilities, offered under the terms of subscription.
+Programs that perform can perform such tasks in a protocol compliant manner are offered by capability providers, or providers for short, through a [subscription]. Users can get a subscription from a service by agreeing to their terms of service. A [subscription] can be used to provision a [space] with capabilities, contingent on the terms of subscription.
 
-Capability invoked on the space is routed to the capability provider that space is provisioned with. If [space] is not provisioned with invoked capability, invocation SHOULD fail.
+A capability invoked on the space is routed to the capability provider that space is provisioned with. If a [space] is not provisioned with the invoked capability, invocation SHOULD fail.
 
 ### Subscription
 
-Subscription is an agreement to terms of service. Broadly speaking [customer] agree to pay metered service fee for the provided service and in return [provider] service agrees to provide set of protocol compliant capabilities.
+A subscription is an agreement to some terms of service. Broadly speaking a [customer] agrees to pay a metered service fee for the provided service and in return the [provider] service agrees to provide a set of protocol compliant capabilities.
 
 Every [UCAN] invocation gets a signed receipt from the [provider] and can be used by the [customer] to hold service accountable if they violate terms of service.
 
-Subscription MAY be suspended or terminated by the [provider] if [customer] violates terms of service. [Customer] MAY terminate subscription when they no longer wish to receive the service.
+A subscription MAY be suspended or terminated by the [provider] if the [customer] violates the terms of service. A [customer] MAY terminate a subscription when they no longer wish to receive the service.
 
-When subscription is established, [provider] MUST delegate `subscription/*` capabilities to the subscribed [customer]. Capabilities under `subscription/*` namespace MUST follow described protocol, allowing [customer] to manage their subscription and provision spaces with capabilities offered.
+When a subscription is established, the [provider] MUST delegate `subscription/*` capabilities to the subscribed [customer]. Capabilities under `subscription/*` namespace MUST follow the described protocol, allowing the [customer] to manage their subscription and provision spaces with capabilities offered.
 
 ### Provision
 
-[Customer] with an active [subscription] MAY provision [space] with set of capabilities offered by the [subscription]. [Customer] MAY set limits on the space provision to manage costs, which makes provisioning [space] controlled by third party financially viable.
+A [customer] with an active [subscription] MAY provision a [space] with set of capabilities offered by the [subscription]. A [customer] MAY set limits on the space provision to manage costs, which makes provisioning a [space] controlled by third party financially viable.
 
-[Subscription] can be conceptualized as a leasing agreement between [provider] and [customer], in which case [provision] can be viewed as subleasing agreement between [customer] and a [space].
+A [subscription] can be conceptualized as a leasing agreement between a [provider] and a [customer], in which case a [provision] can be viewed as a subleasing agreement between a [customer] and a [space].
 
 ### Customer
 
-Customer is a user [account] that has a [subscription] with a service [provider].
+A customer is a user [account] that has a [subscription] with a service [provider].
 
-ℹ️ Customer does not need to own or even have access to a [space], e.g. employer MAY setup an [account], setup [subscription] and use it to [provision] employee [space]s.
+ℹ️ A customer does not need to own or even have access to a [space], e.g. an employer MAY setup an [account], setup a [subscription] and use it to [provision] employee [space]s.
 
 ### Space
 
-Namespace, or space for short, is an owned resource that can be shared. It corresponds to the asymmetric keypair and is identified by the [`did:key`] URI. Space can be provisioned with capabilities provided by the [provider] through a [subscription].
+A namespace, often referred as a "space", is an owned resource that can be shared. It corresponds to a unique asymmetric cryptographic keypair and is identified by a [`did:key`] URI. A space can be provisioned with capabilities provided by a [provider] through a [subscription].
 
 # Capabilities
 
-Here we describe protocol for arranging subscriptions and using it to provision [space]s.
+Here we describe a protocol for arranging subscriptions and using them to provision [space]s.
 
 ## Provider Capabilities
 
 ### Provider Add
 
-User MAY invoke `provider/add` capability on the [account] subject (`with` field) to start a subscription with [provider] (`aud` field).
+A user MAY invoke the `provider/add` capability on the [account] subject (`with` field) to start a subscription with a [provider] (`aud` field).
 
 #### Subscription Provider
 
-The audience of the invocation (`aud` field) MUST be a [provider] [DID] of the desired [subscription].
+The audience of the invocation (`aud` field) MUST be the [provider] [DID] of the desired [subscription].
 
 #### Subscription Customer
 
-The subject of the invocation (`with` field) MUST be a [customer] [DID] of the desired [subscription].
+The subject of the invocation (`with` field) MUST be the [customer] [DID] of the desired [subscription].
 
 #### Subscription Plan
 
-Provider MAY offer multiple subscription plans. Invocation MAY specify desired plan using `nb.product` field.
+A provider MAY offer multiple subscription plans. An invocation MAY specify the user's desired plan using `nb.product` field.
 
 #### Provider Add Example
 
@@ -145,7 +145,7 @@ type ProviderAdd struct {
 
 #### Subscription State
 
-[Provider] MUST return a variant of the `SubscriptionState` on a successful invocation of the `provider/add`.
+A [Provider] MUST return a variant of the `SubscriptionState` on a successful invocation of the `provider/add`.
 
 #### Subscription State IPLD Schema
 
@@ -158,7 +158,7 @@ type SubscriptionState union {
 
 #### Pending Subscription
 
-[Provider] MUST return `PendingSubscription` variant when it requires an out-of-bound interaction to start a subscription. For example provider MAY require payment setup for the billing.
+A [Provider] MUST return a `PendingSubscription` variant when it requires an out-of-bound interaction to start a subscription. For example, a provider MAY require payment setup for the billing.
 
 ##### Pending Subscription Schema
 
@@ -175,7 +175,7 @@ type ProviderDID = DID
 
 ##### Pending Subscription URL
 
-The `url` field MUST be set to the location user is expected to navigate, to complete subscription process.
+The `url` field MUST be set to the location to which the user is expected to navigate to complete subscription process.
 
 ##### Pending Subscription Provider
 
@@ -183,14 +183,14 @@ The `provider` field MUST be set to the [DID] of the [subscription] [provider].
 
 #### Active Subscription
 
-[Provider] MUST return `ActiveSubscription` variant when out-of-bound interaction is not required. For example provider may offer a free plan to any [account]. Provider could return `ActiveSubscription` if it already has billing info for the [account].
+A [Provider] MUST return an `ActiveSubscription` variant when out-of-bound interaction is not required. For example, a provider may offer a free plan to any [account]. The provider could return `ActiveSubscription` if it already has billing info for the [account].
 
 ##### Active Subscription Schema
 
 ```ipldsch
 type ActiveSubscription struct {
   provider          ProviderDID
-  product           ProductDID
+  product           URL
   order             String
   proof             Link
 }
@@ -206,7 +206,9 @@ The `product` field MUST be set to the chosen subscription plan.
 
 ##### Subscription Proof
 
-The `proof` field MUST be a link to a valid delegation for `subscription/*` capabilities. The audience (`aud` field) of the `proof` MUST be set to the [customer] of the subscription. Subject (`with` field) of the `proof` MUST be set to the [provider] of the subscription. The `nb.customer` field of the `proof` MUST be set to the [customer] of the subscription. The `nb.order` field of the `proof` MUST be set to the unique identifier of the subscription.
+The `proof` field of the `provider/add` invocation MUST be a link to a valid delegation of `subscription/*` capabilities. 
+
+The audience (`aud` field) of the delegation (the `proof`) MUST be set to the [customer] of the subscription. The subject (`with` field) of the `proof` MUST be set to the [provider] of the subscription. The `nb.customer` field of the `proof` MUST be set to the [customer] of the subscription. The `nb.order` field of the `proof` MUST be set to the unique identifier of the subscription.
 
 ###### Subscription Proof Example
 
@@ -237,7 +239,7 @@ The `proof` field MUST be a link to a valid delegation for `subscription/*` capa
 
 ### Provider List
 
-User MAY invoke `provider/list` capability on the [account] subject (`with` field) to list all subscriptions it has with a [provider] (`aud` field).
+A user MAY invoke the `provider/list` capability on the [account] subject (`with` field) to list all subscriptions it has with a [provider] (`aud` field).
 
 #### Provider List Schema
 
@@ -252,7 +254,7 @@ type struct ProviderList struct {}
 
 ### Provider Remove
 
-User MAY invoke `provider/remove` capability on the [account] subject (`with` field) to cancel a subscription with [provider] (`aud` field).
+A user MAY invoke the `provider/remove` capability on the [account] subject (`with` field) to cancel a subscription with [provider] (`aud` field).
 
 #### Provider Remove Schema
 
@@ -283,7 +285,7 @@ type Subscription union {
 
 ### Subscription Add
 
-User MAY invoke `subscription/add` capability to provision desired [space] with the capabilities provided through subscription.
+A user MAY invoke the `subscription/add` capability to provision desired [space] with the capabilities provided through the subscription.
 
 #### Subscription Add Schema
 
@@ -311,11 +313,11 @@ The `nb.consumer` MUST be set to the [space] DID to be provisioned.
 
 The `nb.budget` MUST be set to the map where keys are names of the capacities and values are the allowed utilization per billing cycle.
 
-> ℹ️ Adding [space] to the subscription twice only causes previous budget to be merged with the new one.
+> ℹ️ Adding a [space] to a subscription twice only causes previous budget to be merged with the new one.
 
 ### Subscription Remove
 
-User MAY invoke `subscription/remove` capability to remove [space] from this subscription.
+A user MAY invoke the `subscription/remove` capability to remove a [space] from this subscription.
 
 #### Subscription Remove Schema
 
@@ -334,7 +336,7 @@ type SubscriptionRemove struct {
 
 ### Subscription List
 
-Agent MAY invoke `subscription/list` capability to list provisions under this subscription.
+An agent MAY invoke the `subscription/list` capability to list provisions under this subscription.
 
 #### Subscription List Schema
 
