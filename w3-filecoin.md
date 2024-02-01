@@ -40,7 +40,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
     - [Aggregator Capabilities](#aggregator-capabilities)
       - [`piece/offer`]
       - [`piece/accept`]
-    - [Dealer Capabilities](#storefront-capabilities)
+    - [Dealer Capabilities](#dealer-capabilities)
       - [`aggregate/offer`]
       - [`aggregate/accept`]
     - [Deal Tracker Capabilities](#deal-tracker-capabilities)
