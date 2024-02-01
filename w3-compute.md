@@ -22,7 +22,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 - [Introduction](#introduction)
 - [Capabilities](#capabilities)
-  - [`compute/` namespace](#comput-namespace)
+  - [`compute/` namespace](#compute-namespace)
     - [`compute/*`](#compute)
     - [`compute/piececid`](#computepiececid)
 - [Schema](#schema)
@@ -38,11 +38,11 @@ Note that the discovery process by actors looking for services providing given c
 
 # Capabilities
 
-### `compute/` namespace
+## `compute/` namespace
 
-The `compute/` namespace contains capabilities relating to computations. 
+The `compute/` namespace contains capabilities relating to computations.
 
-### `compute/*`
+## `compute/*`
 
 > Delegate all capabilities in the `compute/` namespace
 
@@ -50,9 +50,9 @@ The `compute/*` capability is the "top" capability of the `compute/*` namespace.
 
 In other words, if an agent has a delegation for `compute/*` for a given space URI, they can invoke any capability in the `compute/` namespace using that space as the resource.
 
-### `compute/piececid`
+## `compute/piececid`
 
-> Request computation of a PieceCIDv2 per [FRC-0069](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0069.md). A CID representation for the FR32 padded sha256-trunc254-padded binary merkle trees used in Filecoin Piece Commitments.
+Request computation of a PieceCIDv2 per [FRC-0069](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0069.md). A CID representation for the FR32 padded sha256-trunc254-padded binary merkle trees used in Filecoin Piece Commitments.
 
 > `did:key:zAliceAgent` invokes `compute/piececid` capability provided by `did:web:web3.storage`
 
@@ -75,7 +75,7 @@ In other words, if an agent has a delegation for `compute/*` for a given space U
 }
 ```
 
-##### Compute PieceCID Failure
+### Compute PieceCID Failure
 
 The service MAY fail the invocation if the linked `content` is not found. Implementer can rely on IPFS gateways, location claims or any other service to try to find the CAR bytes.
 
@@ -91,7 +91,7 @@ The service MAY fail the invocation if the linked `content` is not found. Implem
 }
 ```
 
-##### Compute PieceCID Success
+### Compute PieceCID Success
 
 ```json
 {
@@ -105,9 +105,9 @@ The service MAY fail the invocation if the linked `content` is not found. Implem
 }
 ```
 
-## Schema
+# Schema
 
-### `compute/piececid` schema
+## `compute/piececid` schema
 
 ```ipldsch
 type ComputePieceCid struct {
