@@ -13,7 +13,7 @@ Stable specs may be improved but should not change fundamentally.
 - [`w3-account`](./w3-account.md) - let users sync and recover delegatated capabilities via a `did` they control.
 - [`w3-session`](./w3-session.md) - delegating capabilities to an agent via email verification magic link.
 - [`w3-store`](./w3-store.md) - storing shards of a DAGs as CARs; linking root CIDs to shards as uploads.
-- [`w3-filecoin`](./w3-filecoin.md) - verfiable aggreagation of CARs for filecoin deals.
+- [`w3-filecoin`](./w3-filecoin.md) - verfiably dealing uploads for commitment in filecoin storage.
 
 ### Other specs
 
