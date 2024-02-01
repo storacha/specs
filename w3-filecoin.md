@@ -310,7 +310,8 @@ This task is effectively a shortcut allowing an observer to find out the result 
 
 #### `filecoin/submit`
 
-The task MUST be invoked by the [Storefront] which MAY be used to verify the offered content piece before propagating it through the pipeline.
+The task MUST be invoked by the [Storefront] which MAY be used to verify the offered content piece before propagating it through the pipeline. For this, [Storefront] may ask a third party service to [compute](./w3-compute.md) the PieceCID for validation.
+
 > `did:web:web3.storage` invokes capability from `did:web:web3.storage`
 
 ```json
