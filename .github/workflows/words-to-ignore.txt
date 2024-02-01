@@ -156,3 +156,7 @@ AccountA
 AgentA
 IssuerA
 AudiencePrincipal
+PieceCID
+PieceCIDv2
+FR32
+sha256-trunc254-padded
