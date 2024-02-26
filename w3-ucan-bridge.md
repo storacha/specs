@@ -43,7 +43,7 @@ Content-Type: application/json
 }
 ```
 
-And receive a dag-json-encoded list of UCAN bridge receipts like:
+And receive a DAG-JSON-encoded list of UCAN bridge receipts like:
 
 ```json
 [
@@ -133,7 +133,7 @@ async function deriveSigner(headerValue: string): Promise<ed25519.EdSigner> {
 }
 ```
 
-`Authorization` is an IPLD CAR [ed: unixfs encoded? need to understand Delegation archive format better] representing a UCAN delegation.
+`Authorization` is an IPLD CAR representing a UCAN delegation.
 It should grant the principal identified by `X-Auth-Secret` appropriate capabilities
 on the resource identified in the JSON body of the HTTP request.
 
