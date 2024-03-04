@@ -9,12 +9,17 @@
 ## Authors
 
 - [Travis Vachon](https://github.com/travis), [DAG House](https://dag.house/)
+- [Irakli Gozalishvili](https://github.com/Gozala), [DAG House](https://dag.house/)
 
 # Abstract
 
-We have implemented a "bridge" that allows w3up users to interact with the service without implementing the UCAN invocation wire protocols.
+Users of the `w3up` upload protocol are currently required to implement the UCAN invocation
+specification. While existing implementations exist for JavaScript and Go, many users are not
+willing or able to use them and prefer or require an API that uses more traditional HTTP semantics.
 
-Here we define the HTTP protocol for interacting with the bridge.
+This specification describes an HTTP-based "bridge" that will convert a properly formatted HTTP
+POST request into a UCAN invocation, execute the invocation, and return the verifiable receipts of
+the invocation execution to the user.
 
 ## Language
 
@@ -33,11 +38,15 @@ Content-Type: application/json
 {
   tasks: [
     ["store/add", "did:key:z6Mkm5qHN9g9NQSGbBfL7iGp9sexdssioT4CzyVap9ATqGqX", {
-        "link": "bagbaierah5sr5zt3tqgkrixptqzyerpxp5vwyjlx3n5frp2tbnr3clqrmrqa",
+        "link": { 
+          "/": "bagbaierah5sr5zt3tqgkrixptqzyerpxp5vwyjlx3n5frp2tbnr3clqrmrqa"
+        },
         "size": 42
     }],
     ["store/add", "did:key:z6Mkm5qHN9g9NQSGbBfL7iGp9sexdssioT4CzyVap9ATqGqX", {
-        "link": "bafybeicajpuoxboivzka7cyft7okjf6vp43uk5udnedsrle6jews2cqj3a",
+        "link": {
+          "/": "bafybeicajpuoxboivzka7cyft7okjf6vp43uk5udnedsrle6jews2cqj3a"
+        },
         "size": 789
     }]
   ]
@@ -108,19 +117,19 @@ A UCAN bridge receipt has two fields, `data` and `sig`:
 
 ## Authorization
 
-The `X-Auth-Secret` and `Authorization` header values can be generated with the `bridge generate-tokens` command of `w3cli`:
+We use two HTTP headers to authorize requests to the bridge:
 
-```sh
-$ w3 bridge generate-tokens did:key:z6Mkm5qHN9g9NQSGbBfL7iGp9sexdssioT4CzyVap9ATqGqX --expiration 1707264563641
+The first, `X-Auth-Secret`, is used to deterministically generate the public/private keypair that will be used
+as the "principal" of the request. It can be used to deterministically generate a private key, and should
+be kept as secure as possible.
 
-X-Auth-Secret header: uNGUyOTA2OTRlYjNlZDJjNjE3ZTRkNzBlYzJiN2RkYTM=
-
-Authorization header: uOqJlcm9vdHOB2CpYJQABcRIggNKF1CtKV9n5k1T8575Uh8T5P-Ju8u9J4PMymVnXrC5ndmVyc2lvbgG-BQFxEiB-pJ_qmilXuN7XI0DMfWHFW_npviV1YPnne3fxx0Vx3Khhc1hE7aEDQKF3NP3YRysG_gzE7uF4T_-HFcSMWMDr2rOgCdGpnKtqP9hEuuMfjpz_1-rCHTkiIQnpELGw6wO5rWUuOfM8pgRhdmUwLjkuMWNhdHSGomNjYW5nc3BhY2UvKmR3aXRoeDhkaWQ6a2V5Ono2TWtyVG5aSEVNWkJ2MzI0SDJVeTdjdXI2SEdvcHl0bmZHOFd0QW8xMkxQckI5NKJjY2FuZ3N0b3JlLypkd2l0aHg4ZGlkOmtleTp6Nk1rclRuWkhFTVpCdjMyNEgyVXk3Y3VyNkhHb3B5dG5mRzhXdEFvMTJMUHJCOTSiY2Nhbmh1cGxvYWQvKmR3aXRoeDhkaWQ6a2V5Ono2TWtyVG5aSEVNWkJ2MzI0SDJVeTdjdXI2SEdvcHl0bmZHOFd0QW8xMkxQckI5NKJjY2FuaGFjY2Vzcy8qZHdpdGh4OGRpZDprZXk6ejZNa3JUblpIRU1aQnYzMjRIMlV5N2N1cjZIR29weXRuZkc4V3RBbzEyTFByQjk0omNjYW5qZmlsZWNvaW4vKmR3aXRoeDhkaWQ6a2V5Ono2TWtyVG5aSEVNWkJ2MzI0SDJVeTdjdXI2SEdvcHl0bmZHOFd0QW8xMkxQckI5NKJjY2FuZ3VzYWdlLypkd2l0aHg4ZGlkOmtleTp6Nk1rclRuWkhFTVpCdjMyNEgyVXk3Y3VyNkhHb3B5dG5mRzhXdEFvMTJMUHJCOTRjYXVkWCLtAUn0qM5JR33gEL3vJ0-FYRaYfKOWfY82JUvkwOHZahYVY2V4cBpnpqjmY2ZjdIGhZXNwYWNloWRuYW1lZnRyYXZpc2Npc3NYIu0Bsm6-NkeTTvIb1q1lweVyY_gHAXbO5r3JrlIrw6nlo2NjcHJmgNECAXESILbAasj0dgIrbhevRQieJFyjmwmxQ2ekaL9QG8Y2i7Gcp2FzWETtoQNAX5yt8ege1TlDd7_ETGviAPBStxgLnq1WaAqgoIRw4lJUk6ha88Wg23VBuNY-IQ380_ZaxxYnTuXf72OZsxEDDWF2ZTAuOS4xY2F0dIGiY2Nhbmt1cGxvYWQvbGlzdGR3aXRoeDhkaWQ6a2V5Ono2TWtyVG5aSEVNWkJ2MzI0SDJVeTdjdXI2SEdvcHl0bmZHOFd0QW8xMkxQckI5NGNhdWRYIu0BEtkc3siSUH7S0eTOj30FFnw7sSiNzFgxY4lOrUaGKbBjZXhwGmXO8PpjaXNzWCLtAUn0qM5JR33gEL3vJ0-FYRaYfKOWfY82JUvkwOHZahYVY3ByZoHYKlglAAFxEiB-pJ_qmilXuN7XI0DMfWHFW_npviV1YPnne3fxx0Vx3FkBcRIggNKF1CtKV9n5k1T8575Uh8T5P-Ju8u9J4PMymVnXrC6hanVjYW5AMC45LjHYKlglAAFxEiC2wGrI9HYCK24Xr0UIniRco5sJsUNnpGi_UBvGNouxnA
-```
+The second, `Authorization`, is parsed into a UCAN that grants the principal identified by `X-Auth-Secret`
+the capabilities needed to authorize the invocation represented by the HTTP request. 
 
 `X-Auth-Secret` is a base64url-multibase-encoded Uint8Array of arbitrary length that will be used to derive an ed25519 principal as follows:
 
 ```typescript
+import { base64url } from 'multiformats/bases/base64'
 import { sha256 } from '@ucanto/core'
 import { ed25519 } from '@ucanto/principal'
 
@@ -131,13 +140,23 @@ async function deriveSigner(headerValue: string): Promise<ed25519.EdSigner> {
 }
 ```
 
-`Authorization` is an IPLD CAR representing a UCAN delegation.
+`Authorization` is a base64url-multibase-encoded IPLD CAR representing a UCAN delegation.
 It should grant the principal identified by `X-Auth-Secret` appropriate capabilities
 on the resource identified in the JSON body of the HTTP request.
 
+The `X-Auth-Secret` and `Authorization` header values can be generated with the `bridge generate-tokens` command of `w3cli`:
+
+```sh
+$ w3 bridge generate-tokens did:key:z6Mkm5qHN9g9NQSGbBfL7iGp9sexdssioT4CzyVap9ATqGqX --expiration 1707264563641
+
+X-Auth-Secret header: uNGUyOTA2OTRlYjNlZDJjNjE3ZTRkNzBlYzJiN2RkYTM=
+
+Authorization header: uOqJlcm9vdHOB2CpYJQABcRIggNKF1CtKV9n5k1T8575Uh8T5P-Ju8u9J4PMymVnXrC5ndmVyc2lvbgG-BQFxEiB-pJ_qmilXuN7XI0DMfWHFW_npviV1YPnne3fxx0Vx3Khhc1hE7aEDQKF3NP3YRysG_gzE7uF4T_-HFcSMWMDr2rOgCdGpnKtqP9hEuuMfjpz_1-rCHTkiIQnpELGw6wO5rWUuOfM8pgRhdmUwLjkuMWNhdHSGomNjYW5nc3BhY2UvKmR3aXRoeDhkaWQ6a2V5Ono2TWtyVG5aSEVNWkJ2MzI0SDJVeTdjdXI2SEdvcHl0bmZHOFd0QW8xMkxQckI5NKJjY2FuZ3N0b3JlLypkd2l0aHg4ZGlkOmtleTp6Nk1rclRuWkhFTVpCdjMyNEgyVXk3Y3VyNkhHb3B5dG5mRzhXdEFvMTJMUHJCOTSiY2Nhbmh1cGxvYWQvKmR3aXRoeDhkaWQ6a2V5Ono2TWtyVG5aSEVNWkJ2MzI0SDJVeTdjdXI2SEdvcHl0bmZHOFd0QW8xMkxQckI5NKJjY2FuaGFjY2Vzcy8qZHdpdGh4OGRpZDprZXk6ejZNa3JUblpIRU1aQnYzMjRIMlV5N2N1cjZIR29weXRuZkc4V3RBbzEyTFByQjk0omNjYW5qZmlsZWNvaW4vKmR3aXRoeDhkaWQ6a2V5Ono2TWtyVG5aSEVNWkJ2MzI0SDJVeTdjdXI2SEdvcHl0bmZHOFd0QW8xMkxQckI5NKJjY2FuZ3VzYWdlLypkd2l0aHg4ZGlkOmtleTp6Nk1rclRuWkhFTVpCdjMyNEgyVXk3Y3VyNkhHb3B5dG5mRzhXdEFvMTJMUHJCOTRjYXVkWCLtAUn0qM5JR33gEL3vJ0-FYRaYfKOWfY82JUvkwOHZahYVY2V4cBpnpqjmY2ZjdIGhZXNwYWNloWRuYW1lZnRyYXZpc2Npc3NYIu0Bsm6-NkeTTvIb1q1lweVyY_gHAXbO5r3JrlIrw6nlo2NjcHJmgNECAXESILbAasj0dgIrbhevRQieJFyjmwmxQ2ekaL9QG8Y2i7Gcp2FzWETtoQNAX5yt8ege1TlDd7_ETGviAPBStxgLnq1WaAqgoIRw4lJUk6ha88Wg23VBuNY-IQ380_ZaxxYnTuXf72OZsxEDDWF2ZTAuOS4xY2F0dIGiY2Nhbmt1cGxvYWQvbGlzdGR3aXRoeDhkaWQ6a2V5Ono2TWtyVG5aSEVNWkJ2MzI0SDJVeTdjdXI2SEdvcHl0bmZHOFd0QW8xMkxQckI5NGNhdWRYIu0BEtkc3siSUH7S0eTOj30FFnw7sSiNzFgxY4lOrUaGKbBjZXhwGmXO8PpjaXNzWCLtAUn0qM5JR33gEL3vJ0-FYRaYfKOWfY82JUvkwOHZahYVY3ByZoHYKlglAAFxEiB-pJ_qmilXuN7XI0DMfWHFW_npviV1YPnne3fxx0Vx3FkBcRIggNKF1CtKV9n5k1T8575Uh8T5P-Ju8u9J4PMymVnXrC6hanVjYW5AMC45LjHYKlglAAFxEiC2wGrI9HYCK24Xr0UIniRco5sJsUNnpGi_UBvGNouxnA
+```
+
 ## Request Format
 
-The request body should be a JSON or CBOR-encoded map with one key named `tasks` whose value is an array of "task specifications" of the form:
+The request body should be a DAG-JSON or DAG-CBOR-encoded map with one key named `tasks` whose value is an array of "task specifications" of the form:
 
 ```javascript
 [command, subject, arguments]
@@ -155,11 +174,11 @@ Information about possible `arguments` for a particular ability can be found in 
 
 ## Response Format
 
-The response body will contain a JSON or CBOR encoded map with two keys, `data` and `sig`.
+The response body will contain a JSON or CBOR encoded map with two keys, `p` and `s`.
 
-`data` will contain `iss`, `fx`, `meta`, `prf`, `ran` and `out` fields as specified in the [Receipt schema](https://github.com/ucan-wg/invocation?tab=readme-ov-file#23-ipld-schema) of the UCAN Invocation specification.
+`p` will contain `iss`, `fx`, `meta`, `prf`, `ran` and `out` fields as specified in the [Receipt schema](https://github.com/ucan-wg/invocation?tab=readme-ov-file#23-ipld-schema) of the UCAN Invocation specification.
 
-`sig` is a signature over a CBOR-encoded version of the value of the `data` field. It can be verified as follows:
+`s` is a signature over a CBOR-encoded version of the value of the `p` field. It can be verified as follows:
 
 ```javascript
 import * as Signature from '@ipld/dag-ucan/signature'
@@ -168,7 +187,7 @@ import { CBOR } from '@ucanto/core'
 
 ...
 
-const { data, sig } = bridgeReceipt
+const { p, s } = bridgeReceipt
 const signature = Signature.view(sig)
-const valid = signature.verify(ed25519.Verifier.parse(data.iss), CBOR.encode(data))
+const valid = signature.verify(ed25519.Verifier.parse(p.iss), CBOR.encode(p))
 ```
