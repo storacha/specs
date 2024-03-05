@@ -156,3 +156,7 @@ AccountA
 AgentA
 IssuerA
 AudiencePrincipal
+dag-json-encoded
+base64url-multibase-encoded
+Uint8Array
+ed25519
