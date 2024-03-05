@@ -58,7 +58,7 @@ And receive a DAG-JSON-encoded list of UCAN bridge receipts like:
 ```json
 [
   {
-    "data": {
+    "p": {
       "fx": {
         "fork": []
       },
@@ -101,7 +101,7 @@ And receive a DAG-JSON-encoded list of UCAN bridge receipts like:
         "/": "bafyreienff66mf7nse3rm2njikxlshja6d5dkr4fpnyzeik5l6vils6fvq"
       }
     },
-    "sig": {
+    "s": {
       "/": {
         "bytes": "7aEDQCiJYmYe9Gf25hv84NVN/fjN+udnT4Q65kVHFmQb1MPB2EmwDnR+S/TeYNkMxBdwIsNOKDwyTCqKOxvUhbWkGA8"
       }
@@ -110,10 +110,10 @@ And receive a DAG-JSON-encoded list of UCAN bridge receipts like:
 ]
 ```
 
-A UCAN bridge receipt has two fields, `data` and `sig`:
+A UCAN bridge receipt has two fields, `p` and `s`:
 
-`data` contains the result of an invocation (in the nested `out` field) along with information about the invocation.
-`sig` is a signature over a CBOR-encoded version of the value of the `data` field.
+`p` contains the result of an invocation (in the nested `out` field) along with information about the invocation.
+`s` is a signature over a CBOR-encoded version of the value of the `p` field.
 
 ## Authorization
 
@@ -188,6 +188,6 @@ import { CBOR } from '@ucanto/core'
 ...
 
 const { p, s } = bridgeReceipt
-const signature = Signature.view(sig)
+const signature = Signature.view(s)
 const valid = signature.verify(ed25519.Verifier.parse(p.iss), CBOR.encode(p))
 ```
