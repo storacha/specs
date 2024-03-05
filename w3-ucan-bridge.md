@@ -124,7 +124,7 @@ as the "principal" of the request. It can be used to deterministically generate 
 be kept as secure as possible.
 
 The second, `Authorization`, is parsed into a UCAN that grants the principal identified by `X-Auth-Secret`
-the capabilities needed to authorize the invocation represented by the HTTP request. 
+the capabilities needed to authorize the invocation represented by the HTTP request.
 
 `X-Auth-Secret` is a base64url-multibase-encoded Uint8Array of arbitrary length that will be used to derive an ed25519 principal as follows:
 
