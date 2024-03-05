@@ -1,4 +1,4 @@
-# W3 Access Protocol
+# W3UP UCAN Bridge Protocol
 
 ![stable](https://img.shields.io/badge/status-stable-brightgreen.svg?style=flat-square)
 
