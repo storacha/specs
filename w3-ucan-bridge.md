@@ -36,7 +36,7 @@ Authorization: uOqJlcm9vdHOB2CpYJQABcRIggNKF1CtKV9n5k1T8575Uh8T5P-Ju8u9J4PMymVnX
 Content-Type: application/json
 
 {
-  tasks: [
+  "tasks": [
     ["store/add", "did:key:z6Mkm5qHN9g9NQSGbBfL7iGp9sexdssioT4CzyVap9ATqGqX", {
         "link": { 
           "/": "bagbaierah5sr5zt3tqgkrixptqzyerpxp5vwyjlx3n5frp2tbnr3clqrmrqa"
