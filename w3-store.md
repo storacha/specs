@@ -172,15 +172,18 @@ type StoreAddSuccess union {
 }
 
 type StoreAddDone struct {
-  with    SpaceDID
-  link    &ContentArchive
+  with        SpaceDID
+  link        &ContentArchive
+  allocated   Int
 }
 
 type StoreAddPending struct {
-  with      SpaceDID
-  link      &ContentArchive
-  url       URL
-  headers   HTTPHeaders
+  with        SpaceDID
+  link        &ContentArchive
+  url         URL
+  headers     HTTPHeaders
+
+  allocated   Int
 }
 
 type URL = string
@@ -195,6 +198,8 @@ type StoreAddFailure struct {
 
 Capability provider MUST succeed request with a `"done"` status if provider is able to store requested [CAR] on user behalf right-away. In other words provider already has addressed [CAR] file.
 
+Capability provider MUST set `allocated` field to number of bytes it had no allocate for the [CAR], which MUST be either equal to `nb.size` of the invocation or `0` if no additional memory had to be allocated.
+
 ###### Store Add Upload
 
 Capability provider MUST succeed request with a `"upload"` status if it is able to allocate memory for the requested [CAR]. It MUST set `url` field to an HTTP PUT endpoint where addressed [CAR] can be uploaded.
@@ -202,6 +207,9 @@ Capability provider MUST succeed request with a `"upload"` status if it is able 
 Provider MUST set `headers` field to the set of HTTP headers that uploading agent MUST set on an HTTP PUT request.
 
 HTTP PUT endpoint set in `url` field MUST verify that uploaded bytes do correspond to the addressed [CAR] and specified `size`.
+
+Capability provider MUST set `allocated` field to number of bytes it had no allocate for the [CAR], which MUST be either equal to `nb.size` of the invocation or `0` if no additional memory had to be allocated.
+
 
 ###### Store Add Failure
 
