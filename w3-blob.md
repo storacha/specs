@@ -182,18 +182,18 @@ type BlobGetFailure struct {
 
 Capability provider MUST return the state of the requested blob. If memory for the blob was allocated but content has not been yet uploaded result MUST be of `BlobAddAllocation` case. If blob has been allocated and uploaded result MUST of `UCANLocationClaim` case.
 
-> Please note that implementation MAY check local state on invocation and update from `BlobAddAllocation` to `UCANLocationClaim`, however this SHOULD be done in referentially transparent way. In other words no side effects should be exhibited, instead function should lazily compute and cache.
+> Please note that implementation MAY check local state on invocation and update from `BlobAddAllocation` to `UCANLocationClaim`, however this SHOULD be done in way that preserves [referential transparency]. In other words no side effects should be observable, instead function should lazily compute and cache.
 
 ## Publish Blob
 
 Blob can be published by authorizing read interface (e.g. IPFS gateway) by re-delegating `LocationClaim` for a corresponding blob to it.
 
-> Note that same applies to publishing blob on IPNI, new capability is not necessary, user simply needs to re-delegate `LocationClaim` to the DID representing IPNI publisher. IPNI publisher in turn may publish delegation to DID with publicly known private key allowing anyone to perform the reads.
+> Note that same applies to publishing blob on [IPNI], new capability is not necessary, user simply needs to re-delegate `LocationClaim` to the DID representing [IPNI] publisher. [IPNI] publisher in turn may publish delegation to DID with publicly known private key allowing anyone to perform the reads.
 
 
 [store protocol]:./w3-store.md
 [CAR]:https://ipld.io/specs/transport/car/
 [multihash]:https://github.com/multiformats/multihash
 [space]:#space
-
-
+[referential transparency]:https://en.wikipedia.org/wiki/Referential_transparency
+[IPNI]:https://github.com/ipni/specs/blob/main/ipni.md
