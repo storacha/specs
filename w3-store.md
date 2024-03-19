@@ -41,7 +41,6 @@ There are several distinct roles that [principal]s may assume in this specificat
 | Issuer | A [principal] delegating capabilities to another [principal]. It is the signer of the [UCAN]. Specified in the `iss` field of a UCAN. |
 | Audience | Principal access is shared with. Specified in the `aud` field of a UCAN. |
 
-
 ### Space
 
 A namespace, often referred as a "space", is an owned resource that can be shared. It corresponds to a unique asymmetric cryptographic keypair and is identified by a [`did:key`] URI. The `store/` and `upload/` capabilities can be used to manage content stored in the given space at given storage provider.
@@ -115,7 +114,6 @@ Capability invocation MUST specify [Content archive Identifier].
 ##### Store Add Content Size
 
 Capability invocation MUST set `nb.size` field to the byte size of the [content archive][CAR].
-
 
 ##### Store Add Origin
 
@@ -744,7 +742,6 @@ type UploadGetFailure {
 
 Authorized agent MAY invoke `upload/list` capability on the [space] subject (`with` field) to list upload entries at the time of the invocation.
 
-
 #### Upload List Capability
 
 ##### Upload List IPLD Schema
@@ -843,29 +840,15 @@ type UploadListFailure struct {
 }
 ```
 
-
-
-[ucan-spec-top]: https://github.com/ucan-wg/spec#52-top
-[invocation-spec-pr]: https://github.com/web3-storage/specs/pull/34
-
 [CAR]:https://ipld.io/specs/transport/car/
 [Content Address]:https://web3.storage/docs/concepts/content-addressing/
 [UnixFS]:https://docs.ipfs.tech/concepts/file-systems/#unix-file-system-unixfs
 [IPLD]:https://ipld.io/docs/
-[DAG-PB]:https://ipld.io/specs/codecs/dag-pb/spec/
 [DAG]:https://en.wikipedia.org/wiki/Directed_acyclic_graph
 [space]:#space
 [IPLD Link]:https://ipld.io/docs/schemas/features/links/
 [UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
 [principal]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#321-principals
-[provider]:#provider
-[`did:mailto`]:./did-mailto.md
-[`did:key`]:https://w3c-ccg.github.io/did-method-key/
-[customer]:#customer
-[account]:./w3-account.md#account
-[space]:#space
-[subscription]:#subscription
-[provision]:#provision
-[DID]:https://www.w3.org/TR/did-core/
 [Content Archive Identifier]:#content-archive-identifier
-[`store/add`]:#Store-Add
+[`store/add`]:#store-add
+[provider]:./w3-provider.md#provider
