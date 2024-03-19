@@ -1,6 +1,6 @@
 # W3 Storage Protocol
 
-![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
+![reliable](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square)
 
 ## Editors
 
@@ -14,7 +14,7 @@
 
 ## Abstract
 
-In the W3 protocol user owned (name)space represent a data storage primitive that can be managed using W3 storage protocol defined here. Storage protocol allows space owners to manage state across compatible storage provider services using defined set of [UCAN] capabilities. Use of [UCAN] authorization system enables space access to be shared by delegating corresponding capabilities to desired audience.
+In the W3 protocol user owned (name)space represents a data storage primitive that can be managed using W3 storage protocol defined here. Storage protocol allows space owners to manage state across compatible storage provider services using defined set of [UCAN] capabilities. Use of [UCAN] authorization system enables space access to be shared by delegating corresponding capabilities to desired audience.
 
 ## Language
 
@@ -22,11 +22,11 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 # Introduction
 
-The base storage layer of the space is [Content Address]ed [Content ARchive][CAR] files. In practice this means that user wishing to store files or directories of files needs produce an [IPLD] [DAG] in [UnixFS] format and then encoded into one or multiple [Content ARchive]s that can be stored using W3 storage protocol.
+The base storage layer of the space is [Content Address]ed [Content Archive][CAR] files. In practice this means that user wishing to store files or directories of files needs produce an [IPLD] [DAG] in [UnixFS] format and then encoded into one or multiple [Content Archive]s that can be stored using W3 storage protocol.
 
-> Large DAGs get "sharded" across multiple [Content ARchive]s and stored individually to meet size limits of the storage provider.
+> Large DAGs get "sharded" across multiple [Content Archive]s and stored individually to meet potential size limits of the storage provider.
 
-Separately `upload/` protocol can be utilized allowing user to create standalone entities (files, directories) representing entry points to the DAGs contained by the [Content ARchive]s. E.g. when storing a file or a directory [UnixFS] root [CID] and archives are captured using `upload/add` capability allowing viewer to effectively fetch and re-assemble it.
+Separately `upload/` protocol can be utilized allowing user to create standalone entities (files, directories) representing entry points to the DAGs contained by the [Content Archive]s. E.g. when storing a file or a directory [UnixFS] root [CID] and archives are captured using `upload/add` capability allowing viewer to effectively fetch and re-assemble it.
 
 ## Concepts
 
@@ -41,14 +41,13 @@ There are several distinct roles that [principal]s may assume in this specificat
 | Issuer | A [principal] delegating capabilities to another [principal]. It is the signer of the [UCAN]. Specified in the `iss` field of a UCAN. |
 | Audience | Principal access is shared with. Specified in the `aud` field of a UCAN. |
 
-
 ### Space
 
 A namespace, often referred as a "space", is an owned resource that can be shared. It corresponds to a unique asymmetric cryptographic keypair and is identified by a [`did:key`] URI. The `store/` and `upload/` capabilities can be used to manage content stored in the given space at given storage provider.
 
 ## Content Archive
 
-[Content Archive][CAR] ofter referred as [CAR] is a primary primitive for storing shards of the content in the space.
+[Content Archive][CAR] often referred as [CAR] is a primary primitive for storing shards of the content in the space.
 
 # Capabilities
 
@@ -79,7 +78,7 @@ The subject of the invocation (`with` field) MUST be the DID of the target MUST 
 
 ### Content Archive Identifier
 
-The `nb.link` field of the invocation MUST be an [IPLD Link] to the desired [CAR]. Link MUST have Content Addressable aRchive (CAR)  `0x0202` codec code. It is RECOMMENDED to support SHA2-256 multihash code `0x12`. Implementers are MAY choose to support other additional hashing algorithms.
+The `nb.link` field of the invocation MUST be an [IPLD Link] to the desired [CAR]. Link MUST have Content Addressable Archive (CAR)  `0x0202` codec code. It is RECOMMENDED to support SHA2-256 multihash code `0x12`. Implementers are MAY choose to support other additional hashing algorithms.
 
 ### Store Add
 
@@ -115,7 +114,6 @@ Capability invocation MUST specify [Content archive Identifier].
 ##### Store Add Content Size
 
 Capability invocation MUST set `nb.size` field to the byte size of the [content archive][CAR].
-
 
 ##### Store Add Origin
 
@@ -174,15 +172,18 @@ type StoreAddSuccess union {
 }
 
 type StoreAddDone struct {
-  with    SpaceDID
-  link    &ContentArchive
+  with        SpaceDID
+  link        &ContentArchive
+  allocated   Int
 }
 
 type StoreAddPending struct {
-  with      SpaceDID
-  link      &ContentArchive
-  url       URL
-  headers   HTTPHeaders
+  with        SpaceDID
+  link        &ContentArchive
+  url         URL
+  headers     HTTPHeaders
+
+  allocated   Int
 }
 
 type URL = string
@@ -197,6 +198,8 @@ type StoreAddFailure struct {
 
 Capability provider MUST succeed request with a `"done"` status if provider is able to store requested [CAR] on user behalf right-away. In other words provider already has addressed [CAR] file.
 
+Capability provider MUST set `allocated` field to number of bytes it had no allocate for the [CAR], which MUST be either equal to `nb.size` of the invocation or `0` if no additional memory had to be allocated.
+
 ###### Store Add Upload
 
 Capability provider MUST succeed request with a `"upload"` status if it is able to allocate memory for the requested [CAR]. It MUST set `url` field to an HTTP PUT endpoint where addressed [CAR] can be uploaded.
@@ -204,6 +207,8 @@ Capability provider MUST succeed request with a `"upload"` status if it is able 
 Provider MUST set `headers` field to the set of HTTP headers that uploading agent MUST set on an HTTP PUT request.
 
 HTTP PUT endpoint set in `url` field MUST verify that uploaded bytes do correspond to the addressed [CAR] and specified `size`.
+
+Capability provider MUST set `allocated` field to number of bytes it had no allocate for the [CAR], which MUST be either equal to `nb.size` of the invocation or `0` if no additional memory had to be allocated.
 
 ###### Store Add Failure
 
@@ -283,6 +288,7 @@ Capability provider MUST issue `StoreGetSuccess` result for every content archiv
 type StoreGetSuccess {
   link            &ContentArchive
   size            Int
+  # deprecated
   origin optional &ContentArchive
 }
 ```
@@ -346,7 +352,6 @@ Capability invocation MUST specify desired [Content archive Identifier].
 }
 ```
 
-
 #### Store Remove Receipt
 
 Capability provider MUST issue signed receipt containing `StoreRemoveResult`.
@@ -364,7 +369,7 @@ type StoreRemoveResult struct {
 
 ###### Store Remove Success
 
-Capability provider MUST issue `StoreRemoveSuccess` after it has removed the archive from the space.
+Capability provider MUST issue `StoreRemoveSuccess` after it unlinked the archive from the space.
 
 Capability provider MUST set `size` field to the number of bytes that were freed from space.
 
@@ -668,7 +673,7 @@ type UploadGetFailure {
 
 Authorized agent MAY invoke `upload/remove` capability to remove upload entry from the list in the specified space (`with` field).
 
-> ⚠️ Please note that removing upload entry SHOULD NOT remove [content archive][CAR]s containing contain.
+> ⚠️ Please note that removing upload entry MUST NOT remove [content archive][CAR]s containing contain.
 
 #### Upload Remove Capability
 
@@ -742,7 +747,6 @@ type UploadGetFailure {
 ### Upload List
 
 Authorized agent MAY invoke `upload/list` capability on the [space] subject (`with` field) to list upload entries at the time of the invocation.
-
 
 #### Upload List Capability
 
@@ -842,29 +846,15 @@ type UploadListFailure struct {
 }
 ```
 
-
-
-[ucan-spec-top]: https://github.com/ucan-wg/spec#52-top
-[invocation-spec-pr]: https://github.com/web3-storage/specs/pull/34
-
 [CAR]:https://ipld.io/specs/transport/car/
 [Content Address]:https://web3.storage/docs/concepts/content-addressing/
 [UnixFS]:https://docs.ipfs.tech/concepts/file-systems/#unix-file-system-unixfs
 [IPLD]:https://ipld.io/docs/
-[DAG-PB]:https://ipld.io/specs/codecs/dag-pb/spec/
 [DAG]:https://en.wikipedia.org/wiki/Directed_acyclic_graph
 [space]:#space
 [IPLD Link]:https://ipld.io/docs/schemas/features/links/
 [UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
 [principal]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#321-principals
-[provider]:#provider
-[`did:mailto`]:./did-mailto.md
-[`did:key`]:https://w3c-ccg.github.io/did-method-key/
-[customer]:#customer
-[account]:./w3-account.md#account
-[space]:#space
-[subscription]:#subscription
-[provision]:#provision
-[DID]:https://www.w3.org/TR/did-core/
 [Content Archive Identifier]:#content-archive-identifier
-[`store/add`]:Store-Add
+[`store/add`]:#store-add
+[provider]:./w3-provider.md#provider
