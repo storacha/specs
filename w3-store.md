@@ -210,7 +210,6 @@ HTTP PUT endpoint set in `url` field MUST verify that uploaded bytes do correspo
 
 Capability provider MUST set `allocated` field to number of bytes it had no allocate for the [CAR], which MUST be either equal to `nb.size` of the invocation or `0` if no additional memory had to be allocated.
 
-
 ###### Store Add Failure
 
 Capability provider SHOULD fail invocation if the subject [space] has not been provisioned with the provider.
