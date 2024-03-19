@@ -345,7 +345,6 @@ Capability invocation MUST specify desired [Content archive Identifier].
 }
 ```
 
-
 #### Store Remove Receipt
 
 Capability provider MUST issue signed receipt containing `StoreRemoveResult`.
