@@ -22,11 +22,11 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 # Introduction
 
-The base storage layer of the space is [Content Address]ed [Content ARchive][CAR] files. In practice this means that user wishing to store files or directories of files needs produce an [IPLD] [DAG] in [UnixFS] format and then encoded into one or multiple [Content ARchive]s that can be stored using W3 storage protocol.
+The base storage layer of the space is [Content Address]ed [Content Archive][CAR] files. In practice this means that user wishing to store files or directories of files needs produce an [IPLD] [DAG] in [UnixFS] format and then encoded into one or multiple [Content Archive]s that can be stored using W3 storage protocol.
 
-> Large DAGs get "sharded" across multiple [Content ARchive]s and stored individually to meet size limits of the storage provider.
+> Large DAGs get "sharded" across multiple [Content Archive]s and stored individually to meet size limits of the storage provider.
 
-Separately `upload/` protocol can be utilized allowing user to create standalone entities (files, directories) representing entry points to the DAGs contained by the [Content ARchive]s. E.g. when storing a file or a directory [UnixFS] root [CID] and archives are captured using `upload/add` capability allowing viewer to effectively fetch and re-assemble it.
+Separately `upload/` protocol can be utilized allowing user to create standalone entities (files, directories) representing entry points to the DAGs contained by the [Content Archive]s. E.g. when storing a file or a directory [UnixFS] root [CID] and archives are captured using `upload/add` capability allowing viewer to effectively fetch and re-assemble it.
 
 ## Concepts
 
@@ -48,7 +48,7 @@ A namespace, often referred as a "space", is an owned resource that can be share
 
 ## Content Archive
 
-[Content Archive][CAR] ofter referred as [CAR] is a primary primitive for storing shards of the content in the space.
+[Content Archive][CAR] often referred as [CAR] is a primary primitive for storing shards of the content in the space.
 
 # Capabilities
 
@@ -79,7 +79,7 @@ The subject of the invocation (`with` field) MUST be the DID of the target MUST 
 
 ### Content Archive Identifier
 
-The `nb.link` field of the invocation MUST be an [IPLD Link] to the desired [CAR]. Link MUST have Content Addressable aRchive (CAR)  `0x0202` codec code. It is RECOMMENDED to support SHA2-256 multihash code `0x12`. Implementers are MAY choose to support other additional hashing algorithms.
+The `nb.link` field of the invocation MUST be an [IPLD Link] to the desired [CAR]. Link MUST have Content Addressable Archive (CAR)  `0x0202` codec code. It is RECOMMENDED to support SHA2-256 multihash code `0x12`. Implementers are MAY choose to support other additional hashing algorithms.
 
 ### Store Add
 
