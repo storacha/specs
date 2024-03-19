@@ -1,6 +1,6 @@
 # W3 Storage Protocol
 
-![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
+![reliable](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square)
 
 ## Editors
 
@@ -14,7 +14,7 @@
 
 ## Abstract
 
-In the W3 protocol user owned (name)space represent a data storage primitive that can be managed using W3 storage protocol defined here. Storage protocol allows space owners to manage state across compatible storage provider services using defined set of [UCAN] capabilities. Use of [UCAN] authorization system enables space access to be shared by delegating corresponding capabilities to desired audience.
+In the W3 protocol user owned (name)space represents a data storage primitive that can be managed using W3 storage protocol defined here. Storage protocol allows space owners to manage state across compatible storage provider services using defined set of [UCAN] capabilities. Use of [UCAN] authorization system enables space access to be shared by delegating corresponding capabilities to desired audience.
 
 ## Language
 
@@ -24,7 +24,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 The base storage layer of the space is [Content Address]ed [Content ARchive][CAR] files. In practice this means that user wishing to store files or directories of files needs produce an [IPLD] [DAG] in [UnixFS] format and then encoded into one or multiple [Content ARchive]s that can be stored using W3 storage protocol.
 
-> Large DAGs get "sharded" across multiple [Content ARchive]s and stored individually to meet size limits of the storage provider.
+> Large DAGs get "sharded" across multiple [Content ARchive]s and stored individually to meet potential size limits of the storage provider.
 
 Separately `upload/` protocol can be utilized allowing user to create standalone entities (files, directories) representing entry points to the DAGs contained by the [Content ARchive]s. E.g. when storing a file or a directory [UnixFS] root [CID] and archives are captured using `upload/add` capability allowing viewer to effectively fetch and re-assemble it.
 
@@ -283,6 +283,7 @@ Capability provider MUST issue `StoreGetSuccess` result for every content archiv
 type StoreGetSuccess {
   link            &ContentArchive
   size            Int
+  # deprecated
   origin optional &ContentArchive
 }
 ```
@@ -364,7 +365,7 @@ type StoreRemoveResult struct {
 
 ###### Store Remove Success
 
-Capability provider MUST issue `StoreRemoveSuccess` after it has removed the archive from the space.
+Capability provider MUST issue `StoreRemoveSuccess` after it unlinked the archive from the space.
 
 Capability provider MUST set `size` field to the number of bytes that were freed from space.
 
@@ -668,7 +669,7 @@ type UploadGetFailure {
 
 Authorized agent MAY invoke `upload/remove` capability to remove upload entry from the list in the specified space (`with` field).
 
-> ⚠️ Please note that removing upload entry SHOULD NOT remove [content archive][CAR]s containing contain.
+> ⚠️ Please note that removing upload entry MUST NOT remove [content archive][CAR]s containing contain.
 
 #### Upload Remove Capability
 
