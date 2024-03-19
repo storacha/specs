@@ -33,7 +33,6 @@ There are several distinct roles that [principal]s may assume in this specificat
 | Issuer | A [principal] delegating capabilities to another [principal]. It is the signer of the [UCAN]. Specified in the `iss` field of a UCAN. |
 | Audience | Principal access is shared with. Specified in the `aud` field of a UCAN. |
 
-
 ### Space
 
 A namespace, often referred as a "space", is an owned resource that can be shared. It corresponds to a unique asymmetric cryptographic keypair and is identified by a [`did:key`] URI.
@@ -190,10 +189,9 @@ Blob can be published by authorizing read interface (e.g. IPFS gateway) by re-de
 
 > Note that same applies to publishing blob on [IPNI], new capability is not necessary, user simply needs to re-delegate `LocationClaim` to the DID representing [IPNI] publisher. [IPNI] publisher in turn may publish delegation to DID with publicly known private key allowing anyone to perform the reads.
 
-
 [store protocol]:./w3-store.md
 [CAR]:https://ipld.io/specs/transport/car/
 [multihash]:https://github.com/multiformats/multihash
 [space]:#space
 [referential transparency]:https://en.wikipedia.org/wiki/Referential_transparency
-[IPNI]:https://github.com/ipni/specs/blob/main/ipni.md
+[IPNI]:https://github.com/ipni/specs/blob/main/IPNI.md
