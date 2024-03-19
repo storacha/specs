@@ -1,631 +1,870 @@
-# Storage and upload protocol
+# W3 Storage Protocol
 
 ![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
 
 ## Editors
 
 - [Yusef Napora](https://github.com/yusefnapora), [DAG House](https://dag.house)
+- [Irakli Gozalishvili](https://github.com/gozala)
 
 ## Authors
 
+- [Irakli Gozalishvili](https://github.com/gozala)
 - [Yusef Napora](https://github.com/yusefnapora), [DAG House](https://dag.house)
 
 ## Abstract
 
-This spec describes the data storage protocol used by web3.storage's "w3up" platform.
+In the W3 protocol user owned (name)space represent a data storage primitive that can be managed using W3 storage protocol defined here. Storage protocol allows space owners to manage state across compatible storage provider services using defined set of [UCAN] capabilities. Use of [UCAN] authorization system enables space access to be shared by delegating corresponding capabilities to desired audience.
 
-The protocol is modeled as a set of capabilities which can be fulfilled by a [provider](./w3-provider.md) via UCAN invocations. In the web3.storage implementation, the providers are implemented using [ucanto](https://github.com/web3-storage/ucanto), a type-safe UCAN RPC framework.
+## Language
 
-- [Background](#background)
-  - [Spaces](#spaces)
-- [Capabilities](#capabilities)
-  - [`store/` namespace](#store-namespace)
-    - [`store/*`](#store)
-    - [`store/add`](#storeadd)
-    - [`store/get`](#storeget)
-    - [`store/remove`](#storeremove)
-    - [`store/list`](#storelist)
-  - [`upload/` namespace](#upload-namespace)
-    - [`upload/*`](#upload)
-    - [`upload/add`](#uploadadd)
-    - [`upload/get`](#uploadget)
-    - [`upload/remove`](#uploadremove)
-    - [`upload/list`](#uploadlist)
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
-## Background
+# Introduction
 
-The w3up protocol accepts data in [CAR](https://ipld.io/specs/transport/car/) format, and clients are expected to encode data into CARs before invoking storage capabilities.
+The base storage layer of the space is [Content Address]ed [Content ARchive][CAR] files. In practice this means that user wishing to store files or directories of files needs produce an [IPLD] [DAG] in [UnixFS] format and then encoded into one or multiple [Content ARchive]s that can be stored using W3 storage protocol.
 
-The current w3up clients encode files and directories using [UnixFS](https://docs.ipfs.tech/concepts/file-systems/#unix-file-system-unixfs) and the [DAG-PB codec](https://ipld.io/specs/codecs/dag-pb/spec/), however, the storage protocol makes no assumptions about the format of the DAG (or DAGs) contained within a CAR, and any valid IPLD codec may be used.
+> Large DAGs get "sharded" across multiple [Content ARchive]s and stored individually to meet size limits of the storage provider.
 
-Large DAGs may be "sharded" across multiple CAR files to fit within storage and transport size limits. In this case, the [`store/add`](#storeadd) invocation for each of the shards (apart from the first) will include a CID link to a previous shard, so that the shards can be grouped into a single logical unit.
+Separately `upload/` protocol can be utilized allowing user to create standalone entities (files, directories) representing entry points to the DAGs contained by the [Content ARchive]s. E.g. when storing a file or a directory [UnixFS] root [CID] and archives are captured using `upload/add` capability allowing viewer to effectively fetch and re-assemble it.
 
-Because a given CAR can contain many DAGs, and each DAG may itself contain sub-DAGs that can be viewed as standalone entities (e.g. files in a nested directory), the protocol provides separate capabilities for CAR storage and identifying the root of "interesting" DAGs within the CAR. The [`store/` namespace](#store-namespace) defines the capabilities related to CAR storage, while the [`upload/` namespace](#upload-namespace) defines the capabilities for linking the root CID of a DAG to the CAR (or CARs) that contain it.
+## Concepts
 
-### Spaces
+### Roles
 
-The `store` and `upload` capabilities operate on "spaces," which are unique namespaces identified by `did:key` URIs. The `with` resource field of all the capabilities described in this spec MUST be a valid `did:key` URI that identifies a space.
+There are several distinct roles that [principal]s may assume in this specification:
 
-The private key for a space is generated locally by each space's owner and is never shared with the service provider.
+| Name        | Description                                                                                                                                    |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Principal | The general class of entities that interact with a UCAN. Identified by a DID that can be used in the `iss` or `aud` field of a UCAN. |
+| Agent       | A [Principal] identified by [`did:key`] identifier, representing a user in an application. |
+| Issuer | A [principal] delegating capabilities to another [principal]. It is the signer of the [UCAN]. Specified in the `iss` field of a UCAN. |
+| Audience | Principal access is shared with. Specified in the `aud` field of a UCAN. |
 
-The private key for a space is able to issue invocations for the `store` and `upload` capabilities, however we do not recommend issuing invocations directly using the space private key. Instead, the space key should be used to issue a long-lived delegation to an "agent," allowing the agent to invoke capabilities related to the space. If desired, the private key for the space can be saved in "cold storage" and used to issue further delegations.
 
-## Capabilities
+### Space
 
-This section describes the capabilities that form the storage protocol, along with details relevant to invoking capabilities with a service provider.
+A namespace, often referred as a "space", is an owned resource that can be shared. It corresponds to a unique asymmetric cryptographic keypair and is identified by a [`did:key`] URI. The `store/` and `upload/` capabilities can be used to manage content stored in the given space at given storage provider.
 
-When invoking any capability listed in this spec, the agent MUST include proof that they have been delegated the capability for the space identified in the `with` URI. For example, if an agent is trying to invoke [`store/add`](#storeadd), they must include proof that they were delegated `store/add`, or a capability from which `store/add` can be derived, e.g. [`store/*`](#store).
+## Content Archive
 
-In the special case where the private key corresponding to the space itself is the issuer of the invocation (as opposed to invocations issued by an agent), the proof may be omitted, as the space key is considered the "owner" of the space. In all other cases, the invocation UCAN must include a delegation that includes the requested capability for the space that the invocation is acting upon.
+[Content Archive][CAR] ofter referred as [CAR] is a primary primitive for storing shards of the content in the space.
 
-## `store/` namespace
+# Capabilities
 
-The `store/` namespace contains capabilities relating to storage of CAR files.
+## Store Capabilities
 
-### `store/*`
+Capabilities under `store/*` namespace can be used to manage [CAR]s that provider is storing and serving on behalf of the [space].
 
-> Delegate all capabilities in the `store/` namespace
+### Store Capabilities IPLD Schema
 
-The `store/*` capability is the "top" capability of the `store/*` namespace. `store/*` can be delegated to a user agent, but cannot be invoked directly. Instead, it allows the agent to derive any capability in the `store/` namespace, provided the resource URI matches the one in the `store/*` capability delegation.
+```ipldsch
+type StoreCapability union {
+  StoreAddCapability      "store/add"
+  StoreGetCapability      "store/get"
+  StoreListCapability     "store/list"
+  StoreRemoveCapability   "store/remove"
+} representation inline {
+  discriminantKey "can"
+}
+```
 
-In other words, if an agent has a delegation for `store/*` for a given space URI, they can invoke any capability in the `store/` namespace using that space as the resource.
+### Storage Provider
 
-### `store/add`
+The audience of the invocation (`aud` field) MUST be the [provider] DID of the storage provider implementing this protocol.
 
-> Request storage of a CAR file
+### Storage Space
 
-The `store/add` capability allows an agent to store a CAR file into the space identified by the `did:key` URI in the `with` field. The agent must encode the CAR locally and provide the CAR's CID and size using the `nb.link` and `nb.size` fields, allowing a service to provision a write location for the agent to submit the CAR.
+The subject of the invocation (`with` field) MUST be the DID of the target MUST be target [space].
 
-#### Derivations
+### Content Archive Identifier
 
-`store/add` can be derived from a [`store/*`](#store) or [`*`][ucan-spec-top] capability with a matching `with` field.
+The `nb.link` field of the invocation MUST be an [IPLD Link] to the desired [CAR]. Link MUST have Content Addressable aRchive (CAR)  `0x0202` codec code. It is RECOMMENDED to support SHA2-256 multihash code `0x12`. Implementers are MAY choose to support other additional hashing algorithms.
 
-#### Caveats
+### Store Add
 
-When invoking a `store/add` capability, the `link` caveat MUST be set to the CID of the CAR being stored.
+Authorized agent MAY invoke `store/add` capability on the [space] subject (`with` field) to request that provider (`aud` field) store and serve [CAR] on their behalf.
 
-Each `store/add` invocation applies to a single CAR. When storing large DAGs that are "sharded" across multiple CARs, the `origin` caveat is used to link the shards together in a sequence, similar to a linked list. The first shard to be uploaded will have no `origin` field defined, while each subsequent shard will include an `origin` that links to the previous one.
+Invoking `store/add` capability for a [CAR] that is already added to space SHOULD be a noop.
 
-When preparing sharded CARs, note that each shard must be a valid CAR file with a CAR header; simply chunking a large CAR file into pieces is not sufficient. Instead, split your DAG along block boundaries and create new CAR shards when adding additional blocks would put the total size of the current CAR over the size limit (see below).
+#### Store Add Capability
 
-Support for sharded CARs implies that the service provider must also support CARs containing "partial DAGs," meaning DAGs that contain links to blocks that are not present in the CAR file.
+##### Store Add IPLD Schema
 
-The `size` caveat sets a limit on the size (in bytes) of the stored CAR. Agents should check their delegation's `nb.size` field and ensure that they only send CARs with a size below the limit. Larger DAGs may be sharded across multiple CARs as described above.
+```ipldsch
+type StoreAddCapability struct {
+  with      SpaceDID
+  nb        StoreAdd
+}
 
-Regardless of whether `nb.size` is set in the delegation, the agent must include an `nb.size` field in their invocation, with a value that is equal to the size in bytes of the CAR to be stored. If a limit has been set in the delegation, the size must be less than or equal to the limit.
+type StoreAdd struct {
+  link            &ContentArchive
+  size            Int
+  origin optional &ContentArchive
+}
 
-| `field`     | `value`                           | `required?` | `context`                                                  |
-| ----------- | --------------------------------- | ----------- | ---------------------------------------------------------- |
-| `link`   | CAR CID string, e.g. `bag123...`  | ✔           | CID of CAR that the user wants to store.                   |
-| `size`   | size in bytes                     | ✔           | The size of the CAR to be uploaded in bytes.               |
-| `origin` | CAR CID string, e.g. `bagabc...`  |             | Optional link to related CARs. See below for more details. |
+type ContentArchive = bytes
+type SpaceDID = DID
+type DID = string
+```
 
-#### Invocation
+##### Store Add Content
 
-To invoke `store/add`, an agent constructs a UCAN with the shape described below.
+Capability invocation MUST specify [Content archive Identifier].
 
-Example:
+##### Store Add Content Size
+
+Capability invocation MUST set `nb.size` field to the byte size of the [content archive][CAR].
+
+
+##### Store Add Origin
+
+> Status: Deprecated 🛑
+>
+> Field was intended for establish causal order, but proved impractical.
+
+Capability invocation MAY set _optional_ `nb.origin` field to a causally related [CAR] like a previous shard of the content DAG.
+
+##### Store Add Example
 
 ```js
 {
-  can: "store/add",
-  with: "did:key:abc...",
-  nb: {
-    link: "bag...",
-    size: 1234
+  "v": "0.9.1",
+  "iss": "did:key:z6Mkk...xALi",
+  "aud": "did:web:web3.storage",
+  "att": [
+    {
+      can: "store/add",
+      with: "did:key:zAl..1ce",
+      nb: {
+        link: { "/": "bag...7ldq" },
+        size: 42_600_000
+      }
+    }
+  ],
+  "prf": [{ "/": "bafy...prf1" }],
+  "exp": 1685602800,
+  "s": {
+    "/": {
+      "bytes": "7aEDQJbJqmyMxTxcK05XQKWfvxG+Tv+LWCJeE18RSMnciCZ/RQ21U75LA0uFSvIjdqnF5RaauZTE8mh2ZYMBBejdJQ4"
+    }
   }
 }
 ```
 
-The `nb.origin` field may be set to provide a link to a related CAR file. This is useful when storing large DAGs that are sharded across multiple CAR files. In this case, the agent can link each uploaded shard with a previous one. Providing the `origin` field informs the service that the CAR being stored is a shard of the larger DAG, as opposed to an intentionally partial DAG.
+#### Store Add Receipt
 
-Note that the `nb.link` and `nb.origin` caveats contain the CID of the CAR itself, not the CID of any content contained within the CAR. It should have the [multicodec code value `0x0202`](https://github.com/multiformats/multicodec/blob/master/table.csv#L135), which is reserved for data in CAR format. When encoded to a CID string using the default encoding, this results in a CID with a prefix of `bagb`.
+Provider MUST issue signed receipt containing `StoreAddResult`.
 
-#### Responses
+##### Store Add Result
 
-*Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
+###### Store Add Result IPLD Schema
 
-Executing a `store/add` invocation with a service provider should return a result object.
+```ipldsch
+type StoreAddResult union {
+  StoreAddSuccess   "ok"
+  StoreAddFailure   "error"
+} representation keyed
 
-If the invocation fails, the result will include an `error` field with a value of `true`, and a `message` field containing additional details.
+type StoreAddSuccess union {
+  StoreAddDone      "done"
+  StoreAddPending   "upload"
+} representation inline {
+  discriminantKey "status"
+}
 
-On success, the response will include a `status` field, which may have one of the following values:
+type StoreAddDone struct {
+  with    SpaceDID
+  link    &ContentArchive
+}
 
-- `done`: indicates that this CAR has already been stored, and no further action is needed
-- `upload`: indicates that the client must upload the CAR to the provided URL.
+type StoreAddPending struct {
+  with      SpaceDID
+  link      &ContentArchive
+  url       URL
+  headers   HTTPHeaders
+}
 
-If `status == 'upload'`, the response will include additional fields containing information about the request, including the URL and headers needed to upload:
+type URL = string
+type HTTPHeaders {String: String}
 
-| `field`   | `type`                   | `description`                                                   |
-| --------- | ------------------------ | --------------------------------------------------------------- |
-| `url`     | `string`                 | A URL that will accept a `PUT` request containing the CAR data. |
-| `headers` | `Record<string, string>` | HTTP headers that must be attached to the `PUT` request.        |
-| `with`    | `string`                 | The space resource URI used in the invocation.                  |
-| `link`    | `string`                 | The CAR CID specified in the invocation's `link` field.         |
-| `allocated` | `number` | Total bytes allocated in the space to accommodate the stored item. May be zero if the item is *already* stored in the space. |
+type StoreAddFailure struct {
+  message   String
+}
+```
 
-The client should then make an HTTP `PUT` request to the `url` specified in the response, attaching all the included `headers`. The body of the request MUST be CAR data, whose size exactly equals the size specified in the `store/add` invocation's `size` caveat. Additionally, the CID of the uploaded CAR must match the invocation's `link` caveat. In other words, attempting to upload any data other than that authorized by the `store/add` invocation will fail.
+###### Store Add Done
 
-#### Implementations
+Capability provider MUST succeed request with a `"done"` status if provider is able to store requested [CAR] on user behalf right-away. In other words provider already has addressed [CAR] file.
 
-- @web3-storage/capabilities [`store/add` capability validator](https://github.com/web3-storage/w3up/blob/main/packages/capabilities/src/store.js#L30)
-- @web3-storage/upload-api [`store/add` method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/store/add.js#L12)
+###### Store Add Upload
 
-### `store/get`
+Capability provider MUST succeed request with a `"upload"` status if it is able to allocate memory for the requested [CAR]. It MUST set `url` field to an HTTP PUT endpoint where addressed [CAR] can be uploaded.
 
-> Get metadata about a CAR shard from a space
+Provider MUST set `headers` field to the set of HTTP headers that uploading agent MUST set on an HTTP PUT request.
 
-The `store/get` capability can be invoked to get metadata about a CAR from a [space](#spaces).
+HTTP PUT endpoint set in `url` field MUST verify that uploaded bytes do correspond to the addressed [CAR] and specified `size`.
 
-This may be used to check for inclusion, or to get the `size` and `origin` properties for a shard.
+###### Store Add Failure
 
-#### Derivations
+Capability provider SHOULD fail invocation if the subject [space] has not been provisioned with the provider.
 
-`store/get` can be derived from a [`store/*`](#store) or [`*`][ucan-spec-top] capability with a matching `with` field.
+Capability provider SHOULD fail invocation if the subject [space] has not been provisioned with enough storage capacity to store requested archive.
 
-#### Caveats
+### Store Get
 
-When invoking `store/get`, the `link` caveat must be set to the CID of the CAR file to get metadata for.
+Authorized agent MAY invoke `store/get` capability on the [space] subject (`with` field) to query a state of the of the specified [CAR] (`nb.link` field) of the replica held by the provider (`aud` field).
 
-If a delegation contains a `link` caveat, an invocation derived from it must have the same CAR CID in its `link` field. A delegation without a `link` caveat may be invoked with any `link` value.
+#### Store Get Capability
 
-| `field`   | `value`                           | `required?` | `context`                                     |
-| --------- | --------------------------------- | ----------- | --------------------------------------------- |
-| `link`    | CAR CID string, e.g. `bag...`     |             | The CID of the CAR to get metadata for        |
+##### Store Get IPLD Schema
 
-#### Invocation
+```ipldsch
+type StoreGetCapability struct {
+  with      SpaceDID
+  nb        StoreGet
+}
+
+type StoreGet struct {
+  link            &ContentArchive
+}
+```
+
+##### Store Get Content
+
+Capability invocation MUST specify [Content archive Identifier].
+
+##### Store Get Example
 
 ```js
 {
-  can: "store/get",
-  with: "did:key:abc...",
-  nb: {
-    link: "bag...",
+  "v": "0.9.1",
+  "iss": "did:key:z6Mkk...xALi",
+  "aud": "did:web:web3.storage",
+  "att": [
+    {
+      can: "store/get",
+      with: "did:key:zAl..1ce",
+      nb: {
+        link: { "/": "bag...7ldq" },
+      }
+    }
+  ],
+  "prf": [{ "/": "bafy...prf1" }],
+  "exp": 1685602800,
+  "s": {
+    "/": {
+      "bytes": "7aEDQJbJqmyMxTxcK05XQKWfvxG+Tv+LWCJeE18RSMnciCZ/RQ21U75LA0uFSvIjdqnF5RaauZTE8mh2ZYMBBejdJQ4"
+    }
   }
 }
 ```
 
-#### Responses
+#### Store Get Receipt
 
-*Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
+Capability provider MUST issue signed receipt containing `StoreGetResult`.
 
-Executing a `store/get` invocation with a service provider should return a response object.
+##### Store Get Result
 
-If a failure occurs, the response will have an `error` field with a value of `true`, and a `message` string field with details about the error.
+###### Store Get Result IPLD Schema
 
-On success, the response object will have the following shape:
+```ipldsch
+type StoreGetResult struct {
+  StoreGetSuccess   "ok"
+  StoreGetFailure   "error"
+} representation keyed
+```
 
-```ts
-interface StoreListItem {
-  /** CID of the stored CAR. */
-  link: string
+###### Store Get Success
 
-  /** Size in bytes of the stored CAR */
-  size: number
+Capability provider MUST issue `StoreGetSuccess` result for every content archive that has been added to the space.
 
-  /** Link to a related CAR, used for sharded uploads */
-  origin?: string,
-
-  /** ISO-8601 timestamp when CAR was added to the space */
-  insertedAt: string,
+```ipldsch
+type StoreGetSuccess {
+  link            &ContentArchive
+  size            Int
+  origin optional &ContentArchive
 }
 ```
 
-#### Implementations
+###### Store Get Failure
 
-- @web3-storage/capabilities [store/get validator](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/capabilities/src/store.js#L90)
-- @web3-storage/upload-api [store/get method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/store/get.js)
+Capability provider MUST issue `StoreGetFailure` result for every content archive that either has not been added or was since removed at the time of the invocation.
 
-### `store/remove`
+```ipldsch
+type StoreGetFailure {
+  message   string
+}
+```
 
-> Remove a stored CAR from a space
+### Store Remove
 
-The `store/remove` capability can be invoked to remove a CAR file from a [space](#spaces).
+Authorized agent MAY invoke `store/remove` capability to remove content archive from the subject space (`with` field).
 
-This may or may not cause the CAR to be removed completely from the underlying storage system; for example, if the CAR exists in other spaces, it will not be removed.
+#### Store Remove Capability
 
-`store/remove` will remove the CAR from the listing provided by [`store/list`](#storelist) for the space. Removal may also have billing implications, depending on the service provider (e.g. by affecting storage quotas).
+##### Store Remove IPLD Schema
 
-#### Derivations
+```ipldsch
+type StoreRemoveCapability struct {
+  with      SpaceDID
+  nb        StoreRemove
+}
 
-`store/remove` can be derived from a [`store/*`](#store) or [`*`][ucan-spec-top] capability with a matching `with` field.
+type StoreRemove struct {
+  link            &ContentArchive
+}
+```
 
-#### Caveats
+##### Store Remove Content
 
-When invoking `store/remove`, the `link` caveat must be set to the CID of the CAR file to remove.
+Capability invocation MUST specify desired [Content archive Identifier].
 
-If a delegation contains a `link` caveat, an invocation derived from it must have the same CAR CID in its `link` field. A delegation without a `link` caveat may be invoked with any `link` value.
-
-| `field`   | `value`                           | `required?` | `context`                                     |
-| --------- | --------------------------------- | ----------- | --------------------------------------------- |
-| `link` | CAR CID string, e.g. `bag...`     | ✔           | The CID of the CAR file to remove.            |
-
-#### Invocation
+##### Store Remove Example
 
 ```js
 {
-  can: "store/remove",
-  with: "did:key:abc...",
-  nb: {
-    link: "bag...",
+  "v": "0.9.1",
+  "iss": "did:key:z6Mkk...xALi",
+  "aud": "did:web:web3.storage",
+  "att": [
+    {
+      can: "store/remove",
+      with: "did:key:zAl..1ce",
+      nb: {
+        link: "bag...7ldq",
+      }
+    }
+  ],
+  "prf": [{ "/": "bafy...prf1" }],
+  "exp": 1685602800,
+  "s": {
+    "/": {
+      "bytes": "7aEDQJbJqmyMxTxcK05XQKWfvxG+Tv+LWCJeE18RSMnciCZ/RQ21U75LA0uFSvIjdqnF5RaauZTE8mh2ZYMBBejdJQ4"
+    }
   }
 }
 ```
 
-#### Responses
 
-*Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
+#### Store Remove Receipt
 
-Executing a `store/remove` invocation with a service provider should return a response object.
+Capability provider MUST issue signed receipt containing `StoreRemoveResult`.
 
-If a failure occurs, the response will have an `error` field with a value of `true`, and a `message` string field with details about the error.
+##### Store Remove Result
 
-On success, the response object will be empty.
+###### Store Remove Result IPLD Schema
 
-#### Implementations
+```ipldsch
+type StoreRemoveResult struct {
+  StoreRemoveSuccess   "ok"
+  StoreRemoveFailure   "error"
+} representation keyed
+```
 
-- @web3-storage/capabilities [store/remove validator](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/capabilities/src/store.js#L106)
-- @web3-storage/upload-api [store/remove method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/store/remove.js#L11)
+###### Store Remove Success
 
-### `store/list`
+Capability provider MUST issue `StoreRemoveSuccess` after it has removed the archive from the space.
 
-> Obtain a list of stored CARs
+Capability provider MUST set `size` field to the number of bytes that were freed from space.
 
-The `store/list` capability can be invoked to request a list of CARs in a given memory space.
+Capability provider MUST issue `StoreRemoveSuccess` even when specified archive is not in space. In that case it MUST set `size` to `0`.
 
-The `with` field of the invocation must be set to the DID of the memory space to be listed.
+```ipldsch
+type StoreRemoveSuccess {
+  size            Int
+}
+```
 
-#### Derivations
+### Store List
 
-`store/list` can be derived from a [`store/*`](#store) or [`*`][ucan-spec-top] capability with a matching `with` field.
+Authorized agent MAY invoke `store/list` capability on the [space] subject (`with` field) to list [CAR]s added to it at the time of invocation.
 
-#### Caveats
+#### Store List Capability
 
-When invoking `store/list` the `size` caveat may be set to the desired number of results to return per invocation. If there are more total results than will fit into the given `size`, the response will include an opaque `cursor` field that can be used to continue the listing in a subsequent invocation by setting the `cursor` caveat to the value in the response. The `pre` caveat may be set to return the page of results preceding the cursor.
+##### Store List IPLD Schema
 
-| `field`  | `value`                           | `required?` | `context`                                                                                                                 |
-| -------- | --------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `size`   | `number`                          |             | The desired number of results to return.                                                                                  |
-| `cursor` | `string`                          |             | An opaque string included in a prior `store/list` response that allows the service to provide the next "page" of results. |
-| `pre`    | `boolean`                         |             | If true, return the page of results preceding the cursor.                                                                |
+```ipldsch
+type StoreListCapability struct {
+  with      SpaceDID
+  nb        StoreList
+}
 
-#### Invocation
+type StoreList struct {
+  cursor  optional &string
+  size    optional int
+  pre     optional bool
+}
+```
+
+##### Store List Cursor
+
+The optional `nb.cursor` MAY be specified in order to paginate over the list of the added [CAR]s.
+
+##### Store List Size
+
+The optional `nb.size` MAY be specified to signal desired page size, that is number of items in the result.
+
+##### Store List Pre
+
+The optional `nb.pre` field MAY be set to `true` to request a page of results preceding cursor. If `nb.pre` is omitted or set to `false` provider MUST respond with a page following the specified `nb.cursor`.
+
+##### Store List Example
 
 ```js
 {
-  can: "store/list",
-  with: "did:key:abc..",
-  nb: {
-    size: 40,
-    cursor: 'cursor-value-from-previous-invocation',
+  "v": "0.9.1",
+  "iss": "did:key:z6Mkk...xALi",
+  "aud": "did:web:web3.storage",
+  "att": [
+    {
+      can: "store/list",
+      with: "did:key:zAl..1ce",
+      nb: {
+        size: 40,
+        cursor: 'cursor-value-from-previous-invocation',
+      }
+    }
+  ],
+  "prf": [{ "/": "bafy...prf1" }],
+  "exp": 1685602800,
+  "s": {
+    "/": {
+      "bytes": "7aEDQJbJqmyMxTxcK05XQKWfvxG+Tv+LWCJeE18RSMnciCZ/RQ21U75LA0uFSvIjdqnF5RaauZTE8mh2ZYMBBejdJQ4"
+    }
   }
 }
 ```
 
-#### Responses
+#### Store List Receipt
 
-*Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
+Capability provider MUST issue signed receipt containing `StoreListResult`.
 
-Executing a `store/list` invocation with a service provider should return a response object.
+##### Store List Result
 
-If a failure occurs, the response will have an `error` field with a value of `true`, and a `message` string field with details about the error.
+###### Store List Result IPLD Schema
 
-On success, the response object will have the following shape:
+```ipldsch
+type StoreListResult union {
+  StoreListSuccess   "ok"
+  StoreListFailure   "error"
+} representation keyed
+```
 
-```ts
-interface StoreListResponse {
-  /** Cursor that can be used in a subsequent store/list invocation to fetch the next page of results */
-  cursor?: string
+###### Store List Success
 
-  /** Number of results in this page of listings. */
-  size: number
+Capability provider MUST issue `StoreListSuccess` result containing page of entries added to the space.
 
-  /** Items in this page of listings. */
-  results: StoreListItem[]
+```ipldsch
+type StoreListSuccess  struct {
+  cursor    optional  string
+  before    optional  string
+  after     optional  string
+  size                int
+  results             [StoreListItem]
+}
+
+type StoreListItem struct {
+  link                  &ContentArchive
+  size                  int
+  origin    optional    &ContentArchive
 }
 ```
 
-The `results` field contains an array of `StoreListItem` objects:
+###### Store List Failure
 
-```ts
-interface StoreListItem {
-  /** CID of the stored CAR. */
-  link: string
-
-  /** Size in bytes of the stored CAR */
-  size: number
-
-  /** Link to a related CAR, used for sharded uploads */
-  origin?: string,
-
-  /** ISO-8601 timestamp when CAR was added to the space */
-  insertedAt: string,
+```ipldsch
+type StoreListFailure struct {
+  message       string
 }
 ```
 
-#### Implementations
+## Upload Capabilities
 
-- @web3-storage/capabilities [store/list validator](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/capabilities/src/store.js#L126)
-- @web3-storage/upload-api [store/list method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/store/list.js#L10)
+Capabilities under `upload/*` namespace can be used to manage list of top level content entries. While not required, it is generally assumed that user content like file will be turned into [UnixFS] DAG packed and stored in space as one or more [content archive][CAR]s. The root of the DAG is then added to the upload list.
 
-## `upload/` namespace
+### Upload Capabilities IPLD Schema
 
-The `upload/` namespace contains capabilities relating to "uploads", which represent user data that is contained in one or more CAR files that have previously been stored using [`store/add`](#storeadd).
+```ipldsch
+type UploadCapability union {
+  UploadAddCapability      "upload/add"
+  UploadGetCapability      "upload/get"
+  UploadListCapability     "upload/list"
+  UploadRemoveCapability   "upload/remove"
+} representation inline {
+  discriminantKey "can"
+}
+```
 
-An upload is essentially an index that maps "data CIDs" to CAR CIDs. Data CIDs are the root CID of user-uploaded data items, for example, files that have been encoded into UnixFS. A given data item may be stored in a single CAR, or it may be split into multiple CAR "shards," as described in the [`store/add` section](#storeadd).
+### Upload Add
 
-Similarly, a CAR can potentially contain many data items. This is true even if the CAR has only a single root CID. For example, when storing a CAR containing a nested directory structure, you could create one "upload" for the root of the directory structure, and a separate upload for a file nested inside.
+Authorized agent MAY invoke `upload/add` capability on the [space] subject (`with` field) to request that provider (`aud` field) include content identified by `nb.root` in the list of content entries for the space.
 
-### `upload/*`
+It is expected that CARs containing content are stored in the space using [`store/add`] capability. Provider MAY enforce this invariant by failing invocation or choose to succeed invocation but fail to serve the content when requested.
 
-> Delegate all abilities in the `upload/*` namespace.
+> ⚠️ Behavior of calling `upload/add` with a same `root` and different `shards` is not specified by the protocol. w3up reference implementation allows such invocations and updates `shards` to union of all shards across invocations.
 
-The `upload/*` capability can be delegated to a user agent, but cannot be invoked directly. Instead, it allows the audience to derive any capability in the `upload/` namespace, provided the resource URI matches the one in the `upload/*` capability delegation.
+#### Upload Add Capability
 
-The `upload/*` capability (and all capabilities in the `upload/` namespace) can be derived from a [`*`][ucan-spec-top] capability with a matching resource URI.
+##### Upload Add IPLD Schema
 
-### `upload/add`
+```ipldsch
+type UploadAddCapability struct {
+  with        SpaceDID
+  nb          Upload
+}
 
-> Add an upload to a space.
+type Upload struct {
+  root      &any
+  shards    [&ContentArchive]
+}
+```
 
-`upload/add` can be invoked to register a given DAG as being contained in a given set of CARs. The resulting "upload" will be associated with the memory space identified by the DID in the `with` field.
+###### Upload Root
 
-An `upload/add` invocation requires the root CID of the DAG to register as an "upload," along with the CID of one or more CARs that contain the complete DAG. It is expected that these CARs have previously been stored in the space using [`store/add`](#storeadd); a service provider MAY return an error response if this is not the case.
+The `nb.root` field MUST be set to the [IPLD Link] of the desired content entry.
 
-#### Derivations
+###### Upload Shards
 
-`upload/add` can be derived from an [`upload/*`](#upload) or [`*`][ucan-spec-top] capability with a matching `with` resource URI.
+The `nb.shards` field MUST be set to the list of [IPLD Link]s for the [Content Archive][CAR]s containing the upload entry.
 
-#### Caveats
-
-When invoking `upload/add`, the `root` caveat must be set to the root CID of the data item.
-
-The `shards` array must contain at least one CID of a CAR file, which is expected to have been previously stored.
-
-Taken together, the CARs in the `shards` array should contain all the blocks in the DAG identified by the `root` CID.
-
-| `field`     | `value`                                                  | `required?` | `context`                                                        |
-| ----------- | -------------------------------------------------------- | ----------- | ---------------------------------------------------------------- |
-| `root`   | data CID string, e.g. `bafy...`                          | ✔           | The CID of the data item that was uploaded.                      |
-| `shards` | array of CID strings, e.g. `[ "bag123...", "bag234..."]` | ✔           | The CIDs of CAR files containing the full DAG for the data item. |
-
-#### Invocation
-
-To invoke `upload/add`, an agent constructs a UCAN with the shape described below.
-
-Example:
+###### Upload Add Example
 
 ```js
 {
-  can: "upload/add",
-  with: "did:key:abc...",
-  nb: {
-    root: "bafyabc...",
-    shards: ["bagb1...", "bagb2..."]
+  "v": "0.9.1",
+  "iss": "did:key:z6Mkk...xALi",
+  "aud": "did:web:web3.storage",
+  "att": [
+    {
+      can: "upload/add",
+      with: "did:key:zAl..1ce",
+      nb: {
+        root: { "/": "bafy...k3ve" },
+        shards: [{ "/": "bag...7ldq" }]
+      }
+    }
+  ],
+  "prf": [{ "/": "bafy...prf1" }],
+  "exp": 1685602800,
+  "s": {
+    "/": {
+      "bytes": "7aEDQJbJqmyMxTxcK05XQKWfvxG+Tv+LWCJeE18RSMnciCZ/RQ21U75LA0uFSvIjdqnF5RaauZTE8mh2ZYMBBejdJQ4"
+    }
   }
 }
 ```
 
-#### Responses
+#### Upload Add Receipt
 
-*Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
+Capability provider MUST issue signed receipt containing `UploadAddResult`.
 
-Executing an `upload/add` invocation with a service provider should return a result object.
+##### Upload Add Result
 
-If the invocation fails, the result will include an `error` field with a value of `true`, and a `message` field containing additional details.
+###### Upload Add Result IPLD Schema
 
-On success, the response object will have the following shape:
+```ipldsch
+type UploadAddResult union {
+  UploadAddSuccess    "ok"
+  UploadAddFailure    "error"
+} representation keyed
 
-```ts
-interface UploadAddResponse {
-  root: string
-  shards?: string[] 
+type UploadAddSuccess struct {
+  root      &any
+  shards    [&ContentArchive]
+}
+
+type UploadAddFailure struct {
+  message   string
 }
 ```
 
-#### Implementations
+### Upload Get
 
-- @web3-storage/capabilities [upload/add validator](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/capabilities/src/upload.js#L54)
-- @web3-storage/upload-api [upload/add method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/upload/add.js#L12)
+Authorized agent MAY invoke `upload/get` capability on the [space] subject (`with` field) to query a state of the of the specified upload entry.
 
-### `upload/get`
+#### Upload Get Capability
 
-> Get metadata about a upload from a space
+##### Upload Get IPLD Schema
 
-The `upload/get` capability can be invoked to get metadata about an upload from a [space](#spaces).
+```ipldsch
+type UploadGetCapability struct {
+  with      SpaceDID
+  nb        UploadGet
+}
 
-This may be used to check for inclusion, or to get the set of CAR shards associated with a root CID.
+type UploadGet struct {
+  root            &any
+}
+```
 
-The `with` resource URI must be set to the DID of the space to get the upload metadata from.
+##### Upload Get Root
 
-#### Derivations
+The `nb.root` field MUST be set to the [IPLD Link] of the desired content entry.
 
-`upload/get` can be derived from an [`upload/*`](#upload) or [`*`][ucan-spec-top] capability with a matching `with` resource URI.
-
-#### Caveats
-
-The `root` caveat must contain the root CID of the item to get metadata for.
-
-| `field`   | `value`                           | `required?` | `context`                                                     |
-| --------- | --------------------------------- | ----------- | ------------------------------------------------------------- |
-| `root`    | data CID string, e.g. `bafy...`   |             | The root CID of the upload to get metadata for                |
-
-#### Invocation
-
-To invoke `upload/get`, an agent prepares a UCAN with the following shape:
+##### Upload Get Example
 
 ```js
 {
-  can: "upload/get",
-  with: "did:key:abc...",
-  nb: {
-    root: "bafyabc..."
+  "v": "0.9.1",
+  "iss": "did:key:z6Mkk...xALi",
+  "aud": "did:web:web3.storage",
+  "att": [
+    {
+      can: "upload/get",
+      with: "did:key:zAl..1ce",
+      nb: {
+        root: { "/": "bafy...ro0t" },
+      }
+    }
+  ],
+  "prf": [{ "/": "bafy...prf1" }],
+  "exp": 1685602800,
+  "s": {
+    "/": {
+      "bytes": "7aEDQJbJqmyMxTxcK05XQKWfvxG+Tv+LWCJeE18RSMnciCZ/RQ21U75LA0uFSvIjdqnF5RaauZTE8mh2ZYMBBejdJQ4"
+    }
   }
 }
 ```
 
-#### Responses
+#### Upload Get Receipt
 
-*Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
+Capability provider MUST issue signed receipt containing `UploadGetResult`.
 
-Executing an `upload/get` invocation with a service provider should return a response object.
+##### Upload Get Result
 
-If a failure occurs, the response will have an `error` field with a value of `true`, and a `message` string field with details about the error.
+###### Upload Get Result IPLD Schema
 
-On success, the response object will have the following shape:
+```ipldsch
+type UploadGetResult struct {
+  UploadGetSuccess   "ok"
+  UploadGetFailure   "error"
+} representation keyed
+```
 
-```ts
-interface UploadListItem {
-  /** Root CID of the uploaded data item. */
-  root: string
+###### Upload Get Success
 
-  /** CIDs of CARs that contain the complete DAG for the uploaded data item. */
-  shards: string[]
+Capability provider MUST issue `UploadGetSuccess` result for the upload entry that has been added to the space.
 
-  /** ISO-8601 timestamp when the upload was added to the space. */
-  insertedAt: string,
-
-  /** ISO-8601 timestamp when the upload entry was last modified. */
-  updatedAt: string,
+```ipldsch
+type UploadGetSuccess {
+  link            &any
+  shards          [&ContentArchive]
 }
 ```
 
-#### Implementations
+###### Upload Get Failure
 
-- @web3-storage/capabilities [upload/list validator](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/capabilities/src/upload.js#L142)
-- @web3-storage/upload-api [upload/list method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/upload/list.js#L10)
+Capability provider MUST issue `UploadGetFailure` result if content entry has not been added or was since removed from space at the time of the invocation.
 
-### `upload/remove`
+```ipldsch
+type UploadGetFailure {
+  message   string
+}
+```
 
-> Remove an upload from a space.
+### Upload Remove
 
-`upload/remove` can be invoked to remove the link between an uploaded data CID and the CARs containing the data.
+Authorized agent MAY invoke `upload/remove` capability to remove upload entry from the list in the specified space (`with` field).
 
-Note that this will not remove the stored CARs; clients will need to use [`store/remove`](#storeremove) to remove the CARs once all uploads referencing those CARs have been removed.
+> ⚠️ Please note that removing upload entry SHOULD NOT remove [content archive][CAR]s containing contain.
 
-The `with` resource URI must be set to the DID of the space to remove the upload from.
+#### Upload Remove Capability
 
-#### Derivations
+##### Upload Remove IPLD Schema
 
-`upload/remove` can be derived from an [`upload/*`](#upload) or [`*`][ucan-spec-top] capability with a matching `with` resource URI.
+```ipldsch
+type UploadRemoveCapability struct {
+  with      SpaceDID
+  nb        UploadRemove
+}
 
-#### Caveats
+type UploadRemove struct {
+  root      &any
+}
+```
 
-The `root` caveat must contain the root CID of the data item to remove.
+##### Upload Remove Root
 
-| `field`   | `value`                           | `required?` | `context`                                                     |
-| --------- | --------------------------------- | ----------- | ------------------------------------------------------------- |
-| `root` | data CID string, e.g. `bafy...`   | ✔           | The CID of the data item to remove.    |
+The `nb.root` field MUST be set to the [IPLD Link] of the desired content entry.
 
-#### Invocation
-
-To invoke `upload/remove`, an agent prepares a UCAN with the following shape:
+##### Upload Remove Example
 
 ```js
 {
-  can: "upload/remove",
-  with: "did:key:abc...",
-  nb: {
-    root: "bafyabc..."
+  "v": "0.9.1",
+  "iss": "did:key:z6Mkk...xALi",
+  "aud": "did:web:web3.storage",
+  "att": [
+    {
+      can: "upload/remove",
+      with: "did:key:zAl..1ce",
+      nb: {
+        root: { "/": "bafy...ro0t" },
+      }
+    }
+  ],
+  "prf": [{ "/": "bafy...prf1" }],
+  "exp": 1685602800,
+  "s": {
+    "/": {
+      "bytes": "7aEDQJbJqmyMxTxcK05XQKWfvxG+Tv+LWCJeE18RSMnciCZ/RQ21U75LA0uFSvIjdqnF5RaauZTE8mh2ZYMBBejdJQ4"
+    }
   }
 }
 ```
 
-#### Responses
+#### Upload Remove Receipt
 
-*Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
+Capability provider MUST issue signed receipt containing `UploadRemoveResult`.
 
-Executing an `upload/remove` invocation with a service provider should return a response object.
+##### Upload Remove Result
 
-If a failure occurs, the response will have an `error` field with a value of `true`, and a `message` string field with details about the error.
+###### Upload Remove Result IPLD Schema
 
-On success, the response object will be empty.
+```ipldsch
+type UploadRemoveResult struct {
+  UploadRemoveSuccess   "ok"
+  UploadRemoveFailure   "error"
+} representation keyed
 
-#### Implementations
+type UploadRemoveSuccess {
+  link            &any
+  shards          [&ContentArchive]
+}
 
-- @web3-storage/capabilities [upload/remove validator](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/capabilities/src/upload.js#L117)
-- @web3-storage/upload-api [upload/remove method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/upload/remove.js#L11)
+type UploadGetFailure {
+  message   string
+}
+```
 
-### `upload/list`
+### Upload List
 
-> Obtain a list of uploaded data items.
+Authorized agent MAY invoke `upload/list` capability on the [space] subject (`with` field) to list upload entries at the time of the invocation.
 
-The `upload/list` capability can be invoked to request a list of metadata about uploads.
 
-#### Derivations
+#### Upload List Capability
 
-`upload/list` can be derived from an [`upload/*`](#upload) or [`*`][ucan-spec-top] capability with a matching `with` resource URI.
+##### Upload List IPLD Schema
 
-#### Caveats
+```ipldsch
+type UploadListCapability struct {
+  with      SpaceDID
+  nb        UploadList
+}
 
-When invoking `upload/list` the `size` caveat may be set to the desired number of results to return per invocation. If there are more total results than will fit into the given `size`, the response will include an opaque `cursor` field that can be used to continue the listing in a subsequent invocation by setting the `cursor` caveat to the value in the response. The `pre` caveat may be set to return the page of results preceding the cursor.
+type UploadList struct {
+  cursor  optional &string
+  size    optional int
+  pre     optional bool
+}
+```
 
-| `field`  | `value`                           | `required?` | `context`                                                                                                                 |
-| -------- | --------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `size`   | `number`                          |             | The desired number of results to return.                                                                                  |
-| `cursor` | `string`                          |             | An opaque string included in a prior `store/list` response that allows the service to provide the next "page" of results. |
-| `pre`    | `boolean`                         |             | If true, return the page of results preceding the cursor.                                                                |
+##### Upload List Cursor
 
-#### Invocation
+The optional `nb.cursor` MAY be specified in order to paginate over the list of upload entries.
+
+##### Upload List Size
+
+The optional `nb.size` MAY be specified to signal desired page size, that is number of items in the result.
+
+##### Upload List Pre
+
+The optional `nb.pre` field MAY be set to `true` to request a page of results preceding cursor. If `nb.pre` is omitted or set to `false` provider MUST respond with a page following the specified `nb.cursor`.
+
+##### Upload List Example
 
 ```js
 {
-  can: "upload/list",
-  with: "did:key:abc..",
-  nb: {
-    size: 40,
-    cursor: 'cursor-value-from-previous-invocation',
+  "v": "0.9.1",
+  "iss": "did:key:z6Mkk...xALi",
+  "aud": "did:web:web3.storage",
+  "att": [
+    {
+      can: "upload/list",
+      with: "did:key:zAl..1ce",
+      nb: {
+        size: 40,
+        cursor: 'cursor-value-from-previous-invocation',
+      }
+    }
+  ],
+  "prf": [{ "/": "bafy...prf1" }],
+  "exp": 1685602800,
+  "s": {
+    "/": {
+      "bytes": "7aEDQJbJqmyMxTxcK05XQKWfvxG+Tv+LWCJeE18RSMnciCZ/RQ21U75LA0uFSvIjdqnF5RaauZTE8mh2ZYMBBejdJQ4"
+    }
   }
 }
 ```
 
-#### Responses
+#### Upload List Receipt
 
-*Note*: This section is non-normative and subject to change, pending the [formalization of receipts and invocations][invocation-spec-pr].
+Capability provider MUST issue signed receipt containing `UploadListResult`.
 
-Executing an `upload/list` invocation with a service provider should return a response object.
+##### Upload List Result
 
-If a failure occurs, the response will have an `error` field with a value of `true`, and a `message` string field with details about the error.
+###### Upload List Result IPLD Schema
 
-On success, the response object will have the following shape:
+```ipldsch
+type UploadListResult union {
+  UploadListSuccess   "ok"
+  UploadListFailure   "error"
+} representation keyed
+```
 
-```ts
-interface UploadListResponse {
-  /** Cursor that can be used in a subsequent upload/list invocation to fetch the next page of results */
-  cursor?: string
+###### Upload List Success
 
-  /** Number of results in this page of listings. */
-  size: number
+Capability provider MUST issue `UploadListSuccess` result containing page of upload entries for to the space.
 
-  /** Items in this page of listings. */
-  results: UploadListItem[]
+```ipldsch
+type UploadListSuccess  struct {
+  cursor    optional  string
+  before    optional  string
+  after     optional  string
+  size                int
+  results             [UploadListItem]
+}
+
+type UploadListItem struct {
+  root                  &any
+  shards    optional    [&ContentArchive]
 }
 ```
 
-The `results` field contains an array of `UploadListItem` objects:
+###### Upload List Failure
 
-```ts
-interface UploadListItem {
-  /** Root CID of the uploaded data item. */
-  root: string
-
-  /** CIDs of CARs that contain the complete DAG for the uploaded data item. */
-  shards: string[]
-
-  /** ISO-8601 timestamp when the upload was added to the space. */
-  insertedAt: string,
-
-  /** ISO-8601 timestamp when the upload entry was last modified. */
-  updatedAt: string,
+```ipldsch
+type UploadListFailure struct {
+  message       string
 }
 ```
 
-#### Implementations
 
-- @web3-storage/capabilities [upload/list validator](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/capabilities/src/upload.js#L142)
-- @web3-storage/upload-api [upload/list method](https://github.com/web3-storage/w3up/blob/5d52e447c14e7f7fd334e7ff575e032b7b0d89d7/packages/upload-api/src/upload/list.js#L10)
-
-<!-- references  -->
 
 [ucan-spec-top]: https://github.com/ucan-wg/spec#52-top
 [invocation-spec-pr]: https://github.com/web3-storage/specs/pull/34
+
+[CAR]:https://ipld.io/specs/transport/car/
+[Content Address]:https://web3.storage/docs/concepts/content-addressing/
+[UnixFS]:https://docs.ipfs.tech/concepts/file-systems/#unix-file-system-unixfs
+[IPLD]:https://ipld.io/docs/
+[DAG-PB]:https://ipld.io/specs/codecs/dag-pb/spec/
+[DAG]:https://en.wikipedia.org/wiki/Directed_acyclic_graph
+[space]:#space
+[IPLD Link]:https://ipld.io/docs/schemas/features/links/
+[UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
+[principal]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#321-principals
+[provider]:#provider
+[`did:mailto`]:./did-mailto.md
+[`did:key`]:https://w3c-ccg.github.io/did-method-key/
+[customer]:#customer
+[account]:./w3-account.md#account
+[space]:#space
+[subscription]:#subscription
+[provision]:#provision
+[DID]:https://www.w3.org/TR/did-core/
+[Content Archive Identifier]:#content-archive-identifier
+[`store/add`]:Store-Add
