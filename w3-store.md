@@ -868,4 +868,4 @@ type UploadListFailure struct {
 [provision]:#provision
 [DID]:https://www.w3.org/TR/did-core/
 [Content Archive Identifier]:#content-archive-identifier
-[`store/add`]:Store-Add
+[`store/add`]:#Store-Add
