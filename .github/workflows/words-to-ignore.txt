@@ -160,3 +160,10 @@ dag-json-encoded
 base64url-multibase-encoded
 Uint8Array
 ed25519
+multihash
+IPNI
+aRchive
+SHA2-256
+noop
+Pre
+unlinked
