@@ -162,7 +162,7 @@ Shows an example receipt for the above `/space/content/add/blob` capability invo
             "content": { "/": { "bytes": "mEi...sfKg" } },
             "size": 2_097_152,
           },
-          exp: 1711122994101
+          exp: 1711122994101,
           // This task is blocked on allocation
           _: { "await/ok": { "/": "bafy...alloc" } }
         }
