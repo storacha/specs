@@ -167,3 +167,5 @@ SHA2-256
 noop
 Pre
 unlinked
+2MiB
+ok
