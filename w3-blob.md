@@ -77,7 +77,7 @@ Accepted -- claim --> Claim
 Added -- claim --> Accept
 ```
 
-**Iconography**
+#### Iconography
 
 - Icon on the left describes type of the node
 - Icon on the right describes issuer / audience pair if only one audience is the issuer
@@ -162,6 +162,7 @@ Shows an example receipt for the above `/space/content/add/blob` capability invo
             "content": { "/": { "bytes": "mEi...sfKg" } },
             "size": 2_097_152,
           },
+          exp: 1711122994101
           // This task is blocked on allocation
           _: { "await/ok": { "/": "bafy...alloc" } }
         }
@@ -413,7 +414,7 @@ Blob can be published by authorizing read interface (e.g. IPFS gateway) by deleg
 [location claim]:#location-claim
 [Add Blob]:#add-blob
 [Allocate Blob]:#allocate-blob
-[Accept Blob]:#receive-blob
+[Accept Blob]:#accept-blob
 [DID]:https://www.w3.org/TR/did-core/
 [Link]:https://ipld.io/docs/schemas/features/links/
 [range request]:https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
