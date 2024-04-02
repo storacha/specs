@@ -163,8 +163,10 @@ Shows an example receipt for the above `/space/content/add/blob` capability invo
         "sub": "did:key:zMh...der", // <-- Ed299.. derived key from content multihash
         "args": {
           "content": { "/": { "bytes": "mEi...sfKg" } },
-          "url": "https://r2.cloudflare.com/ipfs/bafy...",
-          "headers": {}
+          "address": {        
+            "url": "https://r2.cloudflare.com/ipfs/bafy...",
+            "headers": {}
+          }
         },
         "meta": {
           // archive of the principal keys
@@ -368,6 +370,7 @@ type BlobPut = {
   cmd: "/http/put"
   sub: DID
   args: {
+    content: Multihash
     address: BlobAddress
   }
   meta: {
@@ -530,4 +533,4 @@ Blob can be published by authorizing read interface (e.g. IPFS gateway) by deleg
 [range request]:https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
 [`did:key`]:https://w3c-ccg.github.io/did-method-key/
 [Ed25519]:https://en.wikipedia.org/wiki/EdDSA#Ed25519
-[UCAN Conclusion]:#./w3-ucan.md#conclusion
+[UCAN Conclusion]:./w3-ucan.md#conclusion
