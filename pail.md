@@ -26,16 +26,16 @@ IPLD Schema
 # A shard is just a list of entries, and some config
 type Shard struct {
   # Shard compatibility version.
-  version: Int
+  version Int
   # Characters allowed in keys, referring to a known character set.
   # e.g. "ascii" refers to the printable ASCII characters in the code range 32-126.
-  keyChars: String
+  keyChars String
   # Max key size in bytes - default 4096 bytes.
-  maxKeySize: Int
+  maxKeySize Int
   # The key prefix from the root to this shard.
-  prefix: String
+  prefix String
   # The entries in this shard.
-  entries: [ShardEntry]
+  entries [ShardEntry]
 }
 
 # Single key/value entry within a shard
