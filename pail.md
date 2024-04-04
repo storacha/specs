@@ -16,7 +16,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 This specification describes a method of key/value storage implemented as an IPLD DAG. It details the format, encoding and mechanisms to mutate the storage.
 
-This method of key/value storage is designed to allow fast _ordered_ value lookup by key _prefix_.
+This method of key/value storage is optimized for fast _ordered_ value lookup by key _prefix_ or _range_.
 
 ## Data Format
 
@@ -25,10 +25,16 @@ IPLD Schema
 ```ipldsch
 # A shard is just a list of entries, and some config
 type Shard struct {
-  # Max key length (in UTF-8 encoded characters) - default 64
-  maxKeyLength: Int
-  # Max encoded shard size in bytes - default 512 KiB
-  maxSize: Int
+  # Shard compatibility version.
+  version: Int
+  # Characters allowed in keys, referring to a known character set.
+  # e.g. "ascii" refers to the printable ASCII characters in the code range 32-126.
+  keyChars: String
+  # Max key size in bytes - default 4096 bytes.
+  maxKeySize: Int
+  # The key prefix from the root to this shard.
+  prefix: String
+  # The entries in this shard.
   entries: [ShardEntry]
 }
 
@@ -61,10 +67,18 @@ import { Link } from 'multiformats/link'
 
 /** A shard is just a list of entries, and some config */
 interface Shard {
-  /** Max key length (in UTF-8 encoded characters) - default 64 */
-  maxKeyLength: number
-  /** Max encoded shard size in bytes - default 512 KiB */
-  maxSize: number
+  /** Shard compatibility version. */
+  version: number
+  /**
+   * Characters allowed in keys, referring to a known character set.
+   * e.g. "ascii" refers to the printable ASCII characters in the code range 32-126.
+   */
+  keyChars: string
+  /** Max key size in bytes - default 4096 bytes. */
+  maxKeySize: number
+  /** The key prefix from the root to this shard. */
+  prefix: string
+  /** The entries in this shard. */
   entries: ShardEntry[]
 }
 
@@ -85,9 +99,20 @@ type UserData = Link<any>
 
 ### Shard
 
-The storage is made up of shards. They are blocks of IPLD data. Shards must be [dag-cbor](https://ipld.io/specs/codecs/dag-cbor/spec/) encoded and must not exceed `512KiB` in size (post encode).
+The storage is made up of shards. They are blocks of IPLD data. Shards are recommended to be [dag-cbor](https://ipld.io/specs/codecs/dag-cbor/spec/) encoded.
 
 A shard is an ordered list of [shard entries](#shard-entry). Shard entries must always be ordered lexicographically by key within a shard.
+
+The maximum encoded shard size is controlled by the creator of the pail by specifying 2 options:
+
+* `keyChars` - the characters allowed in keys (default ASCII only).
+* `maxKeySize` - maximum size in bytes a UTF-8 encoded key is allowed to be (default 4096 bytes).
+
+A good estimate for the max size of a shard is the number of characters allowed in keys multiplied by the maximum key size. This is because there cannot be more than one key with the same first character in a shard (see section on [Sharding](#sharding) for further explanation). For ASCII keys of 4096 bytes the biggest possible shard will stay well within the maximum block size allowed by libp2p.
+
+Note: The default max key size is the same as "`MAX_PATH`" - the maximum filename+path size on most Windows/Unix systems so should be sufficient for most purposes.
+
+Note: Even if you use unicode key characters it would be difficult to exceed the max libp2p block size, but it is not impossible.
 
 ### Shard Entry
 
@@ -97,13 +122,11 @@ A key/value pair whose value corresponds to [user data](#user-data) or a [shard 
 
 A UTF-8 encoded string.
 
-The key length must not exceed 64 characters. Putting a key whose length is greater than 64 characters must create a new shard(s) to accommodate the additional length. See [Long Keys](#long-keys).
-
 ### Value
 
 #### User Data
 
-An IPLD [CID](https://github.com/multiformats/cid) to any data that has explicitly been put to the storage by a user.
+An IPLD [Link](https://github.com/multiformats/cid) to any data that has explicitly been put to the storage by a user.
 
 For example (dag-json encoded):
 
@@ -113,7 +136,7 @@ For example (dag-json encoded):
 
 #### Shard Link
 
-An IPLD [CID](https://github.com/multiformats/cid) link to another shard in the storage.
+An IPLD [Link](https://github.com/multiformats/cid) link to another shard in the storage.
 
 Shard link values must be encoded as an array (tuple) in order to differentiate them from [user data](#user-data).
 
@@ -221,100 +244,6 @@ After:
 [['a', [{ '/': 'bafyshard' }, { '/': 'bafyvalueaaa' }]]]
 ```
 
-#### Long Keys
-
-If the shard key is longer than 64 characters a new shard(s) must be created to accommodate the new length. The first 64 characters must be added as a new entry in the shard, along with a value that is a link to a new shard with the next 64 characters of the key. This is repeated until the key has less than 64 characters. The value for the entry for the key with less than 64 characters must be set as the value for the put operation.
-
-For example, putting a key `ax64...bx64...cx10...` and value `bafyvalue` in an empty shard (dag-json encoded):
-
-```javascript
-[['ax64...', [{ '/': 'bafyshard1' }]]]
-```
-
-```javascript
-// bafyshard1
-[['bx64...', [{ '/': 'bafyshard0' }]]]
-```
-
-```javascript
-// bafyshard0
-[['cx10...', { '/': 'bafyvalue' }]]
-```
-
-#### Sharding
-
-After putting a value to the shard, it must be encoded and it's size measured. If the byte size of the encoded shard exceeds `512KiB`, it must be sharded.
-
-Sharding involves taking two or more keys from the shard and moving them into a new shard. To select keys for sharding, the longest common prefix (LCP) must be found, using the newly inserted shard key as the base. Work backwards through the string until one or more other keys within the shard share the same prefix. Move to the next key in the shard as the base if no other keys in the shard match any substring of the inserted shard key.
-
-The following is pseudocode of the algorithm for creating a new shard when a shard exceeds the size limit:
-
-1. Find longest common prefix using insert key as base
-2. IF common prefix for > 1 entries exists
-    1. Create new shard with suffixes for entries that match common prefix
-    1. Remove entries with common prefix from shard
-    1. Add entry for common prefix, linking new shard
-    1. FINISH
-3. ELSE
-    1. Find longest common prefix using adjacent key as base
-    1. GOTO 2
-
-For example:
-
-```text
-abel
-foobarbaz
-foobarwooz
-food
-somethingelse
-```
-
-Put "foobarboz" and exceed shard size limit:
-
-```text
-abel
-foobarbaz
-<- foobarboz
-foobarwooz
-food
-somethingelse
-```
-
-Find "foobarb" as longest common prefix, create shard:
-
-```text
-abel
-foobarb -> az
-           oz
-foobarwooz
-food
-somethingelse
-```
-
-Put "foopey", exceeding shard size:
-
-```text
-abel
-foobarb -> az
-           oz
-foobarwooz
-food
-<- foopey
-somethingelse
-```
-
-Find "foo" as longest common prefix, create shard:
-
-```text
-abel
-foo -> barb -> az
-               oz
-       barwooz
-       d
-       pey
-somethingelse
-```
-
 ### Delete
 
 The "delete" operation removes a value for a given key in the storage.
@@ -344,12 +273,12 @@ For example, deleting a key `abba` from a non-root shard (dag-json encoded):
 Before:
 
 ```javascript
-[['abb', [{ '/': 'bafyshard' }]]]
+[['a', [{ '/': 'bafyshard' }]]]
 ```
 
 ```javascript
 // bafyshard
-[['a', { '/': 'bafyvalue' }]]
+[['bba', { '/': 'bafyvalue' }]]
 ```
 
 After:
@@ -358,28 +287,24 @@ After:
 []
 ```
 
-For example, deleting a key `abba` from a non-root shard with user data in key `abb` (dag-json encoded):
+For example, deleting a key `abba` from a non-root shard with user data in key `a` (dag-json encoded):
 
 Before:
 
 ```javascript
-[['abb', [{ '/': 'bafyshard' }, { '/': 'bafyvalueabb' }]]]
+[['a', [{ '/': 'bafyshard' }, { '/': 'bafyvalueabb' }]]]
 ```
 
 ```javascript
 // bafyshard
-[['a', { '/': 'bafyvalue' }]]
+[['bba', { '/': 'bafyvalue' }]]
 ```
 
 After:
 
 ```javascript
-[['abb', { '/': 'bafyvalueabb' }]]
+[['a', { '/': 'bafyvalueabb' }]]
 ```
-
-## Propagating Changes
-
-Any changes made to a shard will result in it's CID changing. If the shard is not the root shard, the change must be propagated to the root.
 
 ## Shard Traversal
 
@@ -399,3 +324,176 @@ The following is pseudocode of an algorithm for traversing the storage to identi
         3. GOTO 2
 
 Traversal should return enough information for a caller to easily identify the key _within_ a shard that should be used to place their value.
+
+## Sharding
+
+When putting a value it is sometimes necessary to create one or more shards in order to accomodate a new value within the storage.
+
+The storage must first be [traversed](#shard-traversal) to identify the target shard where the value should be placed, as well as the key within the shard that should be used. This will be referred to as the "sharded insertion key" from here on.
+
+The traversal process ensures there is no further traversal possible for the provided key.
+
+If any existing key is equal to the sharded insertion key, no sharding needs to happen - an existing value just needs to be replaced.
+
+Otherwise, the first UTF-8 character of each existing key should be compared to the first UTF-8 character of the sharded insertion key. If no match exists, the key and value are simply added to the shard at the correct lexicographical index.
+
+If there is a match, a new shard must be created. The existing key is replaced with the first character of the existing key, and it's value becomes a pointer to the new shard. The remainder of the existing key (and it's value) is moved into the new shard. The process is then repeated in the new shard, using the sharded insertion key, minus the matched first character.
+
+For example, given a pail with 2 keys:
+
+<!--
+car
+train
+-->
+
+```mermaid
+flowchart LR
+  subgraph s0 [root shard]
+    direction RL
+    car
+    train
+  end
+```
+
+Put "bus":
+
+<!--
+bus
+car
+train
+-->
+
+```mermaid
+flowchart LR
+  subgraph s0 [root shard]
+    direction RL
+    bus
+    car
+    train
+  end
+```
+
+Put "truck":
+
+<!--
+bus
+car
+t   -> r -> ain
+            uck
+-->
+
+```mermaid
+flowchart LR
+  subgraph s0 [root shard]
+    direction RL
+    bus
+    car
+    t
+  end
+  subgraph s1 [shard 1]
+    direction RL
+    r
+  end
+  subgraph s2 [shard 2]
+    direction RL
+    ain
+    uck
+  end
+  t-->s1
+  r-->s2
+```
+
+Put "trailer":
+
+<!--
+bus
+car
+t   -> r -> a   -> i -> ler
+                        n
+            uck
+-->
+
+```mermaid
+flowchart LR
+  subgraph s0 [root shard]
+    direction RL
+    bus
+    car
+    t
+  end
+  subgraph s1 [shard 1]
+    direction RL
+    r
+  end
+  subgraph s2 [shard 2]
+    direction RL
+    a
+    uck
+  end
+  subgraph s3 [shard 3]
+    direction RL
+    i
+  end
+  subgraph s4 [shard 4]
+    direction RL
+    ler
+    n
+  end
+  t-->s1
+  r-->s2
+  a-->s3
+  i-->s4
+```
+
+Put "trunk":
+
+<!--
+bus
+car
+t   -> r -> a -> i -> ler
+                      n
+            u -> ck
+                 nk
+-->
+
+```mermaid
+flowchart LR
+  subgraph s0 [root shard]
+    direction RL
+    bus
+    car
+    t
+  end
+  subgraph s1 [shard 1]
+    direction RL
+    r
+  end
+  subgraph s5 [shard 5]
+    direction RL
+    ck
+    nk
+  end
+  subgraph s2 [shard 2]
+    direction RL
+    a
+    u
+  end
+  subgraph s3 [shard 3]
+    direction RL
+    i
+  end
+  subgraph s4 [shard 4]
+    direction RL
+    ler
+    n
+  end
+  t-->s1
+  r-->s2
+  a-->s3
+  i-->s4
+  u-->s5
+```
+
+## Propagating Changes
+
+Any changes made to a shard will result in a change to it's CID. If the shard is not the root shard, the change must be propagated to the root.
