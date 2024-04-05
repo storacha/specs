@@ -164,7 +164,7 @@ Shows an example receipt for the above `/space/content/add/blob` capability invo
         "args": {
           "content": { "/": { "bytes": "mEi...sfKg" } },
           "address": { "await/ok": { "/": "bafy...alloc" } },
-          _allocate: { "await/ok": { "/": "bafy...alloc" } }
+          "_allocate": { "await/ok": { "/": "bafy...alloc" } }
         },
         "meta": {
           // archive of the principal keys
