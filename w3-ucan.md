@@ -203,6 +203,70 @@ It is RECOMMENDED to treat revocations permanent. Even though enclosing [UCAN] c
 
 Enclosing [UCAN] revocation offers a mechanism to revoke authorization that [authority] MAY have given to another principal to revoke [UCAN]s on their behalf.
 
+## Conclusion
+
+### Motivation
+
+The [UCAN invocation] specification defines [receipt] record, that is cryptographically signed description of the invocation output and requested effects. Receipt structure is very similar to [UCAN] except it has no notion of expiry nor it is possible to delegate ability to issue receipt to another principal. To address those shortcomings we define special `ucan/conclude`capability that represents receipt using a special [UCAN] capability.
+
+### IPLD Schema
+
+```ipldsch
+type UCAN union {
+  | Conclude    "ucan/conclude"
+} representation inline {
+  discriminantKey "can"
+}
+
+type Conclude struct {
+  with          Authority
+  nb            Conclusion
+}
+
+type Conclusion struct {
+  ran         &Invocation
+  out         Result
+  next        [&Task]
+  meta        Meta
+  time        Int -- Unix timestamp at which the Receipt was issued
+}
+
+type Result union {
+  Any               "ok"
+  {String: Any}     "error"
+} represantation keyed
+
+type Meta = { String: Any }
+```
+
+### Conclusion Authority
+
+The value of the `with` field MUST be the [DID] of the audience of the ran invocation.
+
+### Conclusion Task
+
+The value of the `nb.ran` field MUST be a [link] to the [UCAN invocation] that this receipt is for.
+
+### Conclusion Output
+
+The value output of the invocation in `Result` format.
+
+### Conclusion Effects
+
+Tasks that the invocation would like to enqueue.
+
+### Conclusion Meta
+
+Additional data about the receipt
+
+### Conclusion Time
+
+The UTC Unix timestamp at which the Receipt was issued
+
+### Conclusion Lifetime
+
+Conclusion MAY be permanent or temporary. Enclosing [UCAN] [time-bounds] MUST be interpreted as the time frame within which an issued conclusion is valid.
+
 [UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
 [DID]:https://www.w3.org/TR/did-core/
 [link]:https://ipld.io/docs/schemas/features/links/
@@ -212,3 +276,5 @@ Enclosing [UCAN] revocation offers a mechanism to revoke authorization that [aut
 [authority]:#authority
 [Protocol Labs]:https://protocol.ai/
 [Irakli Gozalishvili]:https://github.com/Gozala
+[receipt]:https://github.com/ucan-wg/invocation/tree/v0.2?tab=readme-ov-file#225-receipt
+[UCAN invocation]:https://github.com/ucan-wg/invocation/tree/v0.2

@@ -61,6 +61,8 @@ Added("🧾 { ok: { claim 🚦 } }")
 
 Allocate("⏭️ /service/blob/allocate 🤖")
 
+Put("⏭️ /http/put 🤖🔑")
+
 Accept("⏭️ /service/blob/accept 🤖")
 
 Accepted("🧾 { ok: { claim 🎫 } }")
@@ -71,7 +73,10 @@ Claim("🎫 /assert/location 🤖👩‍💻")
 Add --o Added
 Added -.-> Allocate
 Added -.-> Accept
+Added -.-> Put
 Allocate --> Accept
+
+Put --> Accept
 Accept --o Accepted
 Accepted -- claim --> Claim
 Added -- claim --> Accept
@@ -150,8 +155,26 @@ Shows an example receipt for the above `/space/content/add/blob` capability invo
           }
         }
       },
-      // 2. System will attempt to accept received content
-      // if matches blob multihash and size.
+      // 2. System requests user agent (or anyone really) to upload the content
+      // corresponding to the blob
+      // via HTTP PUT to given location.
+      { // "/": "bafy...put",
+        "cmd": "/http/put",
+        "sub": "did:key:zMh...der", // <-- Ed299.. derived key from content multihash
+        "args": {
+          "content": { "/": { "bytes": "mEi...sfKg" } },
+          "address": { "await/ok": { "/": "bafy...alloc" } },
+          "_allocate": { "await/ok": { "/": "bafy...alloc" } }
+        },
+        "meta": {
+          // archive of the principal keys
+          "keys": {
+            "did:key:zMh...der": { "/": "mEi...sfKg" } 
+          }
+        }
+      },
+      // 3. System will attempt to accept uploaded content that matches blob
+      // multihash and size.
       { // "/": "bafy...accept",
         "cmd": "/service/blob/accept",
         "sub": "did:web:web3.storage",
@@ -164,7 +187,8 @@ Shows an example receipt for the above `/space/content/add/blob` capability invo
           },
           exp: 1711122994101,
           // This task is blocked on allocation
-          _: { "await/ok": { "/": "bafy...alloc" } }
+          _allocate: { "await/ok": { "/": "bafy...alloc" } },
+          _put: { "await/ok", { "/": "bafy...put" } }
         }
       }
     ]
@@ -213,6 +237,7 @@ type AddBlobReceipt = {
   out: Result<AddBlobOk, AddBlobError>
   next: [
     AllocateBlob,
+    PutBlob,
     AcceptBlob,
   ]
 }
@@ -246,6 +271,7 @@ Task linked from the `claim` of the success value MUST be present in the receipt
 Successful invocation MUST start a workflow consisting of following tasks, that MUST be set in receipt effects (`next` field) in the following order.
 
 1. [Allocate Blob]
+1. [Put Blob]
 1. [Accept Blob]
 
 ## Allocate Blob
@@ -325,11 +351,78 @@ It is RECOMMENDED that issued `BlobAddress` only accept `PUT` payload that match
 
 Allocation MUST have no effects.
 
+## Put Blob
+
+Any agent MAY perform `/http/put` capability invocation on behalf of the subject. [Add blob] capability provider MUST add `/http/put` effect and capture private key of the `subject` in the `meta` field so that any agent could perform it.
+
+An agent that invoked [add blob] capability is expected to perform this task and issue receipt on completion.
+
+### Put Blob Capability
+
+#### Put Blob Capability Schema
+
+> ℹ️ In the UCAN 0.9 `meta` is unknown as `fct` field
+
+```ts
+type BlobPut = {
+  cmd: "/http/put"
+  sub: DID
+  args: {
+    url: URL
+    headers: Headers
+    body: Blob
+  }
+  meta: {
+    keys: {[key: DID]: bytes}
+  }
+}
+```
+
+### Put Blob Subject
+
+The subject field SHOULD be [`did:key`] corresponding to the [Ed25519] private key that is first 32 bytes of the blob [multihash].
+
+### Put Blob Metadata
+
+Metadata MUST contain `keys` field with an object value that contains [`did:key`] subject as key and corresponding private key as bytes as a value.
+
+### Put Blob Address
+
+Destination address `url` and required `headers` MUST be specified in the arguments.
+
+### Put Blob Receipt
+
+Receipt is signal to the service to proceed with [accept blob]. Service implementation that does not require signal from the client it MAY issue receipt when content is uploaded.
+
+ℹ️ Client MAY use [UCAN conclusion] capability to deliver receipt to the awaiting service.
+
+#### Put Blob Receipt Schema
+
+```ts
+type BlobPutReceipt = {
+  ran: Link<BlobPut>
+  out: Result<BlobPutOk, BlobPutError>
+  next: []
+}
+
+type BlobPutOk = {}
+
+type AddPutError = {
+  message: string
+}
+```
+
+#### Blob Put Effects
+
+Receipt MUST not have any effects.
+
 ## Accept Blob
 
-Authorized agent MAY invoke `/service/blob/accept` capability on the [provider] subject. Invocation MUST either succeed when content is delivered on allocated `address` or fail if no content is allocation expires without content being delivered.
+Authorized agent MAY invoke `/service/blob/accept` capability on the [provider] subject. Invocation MUST either succeed when content is delivered on allocated `address` or fail if either allocation failed or expired before content was delivered.
 
-ℹ️ Implementation that is unable to enforce to reject HTTP PUT request that do not match blob [multihash] or `size` SHOULD enforce that invariant in this invocation by failing task if no valid content has been delivered.
+Invocation MUST block until content is delivered. Implementation MAY resume when content is sent to the allocated address or await until client signals that content has been delivered using [put blob receipt].
+
+ℹ️ Implementation that is unable to reject HTTP PUT request for the payload that does not match blob [multihash] or `size` SHOULD enforce the invariant in this invocation by failing task if no valid content has been delivered.
 
 ### Accept Blob Capability
 
@@ -375,13 +468,36 @@ Receipt MUST not have any effects.
 Location claim represents commitment from the issuer to the audience that
 content matching the `content` [multihash] can be read via HTTP [range request]
 
+### Location Claim Delegation Example
+
+```js
+{
+  "iss": "did:web:web3.storage",
+  "aud": "did:key:zAlice",
+
+  "cmd": "/assert/location",
+  "sub": "did:web:web3.storage",
+  "pol": [
+    // multihash must match be for the blob uploaded
+    ["==", ".content", { "/": { "bytes": "mEi...sfKg" } }],
+    // must be available from this url
+    ["==", ".url", "https://w3s.link/ipfs/bafk...7fi"],
+    // from this range
+    ["==", ".range[0]", 0],
+    ["==", ".range[1]", 2_097_152],
+  ],
+  // does not expire
+  "exp": null
+}
+```
+
 ### Location Claim Capability
 
 #### Location Claim Capability Schema
 
 ```ts
 type LocationClaim = {
-  cmd: "assert/location"
+  cmd: "/assert/location"
   sub: ProviderDID
   args: {
     content: Multihash
@@ -392,12 +508,6 @@ type LocationClaim = {
 ```
 
 # Coordination
-
-## Accept Content
-
-[Accept Blob] invocation will block until content is delivered, however some implementations may not be able to observe when content was received. Those implementations can await for subsequent [Add Blob] invocations and re-check whether content has been received.
-
-Note that implementation MUST be idempotent and same receipts MUST be returned to the caller, yet pending tasks could be updated.
 
 ## Publishing Blob
 
@@ -413,8 +523,13 @@ Blob can be published by authorizing read interface (e.g. IPFS gateway) by deleg
 [await/ok]:https://github.com/ucan-wg/invocation?tab=readme-ov-file#await
 [location claim]:#location-claim
 [Add Blob]:#add-blob
+[Put Blob]:#put-blob
+[put blob receipt]:#put-blob-receipt
 [Allocate Blob]:#allocate-blob
 [Accept Blob]:#accept-blob
 [DID]:https://www.w3.org/TR/did-core/
 [Link]:https://ipld.io/docs/schemas/features/links/
 [range request]:https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
+[`did:key`]:https://w3c-ccg.github.io/did-method-key/
+[Ed25519]:https://en.wikipedia.org/wiki/EdDSA#Ed25519
+[UCAN Conclusion]:./w3-ucan.md#conclusion
