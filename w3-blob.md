@@ -163,7 +163,8 @@ Shows an example receipt for the above `/space/content/add/blob` capability invo
         "sub": "did:key:zMh...der", // <-- Ed299.. derived key from content multihash
         "args": {
           "content": { "/": { "bytes": "mEi...sfKg" } },
-          "address": { "await/ok": { "/": "bafy...alloc" } }         
+          "address": { "await/ok": { "/": "bafy...alloc" } },
+          _allocate: { "await/ok": { "/": "bafy...alloc" } }
         },
         "meta": {
           // archive of the principal keys
