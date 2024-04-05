@@ -158,7 +158,7 @@ Shows an example receipt for the above `/space/content/add/blob` capability invo
       // 2. System requests user agent (or anyone really) to upload the content
       // corresponding to the blob
       // via HTTP PUT to given location.
-      { // "/": "bafy...upload",
+      { // "/": "bafy...put",
         "cmd": "/http/put",
         "sub": "did:key:zMh...der", // <-- Ed299.. derived key from content multihash
         "args": {
