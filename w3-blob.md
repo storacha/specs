@@ -368,8 +368,9 @@ type BlobPut = {
   cmd: "/http/put"
   sub: DID
   args: {
-    content: Multihash
-    address: BlobAddress
+    url: URL
+    headers: Headers
+    body: Blob
   }
   meta: {
     keys: {[key: DID]: bytes}
