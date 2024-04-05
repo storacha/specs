@@ -163,10 +163,7 @@ Shows an example receipt for the above `/space/content/add/blob` capability invo
         "sub": "did:key:zMh...der", // <-- Ed299.. derived key from content multihash
         "args": {
           "content": { "/": { "bytes": "mEi...sfKg" } },
-          "address": {        
-            "url": "https://r2.cloudflare.com/ipfs/bafy...",
-            "headers": {}
-          }
+          "address": { "await/ok": { "/": "bafy...alloc" } }         
         },
         "meta": {
           // archive of the principal keys
