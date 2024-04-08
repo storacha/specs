@@ -123,7 +123,7 @@ Shown Invocation example illustrates Alice requesting to add 2MiB blob to her sp
   "iss": "did:key:zAlice",
   "aud": "did:web:web3.storage",
   "args": {
-    "site": {
+    "blob": {
       // multihash of the blob as byte array
       "digest": { "/": { "bytes": "mEi...sfKg" } },
       // size of the blob in bytes
