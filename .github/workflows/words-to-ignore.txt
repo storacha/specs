@@ -8,6 +8,7 @@ JWT-encoded
 Pre-Draft
 TTL
 UCAN
+ucan
 UCAN's
 UCANs
 Zelenka
