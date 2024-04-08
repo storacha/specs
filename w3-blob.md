@@ -2,11 +2,15 @@
 
 ![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
 
+## Editors
+
 - [Irakli Gozalishvili](https://github.com/gozala)
+- [Vasco Santos](https://github.com/vasco-santos)
 
 ## Authors
 
 - [Irakli Gozalishvili](https://github.com/gozala)
+- [Vasco Santos](https://github.com/vasco-santos)
 
 ## Abstract
 
@@ -162,7 +166,13 @@ Shows an example receipt for the above `/space/content/add/blob` capability invo
         "cmd": "/http/put",
         "sub": "did:key:zMh...der", // <-- Ed299.. derived key from content multihash
         "args": {
-          "content": { "/": { "bytes": "mEi...sfKg" } },
+          "body": {
+            // multihash of the blob as byte array
+            "content": { "/": { "bytes": "mEi...sfKg" } },
+            // size of the blob in bytes
+            "size": 2_097_152,
+          }
+          // TODO: this should now be updated?
           "address": { "await/ok": { "/": "bafy...alloc" } },
           "_allocate": { "await/ok": { "/": "bafy...alloc" } }
         },
@@ -386,9 +396,17 @@ The subject field SHOULD be [`did:key`] corresponding to the [Ed25519] private k
 
 Metadata MUST contain `keys` field with an object value that contains [`did:key`] subject as key and corresponding private key as bytes as a value.
 
-### Put Blob Address
+### Put Blob Body
 
-Destination address `url` and required `headers` MUST be specified in the arguments.
+The `args.body` field MUST be set to the Blob the space is allocated for.
+
+### Put Blob URL
+
+The `args.url` field MUST be set to the HTTP(S) location that can receive blob content via HTTP PUT request.
+
+### Put Blob Headers
+
+The `args.url` field MUST be set to the HTTP(S) headers required to send blob content via HTTP PUT request.
 
 ### Put Blob Receipt
 
