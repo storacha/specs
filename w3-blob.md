@@ -56,12 +56,12 @@ Following diagram illustrates execution flow. Alice invokes `/space/content/add/
 ```mermaid
 flowchart TB
 Add("⏯️ /space/content/add/blob 👩‍💻 🤖")
-AddOk("🧾 { ok: { claim } }")
+AddOk("🧾 { ok: { site } }")
 
 
 subgraph accept
 Accept("⏯️ /service/blob/accept 🤖")
-AcceptOk("🧾 { ok: { claim } }")
+AcceptOk("🧾 { ok: { site } }")
 end
 
 subgraph put
@@ -155,9 +155,9 @@ Shows an example receipt for the above `/space/content/add/blob` capability invo
           "ok": {
             // result of the add is the content (location) claim
             // that is produced as result of "bafy..accept"
-            "blob": {
+            "site": {
               "ucan/await": [
-                ".out.ok.blob",
+                ".out.ok.site",
                 { "/": "bafy...accept" }
               ]
             }
@@ -472,7 +472,7 @@ Receipt MUST not have any effects.
 
 ## Accept Blob
 
-Authorized agent MAY invoke `/service/blob/accept` capability on the [provider] subject. Invocation MUST either succeed when content is delivered to an allocated `address` or fail if either allocation failed or expired before content was delivered.
+Authorized agent MAY invoke `/service/blob/accept` capability on the [provider] subject. Invocation MUST either succeed when content is delivered at allocated site or fail if either allocation failed or expired before content was delivered.
 
 Invocation MUST block until content is delivered. Implementation MAY resume when content is sent to the allocated address or await until client signals that content has been delivered using [put blob receipt].
 
