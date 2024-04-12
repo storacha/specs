@@ -51,7 +51,7 @@ Authorized agent MAY invoke `/space/content/add/blob` capability on the [space] 
 
 ### Add Blob Diagram
 
-Following diagram illustrates execution flow. Alice invokes `/space/content/add/blob` command which produces receipt with three effects (`allocate`, `put`, `accept`) and awaited `claim`. Effects have dependencies and therefor predict execution flow (from left to right). The output of the main task awaits on the result of the result of the last effect.
+Following diagram illustrates execution flow. Alice invokes `/space/content/add/blob` command which produces a receipt with three effects (`allocate`, `put`, `accept`) and awaited `claim`. Effects have dependencies and therefore predict execution flow (from left to right). The output of the main task awaits on the result of the last effect.
 
 ```mermaid
 flowchart TB
@@ -75,7 +75,7 @@ Allocate("⏯️ /service/blob/allocate 🤖")
 AllocateOk("🧾 { ok: { url headers } }")
 end
 
-Claim("🎫 /assert/location 🤖👩‍💻")
+Site("🎫 /assert/location 🤖👩‍💻")
 
 
 
@@ -83,7 +83,7 @@ Add -.-> AddOk
 AddOk -- ⏭️ --> allocate
 AddOk -- ⏭️ --> put
 AddOk -- ⏭️ --> accept
-AddOk -- 🚦 out.ok.claim --> AcceptOk
+AddOk -- 🚦 out.ok.site --> AcceptOk
 
 
 
@@ -98,7 +98,7 @@ Put -.-> PutOk
 
 Accept -- 🚦_put --> PutOk
 Accept -.-> AcceptOk
-AcceptOk -- claim --> Claim
+AcceptOk -- site --> Site
 ```
 
 #### Iconography
