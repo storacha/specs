@@ -51,7 +51,7 @@ Authorized agent MAY invoke `/space/content/add/blob` capability on the [space] 
 
 ### Add Blob Diagram
 
-Following diagram illustrates execution flow. Alice invokes `/space/content/add/blob` command which produces a receipt with three effects (`allocate`, `put`, `accept`) and awaited `claim`. Effects have dependencies and therefore predict execution flow (from left to right). The output of the main task awaits on the result of the last effect.
+Following diagram illustrates execution flow. Alice invokes `/space/content/add/blob` command which produces a receipt with three effects (`allocate`, `put`, `accept`) and awaited `site` commitment. Effects have dependencies and therefore predict execution flow (from left to right). The output of the main task awaits on the result of the last effect.
 
 ```mermaid
 flowchart TB
@@ -117,7 +117,7 @@ AcceptOk -- site --> Site
 Shown Invocation example illustrates Alice requesting to add 2MiB blob to her space.
 
 ```js
-{
+{ // "/": "bafy..add"
   "cmd": "/space/content/add/blob",
   "sub": "did:key:zAlice",
   "iss": "did:key:zAlice",
@@ -153,7 +153,7 @@ Shows an example receipt for the above `/space/content/add/blob` capability invo
       {
         "out": {
           "ok": {
-            // result of the add is the content (location) claim
+            // result of the add is the content (location) commitment
             // that is produced as result of "bafy..accept"
             "site": {
               "ucan/await": [
@@ -230,7 +230,7 @@ Shows an example receipt for the above `/space/content/add/blob` capability invo
                 "content": { "/": { "bytes": "mEi...sfKg" } },
                 "size": 2_097_152,
               },
-              "exp": 1711122994101,
+              "expires": 1712903125,
               // This task is blocked on allocation
               "_put": { "ucan/await": [".out.ok", { "/": "bafy...put" }] }
             }
@@ -373,6 +373,8 @@ type BlobAllocateOk = {
 type BlobAddress = {
   url:     string
   headers: {[key:string]: string}
+  # Unix timestamp (in seconds precision) of when this address expires
+  expires  Int
 }
 ```
 
@@ -505,7 +507,7 @@ type BlobAcceptReceipt = {
 }
 
 type BlobAcceptOk = {
-  claim: Link<LocationClaim>
+  site: Link<LocationCommitment>
 }
 
 type BlobAcceptError = {
@@ -517,12 +519,12 @@ type BlobAcceptError = {
 
 Receipt MUST not have any effects.
 
-## Location Claim
+## Location Commitment
 
-Location claim represents commitment from the issuer to the audience that
+Location commitment represents commitment from the issuer to the audience that
 content matching the `content` [multihash] can be read via HTTP [range request]
 
-### Location Claim Delegation Example
+### Location Commitment Delegation Example
 
 ```js
 {
@@ -545,12 +547,12 @@ content matching the `content` [multihash] can be read via HTTP [range request]
 }
 ```
 
-### Location Claim Capability
+### Location Commitment Capability
 
-#### Location Claim Capability Schema
+#### Location Commitment Capability Schema
 
 ```ts
-type LocationClaim = {
+type LocationCommitment = {
   cmd: "/assert/location"
   sub: ProviderDID
   args: {
@@ -565,16 +567,16 @@ type LocationClaim = {
 
 ## Publishing Blob
 
-Blob can be published by authorizing read interface (e.g. IPFS gateway) by delegating it [Location Claim] that has been obtained from the provider.
+Blob can be published by authorizing read interface (e.g. IPFS gateway) by delegating it [Location Commitment] that has been obtained from the provider.
 
-> Note that same applies to publishing blob on [IPNI], new capability is not necessary, user simply needs to re-delegate `LocationClaim` to the DID representing [IPNI] publisher. [IPNI] publisher in turn may publish delegation to DID with publicly known private key allowing anyone to perform the reads.
+> Note that same applies to publishing blob on [IPNI], new capability is not necessary, user simply needs to re-delegate `LocationCommitment` to the DID representing [IPNI] publisher. [IPNI] publisher in turn may publish delegation to DID with publicly known private key allowing anyone to perform the reads.
 
 [store protocol]:./w3-store.md
 [CAR]:https://ipld.io/specs/transport/car/
 [multihash]:https://github.com/multiformats/multihash
 [space]:#space
 [IPNI]:https://github.com/ipni/specs/blob/main/IPNI.md
-[location claim]:#location-claim
+[location commitment]:#location-commitment
 [Add Blob]:#add-blob
 [Put Blob]:#put-blob
 [put blob receipt]:#put-blob-receipt
