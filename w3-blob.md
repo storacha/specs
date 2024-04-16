@@ -51,55 +51,73 @@ Authorized agent MAY invoke `/space/content/add/blob` capability on the [space] 
 
 ### Add Blob Diagram
 
-Following diagram illustrates execution workflow.
+Following diagram illustrates execution flow. Alice invokes `/space/content/add/blob` command which produces a receipt with three effects (`allocate`, `put`, `accept`) and awaited `site` commitment. Effects have dependencies and therefore predict execution flow (from left to right). The output of the main task awaits on the result of the last effect.
 
 ```mermaid
 flowchart TB
-Add("▶️ /space/content/add/blob 👩‍💻 🤖")
-
-Added("🧾 { ok: { claim 🚦 } }")
-
-Allocate("⏭️ /service/blob/allocate 🤖")
-
-Put("⏭️ /http/put 🤖🔑")
-
-Accept("⏭️ /service/blob/accept 🤖")
-
-Accepted("🧾 { ok: { claim 🎫 } }")
+Add("⏯️ /space/content/add/blob 👩‍💻 🤖")
+AddOk("🧾 { ok: { site } }")
 
 
-Claim("🎫 /assert/location 🤖👩‍💻")
+subgraph accept
+Accept("⏯️ /service/blob/accept 🤖")
+AcceptOk("🧾 { ok: { site } }")
+end
 
-Add --o Added
-Added -.-> Allocate
-Added -.-> Accept
-Added -.-> Put
-Allocate --> Accept
+subgraph put
+Put("⏯️ /http/put 🔑")
+PutOk("🧾 { ok: {} }")
+end
 
-Put --> Accept
-Accept --o Accepted
-Accepted -- claim --> Claim
-Added -- claim --> Accept
+
+subgraph allocate
+Allocate("⏯️ /service/blob/allocate 🤖")
+AllocateOk("🧾 { ok: { url headers } }")
+end
+
+Site("🎫 /assert/location 🤖👩‍💻")
+
+
+
+Add -.-> AddOk
+AddOk -- ⏭️ --> allocate
+AddOk -- ⏭️ --> put
+AddOk -- ⏭️ --> accept
+AddOk -- 🚦 out.ok.site --> AcceptOk
+
+
+
+Allocate -.-> AllocateOk
+
+Put -- 🚦url --> AllocateOk
+Put -- 🚦headers --> AllocateOk
+
+Put -.-> PutOk
+
+
+
+Accept -- 🚦_put --> PutOk
+Accept -.-> AcceptOk
+AcceptOk -- site --> Site
 ```
 
 #### Iconography
 
-- Icon on the left describes type of the node
-- Icon on the right describes issuer / audience pair if only one audience is the issuer
-- ▶️ Task
+- ⏯️ Task
 - ⏭️ Next Task (a.k.a Effect)
 - 🧾 Receipt
-- 🎫 Delegation / Commitment
+- 🎫 Delegation
 - 🚦 Await
 - 👩‍💻 Alice
 - 🤖 Service
+- 🔑 Derived Principal
 
 ### Add Blob Invocation Example
 
 Shown Invocation example illustrates Alice requesting to add 2MiB blob to her space.
 
 ```js
-{
+{ // "/": "bafy..add"
   "cmd": "/space/content/add/blob",
   "sub": "did:key:zAlice",
   "iss": "did:key:zAlice",
@@ -107,7 +125,7 @@ Shown Invocation example illustrates Alice requesting to add 2MiB blob to her sp
   "args": {
     "blob": {
       // multihash of the blob as byte array
-      "content": { "/": { "bytes": "mEi...sfKg" } },
+      "digest": { "/": { "bytes": "mEi...sfKg" } },
       // size of the blob in bytes
       "size": 2_097_152,
     }
@@ -122,74 +140,102 @@ Shows an example receipt for the above `/space/content/add/blob` capability invo
 > ℹ️ We use `// "/": "bafy..` comments to denote CID of the parent object.
 
 ```js
-{ // "/": "bafy..add",
+{ // "/": "bafy..work",
   "iss": "did:web:web3.storage",
   "aud": "did:key:zAlice",
-  "cmd": "/ucan/assert/result"
+  "cmd": "/ucan/assert",
   "sub": "did:web:web3.storage",
   "args": {
-    // refers to the invocation from the example
-    "ran": { "/": "bafy..add" },
-    "out": {
-      "ok": {
-        // result of the add is the content (location) claim
-        // that is produced as result of "bafy..accept"
-        "claim": { "await/ok": { "/": "bafy...accept" } }
-      }
-    },
-    // Previously `next` was known as `fx` instead, which is
-    // set of tasks to be scheduled.
-    "next": [
-      // 1. System attempts to allocate memory in user space for the blob.
-      { // "/": "bafy...alloc",
-        "cmd": "/service/blob/allocate",
-        "sub": "did:web:web3.storage",
-        "args": {
-          // space where memory is allocated
-          "space": "did:key:zAlice",
-          "blob": {
-            // multihash of the blob as byte array
-            "content": { "/": { "bytes": "mEi...sfKg" } },
-            // size of the blob in bytes
-            "size": 2_097_152,
+    "assert": [
+      // refers to the invocation from the example
+      { "/": "bafy..add" },
+      // refers to the receipt corresponding to the above invocation
+      {
+        "out": {
+          "ok": {
+            // result of the add is the content (location) commitment
+            // that is produced as result of "bafy..accept"
+            "site": {
+              "ucan/await": [
+                ".out.ok.site",
+                { "/": "bafy...accept" }
+              ]
+            }
           }
-        }
-      },
-      // 2. System requests user agent (or anyone really) to upload the content
-      // corresponding to the blob
-      // via HTTP PUT to given location.
-      { // "/": "bafy...put",
-        "cmd": "/http/put",
-        "sub": "did:key:zMh...der", // <-- Ed299.. derived key from content multihash
-        "args": {
-          "content": { "/": { "bytes": "mEi...sfKg" } },
-          "address": { "await/ok": { "/": "bafy...alloc" } },
-          "_allocate": { "await/ok": { "/": "bafy...alloc" } }
         },
-        "meta": {
-          // archive of the principal keys
-          "keys": {
-            "did:key:zMh...der": { "/": "mEi...sfKg" } 
-          }
-        }
-      },
-      // 3. System will attempt to accept uploaded content that matches blob
-      // multihash and size.
-      { // "/": "bafy...accept",
-        "cmd": "/service/blob/accept",
-        "sub": "did:web:web3.storage",
-        "args": {
-          "space": "did:key:zAlice",
-          "blob": {
-            // multihash of the blob as byte array
-            "content": { "/": { "bytes": "mEi...sfKg" } },
-            "size": 2_097_152,
+        // Previously `next` was known as `fx` instead, which is
+        // set of tasks to be scheduled.
+        "next": [
+          // 1. System attempts to allocate memory in user space for the blob.
+          { // "/": "bafy...alloc",
+            "cmd": "/service/blob/allocate",
+            "sub": "did:web:web3.storage",
+            "args": {
+              // space where memory is allocated
+              "space": "did:key:zAlice",
+              "blob": {
+                // multihash of the blob as byte array
+                "digest": { "/": { "bytes": "mEi...sfKg" } },
+                // size of the blob in bytes
+                "size": 2_097_152,
+              },
+              // task that caused this invocation
+              "cause": { "/": "bafy..add" }
+            }
           },
-          exp: 1711122994101,
-          // This task is blocked on allocation
-          _allocate: { "await/ok": { "/": "bafy...alloc" } },
-          _put: { "await/ok", { "/": "bafy...put" } }
-        }
+          // 2. System requests user agent (or anyone really) to upload the content
+          // corresponding to the blob
+          // via HTTP PUT to given location.
+          { // "/": "bafy...put",
+            "cmd": "/http/put",
+            "sub": "did:key:zMh...der", // <-- Ed299.. derived key from content multihash
+            "args": {
+              // pipe url from the allocation result
+              "url": {
+                  "ucan/await": [
+                    ".out.ok.address.url",
+                    { "/": "bafy...alloc" }
+                  ]
+              },
+              // pipe headers from the allocation result 
+              "headers": {
+                "ucan/await": [
+                  ".out.ok.address.headers",
+                  { "/": "bafy...alloc" }
+                ]
+              },
+              // body of the http request
+              "body": {
+                // multihash of the blob as byte array
+                "digest": { "/": { "bytes": "mEi...sfKg" } },
+                "size": 2_097_152
+              },
+            },
+            "meta": {
+              // archive of the principal keys
+              "keys": {
+                "did:key:zMh...der": { "/": "mEi...sfKg" } 
+              }
+            }
+          },
+          // 3. System will attempt to accept uploaded content that matches blob
+          // multihash and size.
+          { // "/": "bafy...accept",
+            "cmd": "/service/blob/accept",
+            "sub": "did:web:web3.storage",
+            "args": {
+              "space": "did:key:zAlice",
+              "blob": {
+                // multihash of the blob as byte array
+                "content": { "/": { "bytes": "mEi...sfKg" } },
+                "size": 2_097_152,
+              },
+              "expires": 1712903125,
+              // This task is blocked on allocation
+              "_put": { "ucan/await": [".out.ok", { "/": "bafy...put" }] }
+            }
+          }
+        ]
       }
     ]
   }
@@ -210,17 +256,17 @@ type AddBlob = {
 }
 
 type Blob = {
-  content: Multihash
-  size:    int
+  digest:   Multihash
+  size:     int
 }
 
 type Multihash = bytes
 type SpaceDID = string
 ```
 
-#### Blob Content
+#### Blob Digest
 
-The `args.blob.content` field MUST be a [multihash] digest of the blob payload bytes. Implementation SHOULD support SHA2-256 algorithm. Implementation MAY in addition support other hashing algorithms.
+The `args.blob.digest` field MUST be a [multihash] digest of the blob payload bytes. Implementation SHOULD support SHA2-256 algorithm. Implementation MAY in addition support other hashing algorithms.
 
 #### Blob Size
 
@@ -243,8 +289,8 @@ type AddBlobReceipt = {
 }
 
 type AddBlobOk = {
-  claim: {
-    "await/ok": Link<AcceptBlob>
+  site: {
+    "ucan/await": [".out.ok.site", Link<AcceptBlob>]
   }
 }
 
@@ -259,12 +305,12 @@ Invocation MUST fail if any of the following is true
 
 1. Provided **sub**ject space is not provisioned with a provider.
 1. Provided `blob.size` is outside of supported range.
-1. Provided `blob.content` is not a valid [multihash].
-1. Provided `blob.content` [multihash] hashing algorithm is not supported.
+1. Provided `blob.digest` is not a valid [multihash].
+1. Provided `blob.digest` [multihash] hashing algorithm is not supported.
 
-Invocation MUST succeed if non of the above is true. Success value MUST be an object with a `claim` field set to [await/ok] of the task that produces [location claim].
+Invocation MUST succeed if non of the above is true. Success value MUST be an object with a `site` field set to [ucan/await] of the task that produces [location commitment].
 
-Task linked from the `claim` of the success value MUST be present in the receipt effects _(`next` field)_.
+Task linked from the `site` of the success value MUST be present in the receipt effects _(`next` field)_.
 
 #### Add Blob Effects
 
@@ -304,7 +350,7 @@ The `args.blob` field MUST be set to the `Blob` the space is allocated for.
 
 #### Allocation Cause
 
-The `args.cause` field MUST be set to the [Link] for an [Add Blob] task, that caused an allocation.
+The `args.cause` field MUST be set to the [Link] for the [Add Blob] task, that caused an allocation.
 
 ### Allocate Blob Receipt
 
@@ -327,6 +373,8 @@ type BlobAllocateOk = {
 type BlobAddress = {
   url:     string
   headers: {[key:string]: string}
+  # Unix timestamp (in seconds precision) of when this address expires
+  expires  Int
 }
 ```
 
@@ -380,15 +428,23 @@ type BlobPut = {
 
 ### Put Blob Subject
 
-The subject field SHOULD be [`did:key`] corresponding to the [Ed25519] private key that is first 32 bytes of the blob [multihash].
+The subject field SHOULD be [`did:key`] corresponding to the [Ed25519] private key that is last 32 bytes of the blob [multihash].
 
 ### Put Blob Metadata
 
-Metadata MUST contain `keys` field with an object value that contains [`did:key`] subject as key and corresponding private key as bytes as a value.
+Metadata MUST contain `keys` field with an object value that contains [`did:key`] subject as key and corresponding private key bytes as a value.
 
-### Put Blob Address
+### Put Blob URL
 
-Destination address `url` and required `headers` MUST be specified in the arguments.
+Destination `url` MUST be specified in the arguments and it MUST be an endpoint that can accept HTTP PUT request.
+
+### Put Blob Headers
+
+The `headers` map MUST be specified in the arguments. It MUST have string keys corresponding to header names and string values corresponding to header values.
+
+### Put Blob Body
+
+The `body` argument MUST be an object with `digest` and `size` fields describing the content of the request body.
 
 ### Put Blob Receipt
 
@@ -418,7 +474,7 @@ Receipt MUST not have any effects.
 
 ## Accept Blob
 
-Authorized agent MAY invoke `/service/blob/accept` capability on the [provider] subject. Invocation MUST either succeed when content is delivered on allocated `address` or fail if either allocation failed or expired before content was delivered.
+Authorized agent MAY invoke `/service/blob/accept` capability on the [provider] subject. Invocation MUST either succeed when content is delivered at allocated site or fail if either allocation failed or expired before content was delivered.
 
 Invocation MUST block until content is delivered. Implementation MAY resume when content is sent to the allocated address or await until client signals that content has been delivered using [put blob receipt].
 
@@ -451,7 +507,7 @@ type BlobAcceptReceipt = {
 }
 
 type BlobAcceptOk = {
-  claim: Link<LocationClaim>
+  site: Link<LocationCommitment>
 }
 
 type BlobAcceptError = {
@@ -463,12 +519,12 @@ type BlobAcceptError = {
 
 Receipt MUST not have any effects.
 
-## Location Claim
+## Location Commitment
 
-Location claim represents commitment from the issuer to the audience that
+Location commitment represents commitment from the issuer to the audience that
 content matching the `content` [multihash] can be read via HTTP [range request]
 
-### Location Claim Delegation Example
+### Location Commitment Delegation Example
 
 ```js
 {
@@ -491,12 +547,12 @@ content matching the `content` [multihash] can be read via HTTP [range request]
 }
 ```
 
-### Location Claim Capability
+### Location Commitment Capability
 
-#### Location Claim Capability Schema
+#### Location Commitment Capability Schema
 
 ```ts
-type LocationClaim = {
+type LocationCommitment = {
   cmd: "/assert/location"
   sub: ProviderDID
   args: {
@@ -511,17 +567,16 @@ type LocationClaim = {
 
 ## Publishing Blob
 
-Blob can be published by authorizing read interface (e.g. IPFS gateway) by delegating it [Location Claim] that has been obtained from the provider.
+Blob can be published by authorizing read interface (e.g. IPFS gateway) by delegating it [Location Commitment] that has been obtained from the provider.
 
-> Note that same applies to publishing blob on [IPNI], new capability is not necessary, user simply needs to re-delegate `LocationClaim` to the DID representing [IPNI] publisher. [IPNI] publisher in turn may publish delegation to DID with publicly known private key allowing anyone to perform the reads.
+> Note that same applies to publishing blob on [IPNI], new capability is not necessary, user simply needs to re-delegate `LocationCommitment` to the DID representing [IPNI] publisher. [IPNI] publisher in turn may publish delegation to DID with publicly known private key allowing anyone to perform the reads.
 
 [store protocol]:./w3-store.md
 [CAR]:https://ipld.io/specs/transport/car/
 [multihash]:https://github.com/multiformats/multihash
 [space]:#space
 [IPNI]:https://github.com/ipni/specs/blob/main/IPNI.md
-[await/ok]:https://github.com/ucan-wg/invocation?tab=readme-ov-file#await
-[location claim]:#location-claim
+[location commitment]:#location-commitment
 [Add Blob]:#add-blob
 [Put Blob]:#put-blob
 [put blob receipt]:#put-blob-receipt
