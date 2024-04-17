@@ -3,10 +3,12 @@
 ![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
 
 - [Irakli Gozalishvili](https://github.com/gozala)
+- [Vasco Santos](https://github.com/vasco-santos)
 
 ## Authors
 
 - [Irakli Gozalishvili](https://github.com/gozala)
+- [Vasco Santos](https://github.com/vasco-santos)
 
 ## Abstract
 
@@ -562,6 +564,231 @@ type LocationCommitment = {
   }
 }
 ```
+
+## List Blob
+
+Authorized agent MAY invoke `blob/list` capability on the [space] subject (`with` field) to list Blobs added to it at the time of invocation.
+
+### List Blob Invocation Example
+
+Shown Invocation example illustrates Alice requesting a page of the list blobs stored on their space.
+
+```js
+{
+  "cmd": "/space/content/list/blob",
+  "sub": "did:key:zAlice",
+  "iss": "did:key:zAlice",
+  "aud": "did:web:web3.storage",
+  "args": {
+    "blob": {
+      // cursor where to start listing from
+      "cursor": 'cursor-value-from-previous-invocation',
+      // size of page
+      "size": 40,
+    }
+  }
+}
+```
+
+### List Blob Receipt Example
+
+Shows an example receipt for the above `/space/content/list/blob` capability invocation.
+
+> ℹ️ We use `// "/": "bafy..` comments to denote CID of the parent object.
+
+```js
+{ // "/": "bafy..list",
+  "iss": "did:web:web3.storage",
+  "aud": "did:key:zAlice",
+  "cmd": "/ucan/assert/result"
+  "sub": "did:web:web3.storage",
+  "args": {
+    // refers to the invocation from the example
+    "ran": { "/": "bafy..list" },
+    "out": {
+      "ok": {
+        // cursor where to start listing from on next call
+        "cursor": "cursor-value-for-next-invocation",
+        // size of the list
+        "size": 40,
+        "results": [
+          {
+            "insertedAt": "2024-04-16T15:49:22.638Z",
+            "blob": {
+              "size": 100,
+              "content": { "/": { "bytes": "mEi...sfKg" } },
+            }
+          },
+          // ...
+        ]
+      }
+    },
+    // set of tasks to be scheduled.
+    "next": []
+  }
+}
+```
+
+### List Blob Capability
+
+#### List Blob Capability Schema
+
+```ts
+type ListBlob = {
+  cmd: "/space/content/list/blob"
+  sub: SpaceDID
+  args: {
+    cursor?: string
+    size?: number
+    pre?: boolean
+  }
+}
+```
+
+##### List Cursor
+
+The optional `args.cursor` MAY be specified in order to paginate over the list of the added Blobs.
+
+##### List Size
+
+The optional `args.size` MAY be specified to signal desired page size, that is number of items in the result.
+
+##### List Pre
+
+The optional `args.pre` field MAY be set to `true` to request a page of results preceding cursor. If `args.pre` is omitted or set to `false` provider MUST respond with a page following the specified `args.cursor`.
+
+### List Blob Receipt
+
+#### List Blob Receipt Schema
+
+```ts
+type ListBlobReceipt = {
+  out: Result<ListBlobOk, ListBlobError>
+  next: []
+}
+
+type ListBlobOk = {
+  cursor?: string
+  before?: string
+  after?: string
+  size: number
+  results: ListBlobItem
+}
+
+type ListBlobItem = {
+  blob: Blob
+  insertedAt: ISO8601Date
+}
+
+type ISO8601Date = string
+
+type ListBlobError = {
+  message: string
+}
+```
+
+##### List Blob Effects
+
+Receipt MUST not have any effects.
+
+## Remove Blob
+
+Authorized agent MAY invoke `blob/remove` capability to remove content archive from the subject space (`with` field).
+
+### Remove Blob Invocation Example
+
+Shown Invocation example illustrates Alice requesting to remove a blob stored on their space.
+
+```js
+{
+  "cmd": "/space/content/remove/blob",
+  "sub": "did:key:zAlice",
+  "iss": "did:key:zAlice",
+  "aud": "did:web:web3.storage",
+  "args": {
+    // multihash of the blob as byte array
+    "content": { "/": { "bytes": "mEi...sfKg" } },
+  }
+}
+```
+
+### Remove Blob Receipt Example
+
+Shows an example receipt for the above `/space/content/remove/blob` capability invocation.
+
+> ℹ️ We use `// "/": "bafy..` comments to denote CID of the parent object.
+
+```js
+{ // "/": "bafy..remove",
+  "iss": "did:web:web3.storage",
+  "aud": "did:key:zAlice",
+  "cmd": "/ucan/assert/result"
+  "sub": "did:web:web3.storage",
+  "args": {
+    // refers to the invocation from the example
+    "ran": { "/": "bafy..remove" },
+    "out": {
+      "ok": {
+        // size of the blob in bytes removed from space
+        "size": 2_097_152,
+      }
+    },
+    // set of tasks to be scheduled.
+    "next": []
+  }
+}
+```
+
+### Remove Blob Capability
+
+#### Remove Blob Capability Schema
+
+```ts
+type RemoveBlob = {
+  cmd: "/space/content/remove/blob"
+  sub: SpaceDID
+  args: {
+    content: Multihash
+  }
+}
+
+type Multihash = bytes
+type SpaceDID = string
+```
+
+##### Remove Content
+
+The `args.content` field MUST be a [multihash] digest of the blob payload bytes. Implementation SHOULD support SHA2-256 algorithm. Implementation MAY in addition support other hashing algorithms.
+
+### Remove Blob Receipt
+
+#### Remove Blob Receipt Schema
+
+```ts
+type RemoveBlobReceipt = {
+  out: Result<RemoveBlobOk, RemoveBlobError>
+  next: []
+}
+
+type RemoveBlobOk = {
+  size: number
+}
+
+type RemoveBlobError = {
+  message: string
+}
+```
+
+##### Remove blob Size
+
+The `out.ok.size` MUST be set to the number of bytes that were freed from the space. It MUST be equal to either:
+
+1. The size of the Blob in bytes.
+2. `0` if specified blob is not in space.
+
+##### Remove Blob Effects
+
+Receipt MUST not have any effects.
 
 # Coordination
 
