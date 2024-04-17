@@ -106,5 +106,41 @@ type Multihash = bytes
 
 It is RECOMMENDED to bundle all the `BlobIndex`s inside the Content Archive of the `Index`.
 
+##### Sharded DAG Index Example
+
+> For the reader convenience we use `link` function to denote external blocks that should be linked
+
+```js
+{
+  "index/sharded/dag@0.1": {
+    "content": { "/": "bafy..dag" },
+    "shards": [
+      link([
+        // blob multihash
+        { "/": { "bytes": "blb...left" } },
+        // sliced within the blob
+        [
+          [{ "/": { "bytes": "block..1"} }, 0, 128],
+          [{ "/": { "bytes": "block..2"} }, 129, 256],
+          [{ "/": { "bytes": "block..3"} }, 257, 384],
+          [{ "/": { "bytes": "block..4"} }, 385, 512]
+        ]
+      ]),
+      link([
+        // blob multihash
+        { "/": { "bytes": "blb...right" } },
+        // sliced within the blob
+        [
+          [{ "/": { "bytes": "block..5"} }, 0, 128],
+          [{ "/": { "bytes": "block..6"} }, 129, 256],
+          [{ "/": { "bytes": "block..7"} }, 257, 384],
+          [{ "/": { "bytes": "block..8"} }, 385, 512]
+        ]
+      ])
+    ]
+  }
+}
+```
+
 [IPNI]:https://github.com/ipni/specs/blob/main/IPNI.md
 [`did:key`]:https://w3c-ccg.github.io/did-method-key/
