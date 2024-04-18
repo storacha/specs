@@ -567,11 +567,11 @@ type LocationCommitment = {
 
 ## List Blob
 
-Authorized agent MAY invoke `blob/list` capability on the [space] subject (`with` field) to list Blobs added to it at the time of invocation.
+Authorized agent MAY invoke `blob/list` capability on the [space] subject (`sub` field) to list Blobs added to it at the time of invocation.
 
 ### List Blob Invocation Example
 
-Shown Invocation example illustrates Alice requesting a page of the list blobs stored on their space.
+Shown Invocation example illustrates Alice requesting a page of the list of blobs stored on their space.
 
 ```js
 {
@@ -693,7 +693,7 @@ Receipt MUST not have any effects.
 
 ## Remove Blob
 
-Authorized agent MAY invoke `blob/remove` capability to remove content archive from the subject space (`with` field).
+Authorized agent MAY invoke `blob/remove` capability to remove content archive from the subject space (`sub` field).
 
 ### Remove Blob Invocation Example
 
