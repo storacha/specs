@@ -567,7 +567,7 @@ type LocationCommitment = {
 
 ## List Blob
 
-Authorized agent MAY invoke `blob/list` capability on the [space] subject (`sub` field) to list Blobs added to it at the time of invocation.
+Authorized agent MAY invoke `/space/content/list/blob` capability on the [space] subject (`sub` field) to list Blobs added to it at the time of invocation.
 
 ### List Blob Invocation Example
 
@@ -580,12 +580,10 @@ Shown Invocation example illustrates Alice requesting a page of the list of blob
   "iss": "did:key:zAlice",
   "aud": "did:web:web3.storage",
   "args": {
-    "blob": {
-      // cursor where to start listing from
-      "cursor": 'cursor-value-from-previous-invocation',
-      // size of page
-      "size": 40,
-    }
+    // cursor where to start listing from
+    "cursor": 'cursor-value-from-previous-invocation',
+    // size of page
+    "size": 40,
   }
 }
 ```
@@ -640,7 +638,6 @@ type ListBlob = {
   args: {
     cursor?: string
     size?: number
-    pre?: boolean
   }
 }
 ```
@@ -652,10 +649,6 @@ The optional `args.cursor` MAY be specified in order to paginate over the list o
 ##### List Size
 
 The optional `args.size` MAY be specified to signal desired page size, that is number of items in the result.
-
-##### List Pre
-
-The optional `args.pre` field MAY be set to `true` to request a page of results preceding cursor. If `args.pre` is omitted or set to `false` provider MUST respond with a page following the specified `args.cursor`.
 
 ### List Blob Receipt
 
@@ -693,7 +686,7 @@ Receipt MUST not have any effects.
 
 ## Remove Blob
 
-Authorized agent MAY invoke `blob/remove` capability to remove content archive from the subject space (`sub` field).
+Authorized agent MAY invoke `/space/content/remove/blob` capability to remove content archive from the subject space (`sub` field).
 
 ### Remove Blob Invocation Example
 
