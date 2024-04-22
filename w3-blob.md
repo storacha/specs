@@ -700,7 +700,7 @@ Shown Invocation example illustrates Alice requesting to remove a blob stored on
   "aud": "did:web:web3.storage",
   "args": {
     // multihash of the blob as byte array
-    "content": { "/": { "bytes": "mEi...sfKg" } },
+    "digest": { "/": { "bytes": "mEi...sfKg" } },
   }
 }
 ```
@@ -741,7 +741,7 @@ type RemoveBlob = {
   cmd: "/space/content/remove/blob"
   sub: SpaceDID
   args: {
-    content: Multihash
+    digest: Multihash
   }
 }
 
@@ -749,9 +749,9 @@ type Multihash = bytes
 type SpaceDID = string
 ```
 
-##### Remove Content
+##### Remove Digest
 
-The `args.content` field MUST be a [multihash] digest of the blob payload bytes. Implementation SHOULD support SHA2-256 algorithm. Implementation MAY in addition support other hashing algorithms.
+The `args.digest` field MUST be a [multihash] digest of the blob payload bytes. Implementation SHOULD support SHA2-256 algorithm. Implementation MAY in addition support other hashing algorithms.
 
 ### Remove Blob Receipt
 
