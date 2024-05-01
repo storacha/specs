@@ -106,6 +106,8 @@ type Multihash = bytes
 
 ℹ️ Please note that `shards` is a list of `BlobIndex` links. This provide a flexibility of bundling blob indexes or externalizing them by linking to them.
 
+It is RECOMMENDED to include `BlobSlice` in `slices` that spans full range of the blob to make it available. On the flip side it creates a choice to share only partial index of the blob when so desired.
+
 It is RECOMMENDED to bundle all the `BlobIndex`s inside the Content Archive of the `Index`.
 
 ##### Sharded DAG Index Example
