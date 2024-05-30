@@ -812,10 +812,9 @@ Shown Invocation example illustrates Alice getting a blob stored on their space.
 
 Shows an example receipt for the above `/space/content/get/blob` capability invocation.
 
-> ℹ️ We use `// "/": "bafy..` comments to denote CID of the parent object.
 
 ```js
-{ // "/": "bafy..get",
+{
   "iss": "did:web:web3.storage",
   "aud": "did:key:zAlice",
   "cmd": "/ucan/assert/result"
