@@ -812,7 +812,6 @@ Shown Invocation example illustrates Alice getting a blob stored on their space.
 
 Shows an example receipt for the above `/space/content/get/blob` capability invocation.
 
-
 ```js
 {
   "iss": "did:web:web3.storage",
