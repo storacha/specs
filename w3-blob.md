@@ -793,8 +793,10 @@ This may be used to check for inclusion, or to get the `size` of the blob in byt
 
 Shown Invocation example illustrates Alice getting a blob stored on their space.
 
+> ℹ️ We use `// "/": "bafy..` comments to denote CID of the parent object.
+
 ```js
-{
+{ // "/": "bafy..get"
   "cmd": "/space/content/get/blob",
   "sub": "did:key:zAlice",
   "iss": "did:key:zAlice",
