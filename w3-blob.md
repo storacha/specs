@@ -787,7 +787,7 @@ Receipt MUST not have any effects.
 
 Authorized agent MAY invoke `/space/content/get/blob` capability on the [space] subject (`sub` field) to get Blobs added to it at the time of invocation.
 
-This may be used to check for inclusion, or to get the `size` property for a shard.
+This may be used to check for inclusion, or to get the `size` of the blob in bytes.
 
 ### Get Blob Invocation Example
 
