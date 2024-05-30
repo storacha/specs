@@ -886,7 +886,7 @@ The `args.cause` field MUST be set to the [Link] for the task, that caused a get
 
 ##### Get Blob Effects
 
-Receipt MUST not have any effects.
+Receipt MUST NOT have any effects.
 
 # Coordination
 
