@@ -878,6 +878,8 @@ type ISO8601Date = string
 type GetBlobError = {
   message: string
 }
+
+type Blob = { /* ??? */ }
 ```
 
 #### Get Cause
