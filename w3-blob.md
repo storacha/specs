@@ -870,7 +870,7 @@ type GetBlobReceipt = {
 
 type GetBlobOk = {
   cause:  Link<Task>
-  blob: blob
+  blob: Blob
 }
 
 type ISO8601Date = string
