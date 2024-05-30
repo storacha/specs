@@ -832,7 +832,6 @@ Shows an example receipt for the above `/space/content/get/blob` capability invo
         }
       }
     },
-    // set of tasks to be scheduled.
     "next": []
   }
 }
