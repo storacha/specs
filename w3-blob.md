@@ -823,6 +823,8 @@ Shows an example receipt for the above `/space/content/get/blob` capability invo
     "ran": { "/": "bafy..get" },
     "out": {
       "ok": {
+        // task that caused this invocation
+        "cause": { "/": "bafy..add" }
         "blob": {
           "size": 100,
           "content": { "/": { "bytes": "mEi...sfKg" } },
@@ -867,6 +869,7 @@ type GetBlobReceipt = {
 }
 
 type GetBlobOk = {
+  cause:  Link<Task>
   blob: blob
 }
 
@@ -876,6 +879,10 @@ type GetBlobError = {
   message: string
 }
 ```
+
+#### Get Cause
+
+The `args.cause` field MUST be set to the [Link] for the task, that caused a get.
 
 ##### Get Blob Effects
 
