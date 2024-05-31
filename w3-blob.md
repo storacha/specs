@@ -785,9 +785,11 @@ Receipt MUST not have any effects.
 
 ## Get Blob
 
-Authorized agent MAY invoke `/space/content/get/blob` capability on the [space] subject (`sub` field) to get Blobs added to it at the time of invocation.
+Authorized agent MAY invoke `/space/content/get/blob/0/1` capability on the [space] subject (`sub` field) to get Blobs added to it at the time of invocation.
 
 This may be used to check for inclusion, or to get the `size` of the blob in bytes.
+
+Note: In the future, we will likely deprecate this capability in favor of a suffix-free version that just returns the Blob receipt id.
 
 ### Get Blob Invocation Example
 
@@ -797,7 +799,7 @@ Shown Invocation example illustrates Alice getting a blob stored on their space.
 
 ```js
 { // "/": "bafy..get"
-  "cmd": "/space/content/get/blob",
+  "cmd": "/space/content/get/blob/0/1",
   "sub": "did:key:zAlice",
   "iss": "did:key:zAlice",
   "aud": "did:web:web3.storage",
@@ -810,7 +812,7 @@ Shown Invocation example illustrates Alice getting a blob stored on their space.
 
 ### Get Blob Receipt Example
 
-Shows an example receipt for the above `/space/content/get/blob` capability invocation.
+Shows an example receipt for the above `/space/content/get/blob/0/1` capability invocation.
 
 ```js
 {
@@ -824,7 +826,7 @@ Shows an example receipt for the above `/space/content/get/blob` capability invo
     "out": {
       "ok": {
         // task that caused this invocation
-        "cause": { "/": "bafy..add" }
+        "cause": { "/": "bafy..task" }
         "blob": {
           "size": 100,
           "content": { "/": { "bytes": "mEi...sfKg" } },
@@ -842,7 +844,7 @@ Shows an example receipt for the above `/space/content/get/blob` capability invo
 
 ```ts
 type GetBlob = {
-  cmd: "/space/content/get/blob"
+  cmd: "/space/content/get/blob/0/1"
   sub: SpaceDID
   args: {
     digest: Multihash
