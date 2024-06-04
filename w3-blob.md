@@ -880,7 +880,12 @@ type GetBlobError = {
   message: string
 }
 
-type Blob = { /* ??? */ }
+type Blob = {
+  digest: Multihash
+  size: number
+}
+
+type Multihash = bytes
 ```
 
 #### Get Cause
