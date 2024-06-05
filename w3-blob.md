@@ -783,6 +783,119 @@ The `out.ok.size` MUST be set to the number of bytes that were freed from the sp
 
 Receipt MUST not have any effects.
 
+## Get Blob
+
+Authorized agent MAY invoke `/space/content/get/blob/0/1` capability on the [space] subject (`sub` field) to get Blobs added to it at the time of invocation.
+
+This may be used to check for inclusion, or to get the `size` of the blob in bytes.
+
+Note: In the future, we will likely deprecate this capability in favor of a suffix-free version that just returns the Blob receipt id.
+
+### Get Blob Invocation Example
+
+Shown Invocation example illustrates Alice getting a blob stored on their space.
+
+> ℹ️ We use `// "/": "bafy..` comments to denote CID of the parent object.
+
+```js
+{ // "/": "bafy..get"
+  "cmd": "/space/content/get/blob/0/1",
+  "sub": "did:key:zAlice",
+  "iss": "did:key:zAlice",
+  "aud": "did:web:web3.storage",
+  "args": {
+    // multihash of the blob as byte array
+    "digest": { "/": { "bytes": "mEi...sfKg" } },
+  }
+}
+```
+
+### Get Blob Receipt Example
+
+Shows an example receipt for the above `/space/content/get/blob/0/1` capability invocation.
+
+```js
+{
+  "iss": "did:web:web3.storage",
+  "aud": "did:key:zAlice",
+  "cmd": "/ucan/assert/result"
+  "sub": "did:web:web3.storage",
+  "args": {
+    // refers to the invocation from the example
+    "ran": { "/": "bafy..get" },
+    "out": {
+      "ok": {
+        // task that caused this invocation
+        "cause": { "/": "bafy..task" }
+        "blob": {
+          "size": 100,
+          "content": { "/": { "bytes": "mEi...sfKg" } },
+        }
+      }
+    },
+    "next": []
+  }
+}
+```
+
+### Get Blob Capability
+
+#### Get Blob Capability Schema
+
+```ts
+type GetBlob = {
+  cmd: "/space/content/get/blob/0/1"
+  sub: SpaceDID
+  args: {
+    digest: Multihash
+  }
+}
+
+type Multihash = bytes
+type SpaceDID = string
+```
+
+##### Get Digest
+
+The `args.digest` field MUST be a [multihash] digest of the blob payload bytes. Implementation SHOULD support SHA2-256 algorithm. Implementation MAY in addition support other hashing algorithms.
+
+### Get Blob Receipt
+
+#### Get Blob Receipt Schema
+
+```ts
+type GetBlobReceipt = {
+  out: Result<GetBlobOk, GetBlobError>
+  next: []
+}
+
+type GetBlobOk = {
+  cause:  Link<Task>
+  blob: Blob
+}
+
+type ISO8601Date = string
+
+type GetBlobError = {
+  message: string
+}
+
+type Blob = {
+  digest: Multihash
+  size: number
+}
+
+type Multihash = bytes
+```
+
+#### Get Cause
+
+The `args.cause` field MUST be set to the [Link] for the task, that caused a get.
+
+##### Get Blob Effects
+
+Receipt MUST NOT have any effects.
+
 # Coordination
 
 ## Publishing Blob
