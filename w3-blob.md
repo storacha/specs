@@ -411,7 +411,7 @@ An agent that invoked [add blob] capability is expected to perform this task and
 
 #### Put Blob Capability Schema
 
-> ℹ️ In the UCAN 0.9 `meta` is unknown as `fct` field
+> ℹ️ These examples use UCAN 1.0.0-rc.1. In UCAN 0.9, [`meta`](https://github.com/ucan-wg/spec/tree/1c64556f15574af80022bf38b6f4b3125696eae9?tab=readme-ov-file#metadata) is known as [`fct`](https://github.com/ucan-wg/spec/tree/692e8aab59b763a783fe1484131c3f40d997b69a?tab=readme-ov-file#324-facts).
 
 ```ts
 type BlobPut = {
