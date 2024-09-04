@@ -1,6 +1,7 @@
 # Provider Protocol
 
-![stable](https://img.shields.io/badge/status-stable-brightgreen.svg?style=flat-square)
+![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
+[![hackmd-github-sync-badge](https://hackmd.io/Zb7gjpLsQn2w3a3JUvnFcw/badge)](https://hackmd.io/Zb7gjpLsQn2w3a3JUvnFcw)
 
 ## Editors
 
@@ -12,355 +13,463 @@
 
 # Abstract
 
-The W3 protocol governs user interactions within self-certified Public Key Infrastructure (PKI)-based namespaces. Access control to these namespaces, for simplicity referred to as spaces, is managed through delegated capabilities in [UCAN] format.
+Thinking about users in web2 terms introduces unfortunate limitations and seems to be a poor fit for User Controlled Authorization Network ([UCAN][]).
 
-Users can create spaces and delegate capabilities on it to various user agents without anyone's permission or intervention.
+## Capabilities
 
-Here we introduce notion of the capability provider, or [provider] for short. [Provider] is protocol compliant capability implementation that performs a task for the invoked capability.
-
-## Language
-
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC2119](https://datatracker.ietf.org/doc/html/rfc2119).
-
-# Introduction
-
-In web2, a user _(which could be an individual or an organization)_ directly correlates to a (name) space _(usually behind a walled garden)_ they're given access to. In this model, a user authenticates using credentials or a server issued (secret) authorization token to gain access to a set of capabilities with-in a bound (name) space.
+In web2, a user _(which could be an individual or an organization)_ directly correlates to a (name) space _(usually behind a walled garden)_ they're given access to. In this model, a user authenticates using credentials or a server issued (secret) authorization token to gain an access to set of capabilities with-in a bound (name) space.
 
 > If there is a notion of sharing capabilities it's usually limited & very domain specific. Sharing across applications is extremely rare and usually involves large cross-organizational efforts.
 
-With a [UCAN][] based authorization model, things are different. A user creates a (name)space _(addressed by [did:key][] URI)_ locally and can delegate a set of capabilities to an agent _(also addressed by [did:key][] URI)_ that acts on the user's behalf. The user's software "agent" can invoke any of the delegated capabilities or (re)delegate them. This model enables a wide range of possibilities that are difficult or impossible in the web2 model. Capabilities can be assembled into a protocol, making sharing and interop implicit in every layer of the stack. Inevitably this breaks the 1 to 1 correlation between users and spaces. Each user may have access to a multitude of spaces _(that they either own or were delegated access to)_ and multiple users may have access to the same (shared) space.
+With a [UCAN][] based authorization model, things are different. User creates a (name)space _(addressed by [did:key][] URI)_ locally and can delegate set of capabilities to an agent _(also addressed by [did:key][] URI)_ that acts on their behalf. This allows an agent to invoke any of the delegated capabilities or to (re)delegate them to _another_ user, so they could invoke them. This model enables a wide range of possibilities that are difficult to impossible in the web2 model. Capabilities are the protocol, therefore sharing and interop is built into every layer of the stack. Inevitably this breaks 1 to 1 correlation between users and spaces. Instead each user may have access to a multitude of spaces (that they either own or were delegated capabilities to) and a multitude of users may have access to the same (shared) space.
 
-> The implications of this are tremendous, we are no longer building apps behind walled gardens, but rather tap into the rich network of information with self describing protocols.
+> The implications of this are tremendous, we are no longer building apps behind walled gardens, but rather tap into the rich network of information with self describing protocols
 
-## Concepts
+## Providers
 
-### Roles
+As we have above established, users create, own, and manage access to their space through the capabilities that can be delegated. However, owning a `store/add` capability to some `did:key:zAlice` space does not imply it can be invoked, something needs to provide that capability. A user can contract a "storage provider" which they can add it to their (or anyone else's) space, in turn making it possible for a anyone with `store/add` capability to a space with a store provider to store data.
 
-There are several distinct roles that [principal]s may assume in this specification:
+Providers are services which user can add to a space so they can handle provided capabilities when they are invoked.
 
-| Name        | Description                                                                                                                                    |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Principal | The general class of entities that interact with a UCAN. Identified by a DID that can be used in the `iss` or `aud` field of a UCAN. |
-| Account    | A [Principal] identified by memorable identifier like [`did:mailto`]. |
-| Agent       | A [Principal] identified by [`did:key`] identifier, representing a user in an application. |
-| Issuer | A [principal] delegating capabilities to another [principal]. It is the signer of the [UCAN]. Specified in the `iss` field of a UCAN. |
-| Audience | Principal access is shared with. Specified in the `aud` field of a UCAN. |
+## Funding
 
-### Provider
+Direct correlation between a user and a space in the Web 2 model leads to a system in which users fund their space (by money or their privacy).
 
-A provider is service implementing protocol complaint capability handlers. When a [space] is provisioned with a provider, capabilities invoked on that space are routed to a corresponding capability provider.
+Decoupling users from spaces enables all kinds of funding strategies. User can hire a storage provider and add it to their space. User can also hire a provider and add it to some common goods space they would like to financially support. Just like every capability can be shared, just the same, every space can be crowd funded, because space is decoupled from the capability provider(s).
 
-As established in the introduction, users create spaces and manage access through delegated capabilities. However, when a capability (say, `store/add`) is invoked on a [space] (say, `did:key:zAlicesSpace`) is invoked, some program needs to perform a task corresponding to that capability.
+## Language
 
-Programs that perform can perform such tasks in a protocol compliant manner are offered by capability providers, or providers for short, through a [subscription]. Users can get a subscription from a service by agreeing to their terms of service. A [subscription] can be used to provision a [space] with capabilities, contingent on the terms of subscription.
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
-A capability invoked on the space is routed to the capability provider that space is provisioned with. If a [space] is not provisioned with the invoked capability, invocation SHOULD fail.
+# Space
 
-### Subscription
+## Representation
 
-A subscription is an agreement to some terms of service. Broadly speaking a [customer] agrees to pay a metered service fee for the provided service and in return the [provider] service agrees to provide a set of protocol compliant capabilities.
+Any valid [did:key][] identifier SHOULD represent a valid space that has no capability providers, therefore attempt to store data into such space (or invoking any other capability) SHOULD fail.
 
-Every [UCAN] invocation gets a signed receipt from the [provider] and can be used by the [customer] to hold service accountable if they violate terms of service.
+## Ownership
 
-A subscription MAY be suspended or terminated by the [provider] if the [customer] violates the terms of service. A [customer] MAY terminate a subscription when they no longer wish to receive the service.
+Space is a resource that MUST be addressed by the [did:key][] URI. It is owned by the (corresponding) private key holder.
 
-When a subscription is established, the [provider] MUST delegate `subscription/*` capabilities to the subscribed [customer]. Capabilities under `subscription/*` namespace MUST follow the described protocol, allowing the [customer] to manage their subscription and provision spaces with capabilities offered.
+Any [UCAN][] capability for the space resource MUST be issued by the owner _([UCAN][] `iss` MUST be equal to `with` of the capability)_ or its delegate _([UCAN][] MUST have a proof chain leading to delegation from the owner)_.
 
-### Provision
+This implies that [UCAN][] invocations on a space resource CAN be validated by verifying:
 
-A [customer] with an active [subscription] MAY provision a [space] with set of capabilities offered by the [subscription]. A [customer] MAY set limits on the space provision to manage costs, which makes provisioning a [space] controlled by third party financially viable.
+1. Signatures, time bounds and principal alignment of the delegation chain.
+2. Root `issuer` is the same DID as a resource (`with` field) of the invoked capability.
 
-A [subscription] can be conceptualized as a leasing agreement between a [provider] and a [customer], in which case a [provision] can be viewed as a subleasing agreement between a [customer] and a [space].
+## Creation
 
-### Customer
+User MAY create a new space by generating a [keypair][public key cryptography] and deriving a valid [did:key][] identifier from it.
 
-A customer is a user [account] that has a [subscription] with a service [provider].
+> It is RECOMMENDED that user facing applications create a _space_ for a new user with a [ED25519][] keypair & delegate capabilities to it to a local agent whose DID is derived from another [non-extractable keypair](https://developer.mozilla.org/en-US/docs/Web/API/CryptoKey#cryptokey.extractable).
+>
+> This grants an agent access to a space without reusing its key or a risk of it been compromised.
 
-ℹ️ A customer does not need to own or even have access to a [space], e.g. an employer MAY setup an [account], setup a [subscription] and use it to [provision] employee [space]s.
+```json
+// illustration of the space to agent delegation
+{
+  "iss": "did:key:zSpace",
+  "aud": "did:key:zAgent",
+  "exp": null, // delegation never expires
+  // allows did:key:zAgent to do anything with did:key:zSpace
+  "att": [
+    {
+      "with": "did:key:zSpace",
+      "can": "*"
+    }
+  ]
+}
+```
 
-### Space
+## Setup
 
-A namespace, often referred as a "space", is an owned resource that can be shared. It corresponds to a unique asymmetric cryptographic keypair and is identified by a [`did:key`] URI. A space can be provisioned with capabilities provided by a [provider] through a [subscription].
+As we have established, space creator is an owner and has a full authority to delegate whichever capabilities to others. However, unless a space has an active provider of the capabilities, no invocation of them could succeed.
 
-# Capabilities
+To make capabilities invocable, one needs to obtain a provider and add it to the desired space. For example, a user could get the "free" provider from web3.storage, which provides `store/*` and `upload/*` capabilities allowing them to store up to 5GiB of data.
 
-Here we describe a protocol for arranging subscriptions and using them to provision [space]s.
+```mermaid
+flowchart TB
+  Space((did:key:zAliceSpace))
+  W3{{did:web:free.web3.storage}}
+  NFT{{did:web:nft.storage}}
 
-## Provider Capabilities
+  Name([name/*])
+  Upload([upload/*])
+  Store([store/*])
 
-### Provider Add
+  style W3 fill:grey,color:black,stroke:grey
+  style NFT fill:grey,color:black,stroke:grey
 
-A user MAY invoke the `provider/add` capability on the [account] subject (`with` field) to start a subscription with a [provider] (`aud` field).
 
-#### Subscription Provider
+  Space-->Store
+  Store-->W3
+  Store-->NFT
+  Space-->Upload
+  Upload-->W3
+  Upload-->NFT
+  Space-->Name
+  Name-->W3
+```
 
-The audience of the invocation (`aud` field) MUST be the [provider] [DID] of the desired [subscription].
+# Provider protocol
 
-#### Subscription Customer
+The "free" provider setup describes a more general framework for unlocking various capabilities.
 
-The subject of the invocation (`with` field) MUST be the [customer] [DID] of the desired [subscription].
+It is RECOMMENDED to follow the outlined `provider/*` protocol even if some domain specific details may vary.
 
-#### Subscription Plan
+## `provider/get`
 
-A provider MAY offer multiple subscription plans. An invocation MAY specify the user's desired plan using `nb.product` field.
+A user MAY get a "free" storage provider (from web3.storage) by invoking a self-issued `provider/get` capability.
 
-#### Provider Add Example
+> Free provider requires that resource of invocation MUST be an [`did:mailto`] principal and that `consumer` is provided in order to uphold 1 free provider per account limitation.
 
 ```json
 {
-  "v": "0.9.1",
-  "iss": "did:key:z6Mkk...xALi",
+  "iss": "did:mailto:web.mail:alice",
   "aud": "did:web:web3.storage",
   "att": [
     {
+      "can": "provider/get",
       "with": "did:mailto:web.mail:alice",
-      "can": "provider/add",
       "nb": {
-        "product": "did:web:lite.web3.storage"
+        // did of the provider,
+        "provider": "did:web:free.web3.storage",
+        // did of the consumer space
+        "consumer": "did:key:zSpace"
       }
     }
   ],
-  "prf": [{ "/": "bafy...prf1" }],
-  "exp": 1685602800,
-  "s": {
-    "/": {
-      "bytes": "7aEDQJbJqmyMxTxcK05XQKWfvxG+Tv+LWCJeE18RSMnciCZ/RQ21U75LA0uFSvIjdqnF5RaauZTE8mh2ZYMBBejdJQ4"
+  // proof that agent is authorized to represent account
+  "prf": [
+    {
+      "iss": "did:web:web3.storage",
+      "aud": "did:mailto:web.mail:alice",
+      "att": [
+        {
+          "can": "./update",
+          "with": "did:web:web3.storage",
+          "nb": {
+            "key": "did:key:zAgent"
+          }
+        }
+      ]
     }
-  }
+  ]
 }
 ```
 
-#### Provider Add IPLD Schema
+### get `with`
 
-```ipldsch
-type ProviderAddCapability struct {
-  with      AccountDID
-  nb        ProviderAdd
-}
+Providers MAY impose certain requirements that resource (`with`) must meet.
 
-type ProviderAdd struct {
-  product optional String
-}
-```
+> Free provider (from web3.storage) requires that resource MUST be a [`did:mailto`] identifier. Lite and Expert providers (from web3.storage) additionally require that the invocation resource have a payment provider (for billing purposes).
 
-#### Subscription State
+### get `nb.provider`
 
-A [Provider] MUST return a variant of the `SubscriptionState` on a successful invocation of the `provider/add`.
+Capability MUST have `nb.provider` field specifying a DID of the provider requested.
 
-#### Subscription State IPLD Schema
+### get `nb.consumer`
 
-```ipldsch
-type SubscriptionState union {
-  PendingSubscription     "pending"
-  ActiveSubscription      "active"
-} representation keyed
-```
-
-#### Pending Subscription
-
-A [Provider] MUST return a `PendingSubscription` variant when it requires an out-of-bound interaction to start a subscription. For example, a provider MAY require payment setup for the billing.
-
-##### Pending Subscription Schema
-
-```ipldsch
-type PendingSubscription struct {
-  provider      ProviderDID
-  order         String
-  url           URLString
-}
-
-type URLString = string
-type ProviderDID = DID
-```
-
-##### Pending Subscription URL
-
-The `url` field MUST be set to the location to which the user is expected to navigate to complete subscription process.
-
-##### Pending Subscription Provider
-
-The `provider` field MUST be set to the [DID] of the [subscription] [provider].
-
-#### Active Subscription
-
-A [Provider] MUST return an `ActiveSubscription` variant when out-of-bound interaction is not required. For example, a provider may offer a free plan to any [account]. The provider could return `ActiveSubscription` if it already has billing info for the [account].
-
-##### Active Subscription Schema
-
-```ipldsch
-type ActiveSubscription struct {
-  provider          ProviderDID
-  product           URL
-  order             String
-  proof             Link
-}
-```
-
-##### Active Subscription Provider
-
-The `provider` field MUST be set to the [DID] of the [subscription] [provider].
-
-##### Active Subscription Plan
-
-The `product` field MUST be set to the chosen subscription plan.
-
-##### Subscription Proof
-
-The `proof` field of the `provider/add` invocation MUST be a link to a valid delegation of `subscription/*` capabilities.
-
-The audience (`aud` field) of the delegation (the `proof`) MUST be set to the [customer] of the subscription. The subject (`with` field) of the `proof` MUST be set to the [provider] of the subscription. The `nb.customer` field of the `proof` MUST be set to the [customer] of the subscription. The `nb.order` field of the `proof` MUST be set to the unique identifier of the subscription.
-
-###### Subscription Proof Example
+Providers can be requested for multiple consumers (spaces) by omitting this field or to a specific consumer by setting this field to a DID.
 
 ```json
 {
-  "v": "0.9.1",
-  "iss": "did:web:web3.storage",
-  "aud": "did:mailto:web.mail:alice",
-  "att": [
-    {
-      "can": "subscription/*",
-      "with": "did:web:web3.storage",
-      "nb": {
-        "customer": "did:mailto:web.mail:alice",
-        "order": "bafy...prf1"
-      }
-    }
-  ],
-  "prf": [],
-  "exp": 1685602800,
-  "s": {
-    "/": {
-      "bytes": "7aEDQ..dJQ4"
-    }
+  "can": "provider/get",
+  "with": "did:mailto:web.mail:alice",
+  "nb": {
+    // did of the provider,
+    "provider": "did:web:lite.web3.storage"
+    // without the consumer field the request is for multiple consumers
   }
 }
 ```
 
-### Provider List
+> ⚠️ Some providers (e.g. Free provider from web3.storage) MAY deny request when `nb.consumer` is not defined, because they limit number of providers issued per user account.
 
-A user MAY invoke the `provider/list` capability on the [account] subject (`with` field) to list all subscriptions it has with a [provider] (`aud` field).
+### get `nb...`
 
-#### Provider List Schema
+Some providers MAY specify additional `nb` fields.
 
-```ipldsch
-type ProviderListCapability struct {
-  with      AccountDID
-  nb        ProviderList
-}
+## `consumer/add`
 
-type struct ProviderList struct {}
-```
+An agent MUST be delegated `consumer/add` capability, on successful [`provider/get`] invocation.
 
-### Provider Remove
+> Please note that provider MAY also delegate `consumer/add` capability for no reason at all e.g. as free giveaway campaign.
 
-A user MAY invoke the `provider/remove` capability on the [account] subject (`with` field) to cancel a subscription with [provider] (`aud` field).
-
-#### Provider Remove Schema
-
-```ipldsch
-type ProviderRemoveCapability struct {
-  with    AccountDID
-  nb      ProviderRemove
-}
-
-type ProviderRemove struct {
-  order optional String
-}
-```
-
-## Subscription Capabilities
-
-### Subscription Capabilities Schema
-
-```ipldsch
-type Subscription union {
-  SubscriptionAddCapability       "subscription/add"
-  SubscriptionRemoveCapability    "subscription/remove"
-  SubscriptionListCapability      "subscription/list"
-} representation inline {
-  discriminantKey "can"
+```json
+{
+  "iss": "did:web:web3.storage",
+  "aud": "did:key:zAgent",
+  "att": [
+    {
+      "can": "consumer/add",
+      "with": "did:web:web3.storage:plan:free",
+      "nb": {
+        // link to a "provider/get" invocation
+        "request": { "/": "bafy...get" },
+        // did of the consumer space
+        "consumer": "did:key:zSpace"
+      }
+    }
+  ],
+  "prf": [
+    {
+      "iss": "did:web:web3.storage:plan:free",
+      "aud": "did:web:web3.storage",
+      "att": [
+        {
+          "can": "consumer/add",
+          "with": "did:web:web3.storage:plan:free"
+        }
+      ]
+    }
+  ]
 }
 ```
 
-### Subscription Add
+### add `aud`
 
-A user MAY invoke the `subscription/add` capability to provision desired [space] with the capabilities provided through the subscription.
+Capability MUST be delegated back to the `iss` of the [`provider/get`] request.
 
-#### Subscription Add Schema
+> This allows authorized agent to delegate `provider/get` capability to an agent or another user, which can then complete the loop using [`consumer/add`]. If capability was delegated back to `with` identifier instead, only account or delegate (with `consumer/add` capability) would be able to complete the loop.
 
-```ipldsch
-type SubscriptionAddCapability struct {
-  with      ProviderDID
-  nb        SubscriptionAdd
+### add `with`
+
+Capability resource MUST be a provider DID. It MUST be the same as [`nb.provider`](#get-nbprovider) of the corresponding [`provider/get`] invocation.
+
+### add `nb.consumer`
+
+The `nb.consumer` MUST be set to the same DID as [`nb.consumer`](#get-nbconsumer) of the [`provider/get`] request.
+
+> ⚠️ Omitting `nb.consumer` allows delegate to add arbitrary number of consumers to the provider
+
+### add `nb.request`
+
+Issuers MUST set the `nb.request` field to the corresponding link (CID) of the [`provider/get`] invocation.
+
+> This also represents a signed proof that user agreed to the terms and conditions of the service.
+
+### add `nb...`
+
+Providers MAY impose various other constraints using `nb` fields of the `consumer/add` capability. Usually they would mirror [`nb`](#get-nb) fields of the corresponding [`provider/get`] request.
+
+### `consumer/add` invocation
+
+Invoking delegated [`consumer/add`] capability adds a consumer (space) to the provider. It also automatically adds the provider to the consumer space, making provided capabilities invocable by authorized agents.
+
+> Please note that while providers may add consumers without their consent, that will not affect consumers in any way. Unless a provider is used it has no effect on space. Consumer is also not who gets billed for the service it is an account that submitted a request, which is to say that unsolicited providers are sponsored by a third party.
+
+```json
+{
+  "iss": "did:mailto:web.mail:alice",
+  "aud:" "did:web:web3.storage",
+  "att": [
+    {
+      "with": "did:web:web3.storage:plan:free",
+      "can": "consumer/add",
+      "nb": {
+        // link to a "provider/get" invocation
+        "request": { "/": "bafy...get" },
+        "consumer": "did:key:zSpace"
+      }
+    }
+  ],
+  "prf": [
+    // proof that agent is authorized to represent account
+    {
+      "iss": "did:web:web3.storage",
+      "aud": "did:mailto:web.mail:alice",
+      "att": [{
+        "can": "./update",
+        "with": "did:web:web3.storage",
+        "nb": {
+          "key": "did:key:zAgent"
+        }
+      }]
+    },
+    {
+      "iss": "did:web:web3.storage",
+      "aud": "did:mailto:web.mail:alice",
+      "att": [
+        {
+          "can": "consumer/add",
+          "with": "did:web:web3.storage:plan:free",
+          "nb": {
+            // link to "provider/signup" invocation
+            "request": { "/": "bafy...get" },
+            "consumer": "did:key:zSpace"
+          }
+        }
+      ],
+      "prf": [
+        {
+          "iss": "did:web:web3.storage:plan:free",
+          "aud": "did:web:web3.storage",
+          "att": [
+            {
+              "can": "consumer/add",
+              "with": "did:web:free.web3.storage"
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }
-
-type SubscriptionAdd struct {
-  customer  AccountDID
-  order     String
-  consumer  SpaceDID
-  budget    Budget
-}
-
-type Budget { String: Int }
 ```
 
-#### Subscription Consumer
+## `provider/publish`
 
-The `nb.consumer` MUST be set to the [space] DID to be provisioned.
+In the future we plan to define a set of `provider` capabilities that will allow an author to specify the capabilities it provides, terms of service and various other details.
 
-#### Subscription Budget
+In the meantime, publishing providers is not supported. However, existing providers do impose specific terms and limitations. For example, the following terms are imposed by `did:web:web3.storage:plan:free` provider:
 
-The `nb.budget` MUST be set to the map where keys are names of the capacities and values are the allowed utilization per billing cycle.
+1. Provided `store/*` capabilities are limited to 5GiB of storage.
+2. Agent MUST specify `nb.consumer` in [`provider/get`] invocation to enforce single consumer space per user limitation.
+3. Invocation MUST be issued by a [`did:mailto`] identifier
 
-> ℹ️ Adding a [space] to a subscription twice only causes previous budget to be merged with the new one.
+## `provider/add`
 
-### Subscription Remove
+In a typical flow, a user requests [`provider/get`](#providerget) to get [`consumer/add`](#consumeradd) capability delegated, which it then invokes to add a desired [`nb.consumer`](#add-nbconsumer) (space).
 
-A user MAY invoke the `subscription/remove` capability to remove a [space] from this subscription.
+```mermaid
+sequenceDiagram
+  participant Agent as 💻<br/><br/>did:key:zAgent #32;
+  participant Provider as 🤖<br/><br/>did:web:free.web3.storage #32;
+  participant W3 as 🌐<br/><br/>did:web:web3.storage #32;
 
-#### Subscription Remove Schema
 
-```ipldsch
-type SubscriptionRemoveCapability struct {
-  with      ProviderDID
-  nb        SubscriptionRemove
-}
+  Agent ->> Provider: provider/get
+  activate Provider
+  Provider->>Agent: consumer/add
+  deactivate Provider
+  Agent->>W3: consumer/add
+```
 
-type SubscriptionRemove struct {
-  customer  AccountDID
-  order     String
-  consumer  SpaceDID
+A more simplified flow exists for cases when provider is needed for a specific (space) consumer. In those cases a `provider/add` capability can be invoked, which is equivalent of [`provider/get`](#providerget), except [`nb.consumer`](#get-nbconsumer) MUST be a concrete DID. On successful invocation, the provider takes care of invoking [`consumer/add`] instead of delegating it back to an agent, which removes the need for an extra roundtrip.
+
+```mermaid
+sequenceDiagram
+  participant Agent as 💻<br/><br/>did:key:zAgent #32;
+  participant Provider as 🤖<br/><br/>did:web:free.web3.storage #32;
+  participant W3 as 🌐<br/><br/>did:web:web3.storage #32;
+
+  Agent ->> Provider: provider/add
+  Provider ->> W3: consumer/add
+```
+
+## Payment protocol
+
+### Add payment provider
+
+A user agent MAY add a payment provider using credit card information.
+
+```json
+{
+  "iss": "did:mailto:web.mail:alice",
+  "aud": "did:web:web3.storage",
+  "att": [
+    {
+      "can": "provider/add",
+      "with": "did:mailto:web.mail:alice",
+      "nb": {
+        "provider": "did:web:web3.storage:pay",
+        "consumer": "did:mailto:web.mail:alice",
+        /* data is the linked CBOR block that has
+         been encrypted with a symmetric key
+         inside the `cypher`. We inline here for
+         simplicity
+      */
+        "credential": {
+          "type": "card",
+          "card": {
+            "number": "4242424242424242",
+            "exp_month": 9,
+            "exp_year": 2023,
+            "cvc": "314"
+          }
+        },
+        /* symmetric key encrypted with a public
+         key of the `aud` so only private key
+         holder is able to decrypt */
+        "cypher": "....."
+      }
+    }
+  ],
+  // proof that agent is authorized to represent account
+  "prf": [
+    {
+      "iss": "did:web:web3.storage",
+      "aud": "did:mailto:web.mail:alice",
+      "att": [
+        {
+          "can": "./update",
+          "with": "did:web:web3.storage",
+          "nb": {
+            "key": "did:key:zAgent"
+          }
+        }
+      ]
+    }
+  ]
 }
 ```
 
-### Subscription List
+On success, the payment provider is added to the consumer, allowing an owner or a delegate to invoke and delegate `payment/*` capabilities.
 
-An agent MAY invoke the `subscription/list` capability to list provisions under this subscription.
+> A service MAY instead, or in addition to, create an out of bound payment method setup flow to avoid capturing sensitive data like card info.
 
-#### Subscription List Schema
+### Get payment provider
 
-```ipldsch
-type SubscriptionListCapability struct {
-  with      ProviderDID
-  nb        SubscriptionList
-}
+Just like with other providers user can invoke [`provider/get`] capability which may incur out-of-band interaction e.g. user may be directed to type in credit card information before response is completed.
 
-type SubscriptionList struct {
-  customer  AccountDID
-  order     String
+Also note that [`provider/get`](#providerget) / [`provider/add`](#provideradd) capabilities let user start a provider acquisition process, however services MAY also define alternative ways to issue `consumer/add` capabilities the users.
+
+### Add paid provider
+
+When a space has a payment provider, its owner or delegate can invoke [`provider/add`](#provideradd) and [`provider/get`](#providerget) capabilities to add providers that require payments.
+
+> Example below illustrates Alice adding a "Lite plan" to Bob's space on her expense.
+
+```json
+{
+  "iss": "did:mailto:web.mail:alice",
+  "aud": "did:web:web3.storage",
+  "att": [
+    {
+      "can": "provider/add",
+      "with": "did:mailto:web.mail:alice",
+      "nb": {
+        // 30GiB storage plan
+        "provider": "did:web:lite.web3.storage",
+        // Space to add storage provider to
+        "consumer": "did:key:zBob"
+      }
+    }
+  ],
+  // proof that agent is authorized to represent account
+  "prf": [
+    {
+      "iss": "did:web:web3.storage",
+      "aud": "did:mailto:web.mail:alice",
+      "att": [
+        {
+          "can": "./update",
+          "with": "did:web:web3.storage",
+          "nb": {
+            "key": "did:key:zAgent"
+          }
+        }
+      ]
+    }
+  ]
 }
 ```
 
 [did:key]: https://w3c-ccg.github.io/did-method-key/
-[UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
-[principal]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#321-principals
-[provider]:#provider
-[`did:mailto`]:./did-mailto.md
-[`did:key`]:https://w3c-ccg.github.io/did-method-key/
-[customer]:#customer
-[account]:./w3-account.md#account
-[space]:#space
-[subscription]:#subscription
-[provision]:#provision
-[DID]:https://www.w3.org/TR/did-core/
+[ucan]: https://github.com/ucan-wg/spec/#57-revocation
+[public key cryptography]: https://en.wikipedia.org/wiki/Public-key_cryptography
+[`provider/get`]: #providerget
+[`consumer/add`]: #consumeradd
+[ed25519]: https://en.wikipedia.org/wiki/EdDSA#Ed25519
