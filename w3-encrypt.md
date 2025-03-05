@@ -89,9 +89,9 @@ type Index = Variant<{
 }>
 
 type EncryptedMetadata = {
-    encryptedDataCID: Link<any>
-    cypherText: Uint8Array,
-    dataToEncryptHash: Uint8Array
+    encryptedDataCID: Link<any> 
+    identityBoundCiphertext: Uint8Array,
+    plaintextKeyHash: Uint8Array 
     accessControlConditions: [Record<string, any>]
 }
 ```
@@ -103,12 +103,9 @@ The Encrypted Metadata should be created after the encrypt is done, where the pr
 | Name        | Description                                                                                                                                    |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | accessControlConditions (ACC) | Pre-determined identity parameter. |
-| dataToEncryptHash       | hash of the data to encrypt.|
-| cypherText    | The result of encrypting the data and the identity parameter, which is the hash of the data to encrypt and the hash of the ACC|
+| plaintextKeyHash       | hash of the original data.|
+| identityBoundCiphertext    | The result of encrypting the original data and the identity parameter, which is the hash of the original data and the hash of the ACC|
 | encryptedDataCID | Represents the actual data CID of actual encrypted data.|
-
-#### Access Control Conditions Format
-// TODO:
 
 
 Example:
