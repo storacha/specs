@@ -26,7 +26,7 @@ The encryption service performs the role of managing keys in a decentralized con
 2. Equipped with a Trusted Execution Environment (TEE)
 3. Identity-based encryption with access control conditions
 4. Secure key management
-5. Decentralized authorization validation
+5. UCAN validation
 
 # Capabilities
 
@@ -38,8 +38,6 @@ Authorized agent MAY invoke `space/content/decrypt` capability on the [space] su
 
 Invocation example illustrates Bob requesting to decrypt a content under "bafy..." in the space "did:key:zAliceSpace".
 
-// NOTE: Don't know if this is correct. I notice we use different formats to show a invocation example, it's a bit confusing.
-Is the 'sub' the same as the 'with'?
 ```js
 {
   "cmd": "/space/content/decrypt",
@@ -78,7 +76,6 @@ type ContentArchive<T> = ByteView<{
 
 ### Encrypted Metadata
 
-
 #### Encrypted Metadata Schema
 
 Encrypted Metadata schema is variant type keyed by the format descriptor label designed to allow format evolution through versioning and additional schema variants.
@@ -96,9 +93,9 @@ type EncryptedMetadata = {
 }
 ```
 
-The Encrypted Metadata MUST sumarize all necessary information someone with a delegation needs to solicitize to the encryption service to decrypt the content under `encryptedDataCID`.
+The **Encrypted Metadata** **MUST** summarize all the necessary information required for someone with a delegation to request decryption from the encryption service for the content stored under `encryptedDataCID`.  
 
-The Encrypted Metadata should be created after the encrypt is done, where the properties can be defined as:
+The **Encrypted Metadata** should be generated **after** the encryption process is complete, at which point its properties can be defined as follows:
 
 | Name        | Description                                                                                                                                    |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -106,7 +103,6 @@ The Encrypted Metadata should be created after the encrypt is done, where the pr
 | plaintextKeyHash       | hash of the original data.|
 | identityBoundCiphertext    | The result of encrypting the original data and the identity parameter, which is the hash of the original data and the hash of the ACC|
 | encryptedDataCID | Represents the actual data CID of actual encrypted data.|
-
 
 Example:
 
@@ -137,7 +133,6 @@ Example:
 
 ```
 
-
 # Implementation Requirements
 
 ## Encryption Service
@@ -145,13 +140,22 @@ Example:
 The encryption service MUST:
 
 1. Support identity-based encryption with access control conditions
-2. Provide secure key management
+2. Provide secure decentralized key management
 3. Validate UCAN invocations for decryption
 
 ## Client Implementation
 
-Clients implementing this spec MUST:
+### Encryption
+Clients implementing this specification **MUST** use the encryption service to encrypt the key used to encrypt the content. This **double encryption strategy** is designed to better handle large files.
 
-1. Handle both direct encryption and double encryption for large files
-2. Properly format and store encryption metadata
-3. Wrap the invocation in a delegation before attempting decryption
+Once the encryption key encrypted, the client **MUST** store the encrypted metadata in IPFS, encoded as **DAG-CBOR**.  
+
+### Delegation
+The client **MUST** allow users to create a delegation for decrypting the content. The delegated resource **SHOULD** be the **encrypted metadata CID**.  
+
+### Decryption
+1. The client **MUST** fetch the **encrypted metadata CAR** from IPFS to retrieve all necessary properties, including the **encryptedData** under **encryptedDataCID**.
+2. The client **MUST** authorize a session with the **Encryption Service** to call the **UCAN validation** and decryption function.
+3. **Before passing the delegation to the UCAN validation and decryption function,** the client **MUST** create an **invocation**, wrap it in a delegation, and submit it. This ensures that the function validates only the **delegation chain** and does not execute the invocation directly.
+4. The **UCAN validation and decryption function** code is stored in **IPFS** to guarantee **immutability**. This function validates the delegation chain and calls the **Encryption Service** to decrypt the key.
+5. Once the encryption key is retrieved, the client **MUST** use it to decrypt the actual content and **discard the key immediately** for security reasons.
