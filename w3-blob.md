@@ -126,7 +126,7 @@ Shown Invocation example illustrates Alice requesting to add 2MiB blob to her sp
   "aud": "did:web:up.storacha.network",
   "att": [{
     "can": "space/blob/add",
-    "with": "did:key:zAlice",
+    "with": "did:key:zAliceSpace",
     "nb": {
       "blob": {
         // multihash of the blob as byte array
@@ -604,7 +604,7 @@ Shown Invocation example illustrates Alice requesting a page of the list of blob
   "aud": "did:web:up.storacha.network",
   "att": [{
     "can": "space/blob/list",
-    "with": "did:key:zAlice",
+    "with": "did:key:zAliceSpace",
     "nb": {
       // cursor where to start listing from
       "cursor": "cursor-value-from-previous-invocation",
@@ -714,7 +714,7 @@ Shown Invocation example illustrates Alice requesting to remove a blob stored on
   "aud": "did:web:up.storacha.network",
   "att": [{
     "can": "space/blob/remove",
-    "with": "did:key:zAlice",
+    "with": "did:key:zAliceSpace",
     "nb": {
       // multihash of the blob as byte array
       "digest": { "/": { "bytes": "mEi...sfKg" } }
@@ -808,7 +808,7 @@ Shown Invocation example illustrates Alice getting a blob stored in their space:
   "aud": "did:web:up.storacha.network",
   "att": [{
     "can": "space/blob/get/0/1",
-    "with": "did:key:zAlice",
+    "with": "did:key:zAliceSpace",
     "nb": {
       // multihash of the blob as byte array
       "digest": { "/": { "bytes": "mEi...sfKg" } },
