@@ -467,7 +467,7 @@ When a space has a payment provider, its owner or delegate can invoke [`provider
 }
 ```
 
-[did:key]: https://w3c-ccg.github.io/did-method-key/
+[did:key]: https://w3c-ccg.github.io/did-key-spec/
 [ucan]: https://github.com/ucan-wg/spec/#57-revocation
 [public key cryptography]: https://en.wikipedia.org/wiki/Public-key_cryptography
 [`provider/get`]: #providerget

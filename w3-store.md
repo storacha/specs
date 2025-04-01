@@ -1,6 +1,6 @@
 # W3 Storage Protocol
 
-![reliable](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square)
+![deprecated](https://img.shields.io/badge/status-deprecated-red.svg?style=flat-square)
 
 ## Editors
 

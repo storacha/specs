@@ -560,7 +560,7 @@ Alice wants to share access to her [space] with her friend Bob. She does not kno
 
 When Bob runs the `w3up` agent the first time and authorizes as `bob@gmail.com`, the program invokes the [access claim] capability and collects all capabilities available to the account, including the one sent by Alice, gaining access to her space.
 
-[`did:key`]: https://w3c-ccg.github.io/did-method-key/
+[`did:key`]: https://w3c-ccg.github.io/did-key-spec/
 [UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
 [UCAN Receipt]:https://github.com/ucan-wg/invocation/tree/f28f682bcb484cb515785b2a268d8a5b4cfc2b58#225-receipt
 [IPLD]: https://ipld.io/
