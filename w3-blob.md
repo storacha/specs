@@ -245,7 +245,7 @@ Invocation MUST fail if any of the following is true
 
 Invocation MUST succeed if non of the above is true. Success value MUST be an object with a `site` field set to [ucan/await] of the task that produces a [location commitment].
 
-Task linked from the `site` of the success value MUST be present in the receipt effects _(`next` field)_.
+Task linked from the `site` of the success value MUST be present in the receipt effects _(`fx` field)_.
 
 #### Add Blob Effects
 
