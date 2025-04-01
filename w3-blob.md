@@ -1,6 +1,6 @@
 # W3 Blob Protocol
 
-![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
+![reliable](https://img.shields.io/badge/status-reliable-green.svg?style=flat-square)
 
 ## Authors
 
