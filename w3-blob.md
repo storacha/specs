@@ -910,3 +910,5 @@ Receipt MUST NOT have any effects.
 [`did:key`]:https://w3c-ccg.github.io/did-key-spec/
 [Ed25519]:https://en.wikipedia.org/wiki/EdDSA#Ed25519
 [UCAN Conclusion]:./w3-ucan.md#conclusion
+[principal]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#321-principals
+[UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
