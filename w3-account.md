@@ -224,7 +224,7 @@ Examples
 [PKI]:https://en.wikipedia.org/wiki/Public_key_infrastructure
 [UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
 [`did:mailto`]:./did-mailto.md
-[`did:key`]:https://w3c-ccg.github.io/did-method-key/
+[`did:key`]:https://w3c-ccg.github.io/did-key-spec/
 [principal]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#321-principals
 <!-- markdown-link-check-disable -->
 <!-- stackexchange 403s this, presumably to prevent bot scraping -->

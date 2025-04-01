@@ -969,7 +969,7 @@ type DealInfoDetail struct {
 ```
 
 [`did:web`]: https://w3c-ccg.github.io/did-method-web/
-[`did:key`]:https://w3c-ccg.github.io/did-method-key/
+[`did:key`]:https://w3c-ccg.github.io/did-key-spec/
 [UCAN]: https://github.com/ucan-wg/spec/
 [principal]: https://github.com/ucan-wg/spec/#321-principals
 [Protocol Labs]: https://protocol.ai/
