@@ -147,4 +147,4 @@ It is RECOMMENDED to bundle all the `BlobIndex`s inside the Content Archive of t
 ```
 
 [IPNI]:https://github.com/ipni/specs/blob/main/IPNI.md
-[`did:key`]:https://w3c-ccg.github.io/did-method-key/
+[`did:key`]:https://w3c-ccg.github.io/did-key-spec/

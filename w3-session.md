@@ -316,7 +316,7 @@ Authorization sessions only apply to UCANs that have a [proof] linking to them. 
 - [Agent.proofs](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/access-client/src/agent.js#L275) is aware of w3-session proofs
 
 [`did:mailto`]: https://github.com/ucan-wg/did-mailto/
-[`did:key`]: https://w3c-ccg.github.io/did-method-key/
+[`did:key`]: https://w3c-ccg.github.io/did-key-spec/
 [ucan]: https://github.com/ucan-wg/spec/
 [principal alignment]: https://github.com/ucan-wg/spec/blob/main/README.md#62-principal-alignment
 [revocation]: https://github.com/ucan-wg/spec/#28-revocation

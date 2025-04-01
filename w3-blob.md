@@ -912,6 +912,6 @@ Receipt MUST NOT have any effects.
 [DID]:https://www.w3.org/TR/did-core/
 [Link]:https://ipld.io/docs/schemas/features/links/
 [range request]:https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
-[`did:key`]:https://w3c-ccg.github.io/did-method-key/
+[`did:key`]:https://w3c-ccg.github.io/did-key-spec/
 [Ed25519]:https://en.wikipedia.org/wiki/EdDSA#Ed25519
 [UCAN Conclusion]:./w3-ucan.md#conclusion

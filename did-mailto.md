@@ -134,7 +134,7 @@ This DID Method does not support updating the DID Document.
 [did method]: https://w3c-ccg.github.io/did-spec/#specific-did-method-schemes
 [did-core]: https://w3c-ccg.github.io/did-spec/
 [did document]: https://www.w3.org/TR/did-core/#dfn-did-documents
-[did:key]: https://w3c-ccg.github.io/did-method-key/
+[did:key]: https://w3c-ccg.github.io/did-key-spec/
 [did:web]: https://w3c-ccg.github.io/did-method-web/
 [did:dns]: https://danubetech.github.io/did-method-dns/
 [email address]: https://www.rfc-editor.org/rfc/rfc2822.html#section-3.4.1
