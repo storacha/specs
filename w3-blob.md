@@ -897,12 +897,10 @@ The `nb.cause` field MUST be set to the [Link] for the task, that caused the blo
 
 Receipt MUST NOT have any effects.
 
-
 [store protocol]:./w3-store.md
 [CAR]:https://ipld.io/specs/transport/car/
 [multihash]:https://github.com/multiformats/multihash
 [space]:#space
-[IPNI]:https://github.com/ipni/specs/blob/main/IPNI.md
 [location commitment]:#location-commitment
 [add Blob]:#add-blob
 [Put Blob]:#put-blob
