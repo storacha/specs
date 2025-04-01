@@ -269,7 +269,7 @@ Example:
     "with": "did:key:zStorageProvider",
     "nb": {
       // space where memory is allocated
-      "space": { "/": { "bytes": "did:key:zAlice" } },
+      "space": { "/": { "bytes": "did:key:zAliceSpace" } },
       "blob": {
         // multihash of the blob as byte array
         "digest": { "/": { "bytes": "mEi...sfKg" } },
@@ -486,7 +486,7 @@ Example:
     "can": "blob/accept",
     "with": "did:key:zStorageProvider",
     "nb": {
-      "space": { "/": { "bytes": "did:key:zAlice" } },
+      "space": { "/": { "bytes": "did:key:zAliceSpace" } },
       "blob": {
         // multihash of the blob as byte array
         "content": { "/": { "bytes": "mEi...sfKg" } },
@@ -552,7 +552,7 @@ Example:
     "with": "did:key:zStorageProvider",
     "nb": {
       // space the content was added to
-      "space": { "/": { "bytes": "did:key:zAlice" } },
+      "space": { "/": { "bytes": "did:key:zAliceSpace" } },
       // multihash must match be for the blob uploaded
       "content": { "/": { "bytes": "mEi...sfKg" } },
       // must be available from this url
