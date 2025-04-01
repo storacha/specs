@@ -2,9 +2,6 @@
 
 ![status:wip](https://img.shields.io/badge/status-wip-orange.svg?style=flat-square)
 
-- [Irakli Gozalishvili](https://github.com/gozala)
-- [Vasco Santos](https://github.com/vasco-santos)
-
 ## Authors
 
 - [Irakli Gozalishvili](https://github.com/gozala)
