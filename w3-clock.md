@@ -38,7 +38,7 @@ type Data = Any
 
 ### `parents`
 
-The `parents` property of an event is an array of zero or more links to events that precede it. The parent events SHOULD be the current _head_ of the clock the event is being added to.
+The `parents` property of an event is an array of zero or more links to events that precede it. The parent events SHOULD be the current _head_ of the clock the event is being added to. Parents MUST be sorted in ascending byte order of the binary encoding of the link.
 
 ### `data`
 
