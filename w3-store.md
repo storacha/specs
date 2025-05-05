@@ -575,8 +575,8 @@ type UploadAddResult union {
 } representation keyed
 
 type UploadAddSuccess struct {
-  root      &any
-  shards    [&ContentArchive]
+  root              &any
+  shards  optional  [&ContentArchive]
 }
 
 type UploadAddFailure struct {
@@ -654,10 +654,10 @@ Capability provider MUST issue `UploadGetSuccess` result for the upload entry th
 
 ```ipldsch
 type UploadGetSuccess {
-  link            &any
-  shards          [&ContentArchive]
-  insertedAt      ISO8601Date
-  updatedAt       ISO8601Date
+  link                  &any
+  shards      optional  [&ContentArchive]
+  insertedAt            ISO8601Date
+  updatedAt             ISO8601Date
 }
 ```
 
@@ -737,8 +737,8 @@ type UploadRemoveResult struct {
 } representation keyed
 
 type UploadRemoveSuccess {
-  root            &any
-  shards          [&ContentArchive]
+  root              &any
+  shards  optional  [&ContentArchive]
 }
 
 type UploadRemoveFailure {
@@ -836,7 +836,7 @@ type UploadListSuccess  struct {
 
 type UploadListItem struct {
   root                  &any
-  shards    optional    [&ContentArchive]
+  shards      optional  [&ContentArchive]
   insertedAt            ISO8601Date
   updatedAt             ISO8601Date
 }
