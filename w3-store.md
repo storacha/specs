@@ -735,7 +735,7 @@ type UploadRemoveResult struct {
 } representation keyed
 
 type UploadRemoveSuccess {
-  link            &any
+  root            &any
   shards          [&ContentArchive]
 }
 
