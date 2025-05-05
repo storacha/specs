@@ -656,6 +656,8 @@ Capability provider MUST issue `UploadGetSuccess` result for the upload entry th
 type UploadGetSuccess {
   link            &any
   shards          [&ContentArchive]
+  insertedAt      ISO8601Date
+  updatedAt       ISO8601Date
 }
 ```
 
@@ -835,6 +837,8 @@ type UploadListSuccess  struct {
 type UploadListItem struct {
   root                  &any
   shards    optional    [&ContentArchive]
+  insertedAt            ISO8601Date
+  updatedAt             ISO8601Date
 }
 ```
 
