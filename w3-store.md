@@ -739,7 +739,7 @@ type UploadRemoveSuccess {
   shards          [&ContentArchive]
 }
 
-type UploadGetFailure {
+type UploadRemoveFailure {
   message   string
 }
 ```
