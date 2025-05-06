@@ -34,12 +34,12 @@ Separately `upload/` protocol can be utilized allowing user to create standalone
 
 There are several distinct roles that [principal]s may assume in this specification:
 
-| Name        | Description                                                                                                                                    |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Principal | The general class of entities that interact with a UCAN. Identified by a DID that can be used in the `iss` or `aud` field of a UCAN. |
-| Agent       | A [Principal] identified by [`did:key`] identifier, representing a user in an application. |
-| Issuer | A [principal] delegating capabilities to another [principal]. It is the signer of the [UCAN]. Specified in the `iss` field of a UCAN. |
-| Audience | Principal access is shared with. Specified in the `aud` field of a UCAN. |
+| Name      | Description                                                                                                                           |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Principal | The general class of entities that interact with a UCAN. Identified by a DID that can be used in the `iss` or `aud` field of a UCAN.  |
+| Agent     | A [Principal] identified by [`did:key`] identifier, representing a user in an application.                                            |
+| Issuer    | A [principal] delegating capabilities to another [principal]. It is the signer of the [UCAN]. Specified in the `iss` field of a UCAN. |
+| Audience  | Principal access is shared with. Specified in the `aud` field of a UCAN.                                                              |
 
 ### Space
 
@@ -78,7 +78,7 @@ The subject of the invocation (`with` field) MUST be the DID of the target MUST 
 
 ### Content Archive Identifier
 
-The `nb.link` field of the invocation MUST be an [IPLD Link] to the desired [CAR]. Link MUST have Content Addressable Archive (CAR)  `0x0202` codec code. It is RECOMMENDED to support SHA2-256 multihash code `0x12`. Implementers are MAY choose to support other additional hashing algorithms.
+The `nb.link` field of the invocation MUST be an [IPLD Link] to the desired [CAR]. Link MUST have Content Addressable Archive (CAR) `0x0202` codec code. It is RECOMMENDED to support SHA2-256 multihash code `0x12`. Implementers are MAY choose to support other additional hashing algorithms.
 
 ### Store Add
 
@@ -575,8 +575,8 @@ type UploadAddResult union {
 } representation keyed
 
 type UploadAddSuccess struct {
-  root      &any
-  shards    [&ContentArchive]
+  root              &any
+  shards  optional  [&ContentArchive]
 }
 
 type UploadAddFailure struct {
@@ -654,8 +654,10 @@ Capability provider MUST issue `UploadGetSuccess` result for the upload entry th
 
 ```ipldsch
 type UploadGetSuccess {
-  link            &any
-  shards          [&ContentArchive]
+  link                  &any
+  shards      optional  [&ContentArchive]
+  insertedAt            ISO8601Date
+  updatedAt             ISO8601Date
 }
 ```
 
@@ -735,11 +737,11 @@ type UploadRemoveResult struct {
 } representation keyed
 
 type UploadRemoveSuccess {
-  link            &any
-  shards          [&ContentArchive]
+  root              &any
+  shards  optional  [&ContentArchive]
 }
 
-type UploadGetFailure {
+type UploadRemoveFailure {
   message   string
 }
 ```
@@ -834,7 +836,9 @@ type UploadListSuccess  struct {
 
 type UploadListItem struct {
   root                  &any
-  shards    optional    [&ContentArchive]
+  shards      optional  [&ContentArchive]
+  insertedAt            ISO8601Date
+  updatedAt             ISO8601Date
 }
 ```
 
@@ -846,15 +850,15 @@ type UploadListFailure struct {
 }
 ```
 
-[CAR]:https://ipld.io/specs/transport/car/
-[Content Address]:https://web3.storage/docs/concepts/content-addressing/
-[UnixFS]:https://docs.ipfs.tech/concepts/file-systems/#unix-file-system-unixfs
-[IPLD]:https://ipld.io/docs/
-[DAG]:https://en.wikipedia.org/wiki/Directed_acyclic_graph
-[space]:#space
-[IPLD Link]:https://ipld.io/docs/schemas/features/links/
-[UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
-[principal]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#321-principals
-[Content Archive Identifier]:#content-archive-identifier
-[`store/add`]:#store-add
-[provider]:./w3-provider.md#provider
+[CAR]: https://ipld.io/specs/transport/car/
+[Content Address]: https://web3.storage/docs/concepts/content-addressing/
+[UnixFS]: https://docs.ipfs.tech/concepts/file-systems/#unix-file-system-unixfs
+[IPLD]: https://ipld.io/docs/
+[DAG]: https://en.wikipedia.org/wiki/Directed_acyclic_graph
+[space]: #space
+[IPLD Link]: https://ipld.io/docs/schemas/features/links/
+[UCAN]: https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
+[principal]: https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#321-principals
+[Content Archive Identifier]: #content-archive-identifier
+[`store/add`]: #store-add
+[provider]: ./w3-provider.md#provider
