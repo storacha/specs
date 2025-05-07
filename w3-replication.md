@@ -20,7 +20,7 @@ Out of scope: This specification does not propose any solution for repairing los
 
 ### Diagram
 
-The interactions can be summarized by the following diagram.
+The interactions can be summarized by the following diagram:
 
 ```mermaid
 sequenceDiagram
@@ -132,6 +132,7 @@ The `nb.location` field MUST be a [Link](https://ipld.io/docs/schemas/features/l
 
 ```ts
 type ReplicateBlobReceipt = {
+  ran:  Link<ReplicateBlob>
   out: Result<ReplicateBlobOk, ReplicateBlobError>
   fx: {
     fork: [
@@ -179,7 +180,7 @@ Successful invocation MUST start a workflow consisting of following tasks, that 
 
 The number of effects recieved is dependant on the number of replicas requested.
 
-### Blob Replica Allocation
+### Blob Replica Allocate
 
 The upload service allocates replication space on storage nodes by issuing a `blob/replica/allocate` invocation:
 
@@ -215,11 +216,77 @@ The `blob/replica/allocate` task receipt includes an async task that will be per
 
 #### Blob Replica Allocate Capability Schema
 
-TODO
+```ts
+type AllocateReplicaBlob = {
+  can: "blob/replica/allocate"
+  with: StorageNodeDID
+  nb: {
+    blob: Blob
+    space: Bytes<SpaceDID>
+    location: Link<LocationCommitment>
+    cause: Link<ReplicateBlob>
+  }
+}
+```
+
+##### Blob
+
+The `nb.blob` field MUST be set to the `Blob` the space is allocated for.
+
+##### Space
+
+The `nb.space` field MUST be set to the (byte encoded) [DID] of the user space where allocation took place.
+
+##### Location
+
+The `nb.location` field MUST be a [Link](https://ipld.io/docs/schemas/features/links/) to the [location commitment](./w3-blob.md#location-commitment) describing where the blob can be retrieved.
+
+##### Cause
+
+The `nb.cause` field MUST be set to the [Link] for the [Replicate Blob](#blob-replicate) task, that caused an allocation.
 
 #### Blob Replica Allocate Reciept Schema
 
-TODO
+```ts
+type AllocateReplicaBlobReceipt = {
+  ran:  Link<AllocateReplicaBlob>
+  out:  Result<AllocateReplicaBlobOk, AllocateReplicaBlobError>
+  fx: {
+    fork: [Link<TransferReplicaBlob>]
+  }
+}
+
+type AllocateReplicaBlobOk = {
+  /** The number of bytes allocated for a Blob. */
+  size: int
+}
+
+type AllocateReplicaBlobError = {
+  message: string
+}
+```
+
+##### Blob Replica Allocate Result
+
+Invocation MUST fail if any of the following is true:
+
+1. Provided `blob.size` is outside of supported range.
+1. Provided `blob.digest` is not a valid [multihash].
+1. Provided `blob.digest` [multihash] hashing algorithm is not supported.
+1. Provided `location` commitment is invalid or has been revoked.
+
+Invocation MUST succeed if non of the above is true.
+
+###### Size
+
+The `out.ok.size` MUST be set to the number of bytes that were allocated for the `Blob`. It MUST be equal to either:
+
+1. The `nb.blob.size` of the invocation.
+2. `0` if the storage node already has memory allocated for the `nb.blob`.
+
+##### Blob Replica Allocate Effects
+
+Successful invocation MUST start a workflow consisting of a [Transfer Replica Blob](#blob-replica-transfer) task, that MUST be set in receipt effects (`fx` field).
 
 ### Blob Replica Transfer
 
@@ -241,6 +308,8 @@ A `blob/replica/transfer` task takes the following form:
           "digest": { "/": { "bytes": "..." } },
           "size": 1234
         },
+        /** DID of the space the blob has been allocated to. */
+        "space": { "/": { "bytes": "..." } },
         /** The location the blob will be transferred from. */
         "location": { "/": "bafy..locationCommitment" },
         /** The `blob/replica/allocate` invocation that initiated this transfer. */
@@ -253,7 +322,7 @@ A `blob/replica/transfer` task takes the following form:
 }
 ```
 
-When the `blob/replica/transfer` task is complete a receipt is issued. The receipt is communicated back to the upload service via a `ucan/conclude` invocation.
+When the `blob/replica/transfer` task is complete a receipt is issued. The receipt is communicated back to the upload service via a [`ucan/conclude` invocation](./w3-ucan.md#conclusion).
 
 The receipt for `blob/replica/transfer` includes a new signed location commitment from the storage node the blob has been replicated to.
 
@@ -261,8 +330,63 @@ Client can poll the upload service for the `blob/replica/transfer` receipt.
 
 #### Blob Replica Transfer Capability Schema
 
-TODO
+```ts
+type TransferReplicaBlob = {
+  can: "blob/replica/transfer"
+  with: StorageNodeDID
+  nb: {
+    blob: Blob
+    space: Bytes<SpaceDID>
+    location: Link<LocationCommitment>
+    cause: Link<AllocateReplicaBlob>
+  }
+}
+```
+
+##### Blob
+
+The `nb.blob` field MUST be set to the `Blob` the space is allocated for.
+
+##### Space
+
+The `nb.space` field MUST be set to the (byte encoded) [DID] of the user space where allocation took place.
+
+##### Location
+
+The `nb.location` field MUST be a [Link](https://ipld.io/docs/schemas/features/links/) to the [location commitment](./w3-blob.md#location-commitment) describing where the blob can be retrieved.
+
+##### Cause
+
+The `nb.cause` field MUST be set to the [Link] for the [Allocate Replica Blob](#blob-replica-allocate) task, that caused an allocation.
 
 #### Blob Replica Transfer Reciept Schema
 
-TODO
+```ts
+type TransferReplicaBlobReceipt = {
+  ran: Link<TransferReplicaBlob>
+  out: Result<TransferReplicaBlobOk, TransferReplicaBlobError>
+}
+
+type TransferReplicaBlobOk = {
+  site: Link<LocationCommitment>
+}
+
+type TransferReplicaBlobError = {
+  message: string
+}
+```
+
+##### Blob Replica Transfer Result
+
+Invocation MUST fail if any of the following is true:
+
+1. Provided `blob.size` is outside of supported range.
+1. Provided `blob.digest` is not a valid [multihash].
+1. Provided `blob.digest` [multihash] hashing algorithm is not supported.
+1. Provided `location` commitment is invalid or has been revoked.
+
+Invocation MUST succeed if non of the above is true.
+
+#### Blob Replica Transfer Effects
+
+Receipt MUST not have any effects.
