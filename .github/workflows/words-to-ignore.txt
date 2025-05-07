@@ -175,3 +175,4 @@ InterPlanetary
 queryable
 bafy
 0-rc
+async

@@ -92,7 +92,7 @@ Each replication task MUST target a _different_ storage node and they MUST NOT t
 
 The upload service MUST select storage node(s) and allocate replication space when the `space/blob/replicate` invocation is received.
 
-The reciept also includes effects (async tasks) and receipts for each allocation task performed.
+The receipt also includes effects (async tasks) and receipts for each allocation task performed.
 
 #### Blob Replicate Capability Schema
 
@@ -126,9 +126,9 @@ The `nb.replicas` field MUST be an unsigned integer indicating the number of cop
 
 ##### Location
 
-The `nb.location` field MUST be a [Link](https://ipld.io/docs/schemas/features/links/) to the [location commitment](./w3-blob.md#location-commitment) describing where the blob can be retrieved.
+The `nb.location` field MUST be a [Link] to the [location commitment](./w3-blob.md#location-commitment) describing where the blob can be retrieved.
 
-#### Blob Replicate Reciept Schema
+#### Blob Replicate Receipt Schema
 
 ```ts
 type ReplicateBlobReceipt = {
@@ -178,7 +178,7 @@ Successful invocation MUST start a workflow consisting of following tasks, that 
 1. [Blob Replica Allocate](#blob-replica-allocate) (1 or more)
 1. [Blob Replica Transfer](#blob-replica-transfer) (1 or more)
 
-The number of effects recieved is dependant on the number of replicas requested.
+The number of effects recieved is dependent on the number of replicas requested.
 
 ### Blob Replica Allocate
 
@@ -212,7 +212,7 @@ The upload service allocates replication space on storage nodes by issuing a `bl
 }
 ```
 
-The `blob/replica/allocate` task receipt includes an async task that will be performed by the storage node - `blob/replica/transfer`. The `blob/replica/transfer` task is completed when the storage node has transferred the blob from its location to the storage node.
+The `blob/replica/allocate` task receipt includes an async task that will be performed by the storage node: `blob/replica/transfer`. The `blob/replica/transfer` task is completed when the storage node has transferred the blob from its location to the storage node.
 
 #### Blob Replica Allocate Capability Schema
 
@@ -239,13 +239,13 @@ The `nb.space` field MUST be set to the (byte encoded) [DID] of the user space w
 
 ##### Location
 
-The `nb.location` field MUST be a [Link](https://ipld.io/docs/schemas/features/links/) to the [location commitment](./w3-blob.md#location-commitment) describing where the blob can be retrieved.
+The `nb.location` field MUST be a [Link] to the [location commitment](./w3-blob.md#location-commitment) describing where the blob can be retrieved.
 
 ##### Cause
 
 The `nb.cause` field MUST be set to the [Link] for the [Replicate Blob](#blob-replicate) task, that caused an allocation.
 
-#### Blob Replica Allocate Reciept Schema
+#### Blob Replica Allocate Receipt Schema
 
 ```ts
 type AllocateReplicaBlobReceipt = {
@@ -353,13 +353,13 @@ The `nb.space` field MUST be set to the (byte encoded) [DID] of the user space w
 
 ##### Location
 
-The `nb.location` field MUST be a [Link](https://ipld.io/docs/schemas/features/links/) to the [location commitment](./w3-blob.md#location-commitment) describing where the blob can be retrieved.
+The `nb.location` field MUST be a [Link] to the [location commitment](./w3-blob.md#location-commitment) describing where the blob can be retrieved.
 
 ##### Cause
 
 The `nb.cause` field MUST be set to the [Link] for the [Allocate Replica Blob](#blob-replica-allocate) task, that caused an allocation.
 
-#### Blob Replica Transfer Reciept Schema
+#### Blob Replica Transfer Receipt Schema
 
 ```ts
 type TransferReplicaBlobReceipt = {
@@ -390,3 +390,8 @@ Invocation MUST succeed if non of the above is true.
 #### Blob Replica Transfer Effects
 
 Receipt MUST not have any effects.
+
+
+[DID]:https://www.w3.org/TR/did-core/
+[Link]:(https://ipld.io/docs/schemas/features/links/)
+[multihash]:https://github.com/multiformats/multihash
