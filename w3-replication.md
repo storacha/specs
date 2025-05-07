@@ -178,7 +178,7 @@ Successful invocation MUST start a workflow consisting of following tasks, that 
 1. [Blob Replica Allocate](#blob-replica-allocate) (1 or more)
 1. [Blob Replica Transfer](#blob-replica-transfer) (1 or more)
 
-The number of effects recieved is dependent on the number of replicas requested.
+The number of effects received is dependent on the number of replicas requested.
 
 ### Blob Replica Allocate
 
