@@ -393,5 +393,5 @@ Receipt MUST not have any effects.
 
 
 [DID]:https://www.w3.org/TR/did-core/
-[Link]:(https://ipld.io/docs/schemas/features/links/)
+[Link]:https://ipld.io/docs/schemas/features/links/
 [multihash]:https://github.com/multiformats/multihash
