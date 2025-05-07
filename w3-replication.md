@@ -75,7 +75,7 @@ The blob to be replicated and the location where the blob may be found are also 
         /** Number of replicas to ensure. */
         "replicas": 2,
         /** A location commitment indicating where the blob MUST be fetched from. */
-        "location": { "/": "bafy..locationCommitment" }
+        "site": { "/": "bafy..locationCommitment" }
       }
     }
   ],
@@ -103,7 +103,7 @@ type ReplicateBlob = {
   nb: {
     blob: Blob
     replicas: int
-    location: Link<LocationCommitment>
+    site: Link<LocationCommitment>
   }
 }
 
@@ -124,9 +124,9 @@ The `nb.blob` field MUST be set to the `Blob` that is to be replicated.
 
 The `nb.replicas` field MUST be an unsigned integer indicating the number of copies the network should ensure are stored _in addition_ to the original. It MUST be greater than 0.
 
-##### Location
+##### Site
 
-The `nb.location` field MUST be a [Link] to the [location commitment](./w3-blob.md#location-commitment) describing where the blob can be retrieved.
+The `nb.site` field MUST be a [Link] to the [location commitment] describing where the blob can be retrieved.
 
 #### Blob Replicate Receipt Schema
 
@@ -165,9 +165,9 @@ Invocation MUST fail if any of the following is true:
 1. Provided `blob.digest` is not a valid [multihash].
 1. Provided `blob.digest` [multihash] hashing algorithm is not supported.
 1. Provided `replicas` is not an unsigned integer greater than 0.
-1. Provided `location` commitment is invalid or has been revoked.
+1. Provided `site` is a valid, non-revoked [location commitment].
 
-Invocation MUST succeed if non of the above is true. Success value MUST be an object with a `site` field set to an array of [ucan/await] of the task that produces a [location commitment](./w3-blob.md#location-commitment), one for each replica requested.
+Invocation MUST succeed if non of the above is true. Success value MUST be an object with a `site` field set to an array of [ucan/await] of the task that produces a [location commitment], one for each replica requested.
 
 Task linked from the `site` of the success value MUST be present in the receipt effects _(`fx` field)_.
 
@@ -201,7 +201,7 @@ The upload service allocates replication space on storage nodes by issuing a `bl
         /** DID of the space the blob has been allocated to. */
         "space": { "/": { "bytes": "..." } },
         /** A location commitment indicating where the blob MUST be fetched from. */
-        "location": { "/": "bafy..locationCommitment" },
+        "site": { "/": "bafy..locationCommitment" },
         /** The `space/blob/replicate` invocation that caused this allocation. */
         "cause": { "/": "bafy..replicate" }
       }
@@ -223,7 +223,7 @@ type AllocateReplicaBlob = {
   nb: {
     blob: Blob
     space: Bytes<SpaceDID>
-    location: Link<LocationCommitment>
+    site: Link<LocationCommitment>
     cause: Link<ReplicateBlob>
   }
 }
@@ -239,7 +239,7 @@ The `nb.space` field MUST be set to the (byte encoded) [DID] of the user space w
 
 ##### Location
 
-The `nb.location` field MUST be a [Link] to the [location commitment](./w3-blob.md#location-commitment) describing where the blob can be retrieved.
+The `nb.site` field MUST be a [Link] to the [location commitment] describing where the blob can be retrieved.
 
 ##### Cause
 
@@ -273,7 +273,7 @@ Invocation MUST fail if any of the following is true:
 1. Provided `blob.size` is outside of supported range.
 1. Provided `blob.digest` is not a valid [multihash].
 1. Provided `blob.digest` [multihash] hashing algorithm is not supported.
-1. Provided `location` commitment is invalid or has been revoked.
+1. Provided `site` is a valid, non-revoked [location commitment].
 
 Invocation MUST succeed if non of the above is true.
 
@@ -311,7 +311,7 @@ A `blob/replica/transfer` task takes the following form:
         /** DID of the space the blob has been allocated to. */
         "space": { "/": { "bytes": "..." } },
         /** The location the blob will be transferred from. */
-        "location": { "/": "bafy..locationCommitment" },
+        "site": { "/": "bafy..locationCommitment" },
         /** The `blob/replica/allocate` invocation that initiated this transfer. */
         "cause": { "/": "bafy..allocate" }
       }
@@ -337,7 +337,7 @@ type TransferReplicaBlob = {
   nb: {
     blob: Blob
     space: Bytes<SpaceDID>
-    location: Link<LocationCommitment>
+    site: Link<LocationCommitment>
     cause: Link<AllocateReplicaBlob>
   }
 }
@@ -351,9 +351,9 @@ The `nb.blob` field MUST be set to the `Blob` the space is allocated for.
 
 The `nb.space` field MUST be set to the (byte encoded) [DID] of the user space where allocation took place.
 
-##### Location
+##### Site
 
-The `nb.location` field MUST be a [Link] to the [location commitment](./w3-blob.md#location-commitment) describing where the blob can be retrieved.
+The `nb.site` field MUST be a [Link] to the [location commitment] describing where the blob can be retrieved.
 
 ##### Cause
 
@@ -383,7 +383,7 @@ Invocation MUST fail if any of the following is true:
 1. Provided `blob.size` is outside of supported range.
 1. Provided `blob.digest` is not a valid [multihash].
 1. Provided `blob.digest` [multihash] hashing algorithm is not supported.
-1. Provided `location` commitment is invalid or has been revoked.
+1. Provided `site` is a valid, non-revoked [location commitment].
 
 Invocation MUST succeed if non of the above is true.
 
@@ -393,4 +393,5 @@ Receipt MUST not have any effects.
 
 [DID]:https://www.w3.org/TR/did-core/
 [Link]:https://ipld.io/docs/schemas/features/links/
+[location commitment]:./w3-blob.md#location-commitment
 [multihash]:https://github.com/multiformats/multihash
