@@ -88,7 +88,8 @@ It is RECOMMENDED that the location commitment is included in the invocation.
 
 The receipt for `space/blob/replicate` includes effects (async tasks) for `blob/replica/transfer`. Successful completion of the `blob/replica/transfer` task indicates the replication target has transferred and stored the blob. The number of `blob/replica/transfer` tasks corresponds directly to number of replicas requested.
 
-Each replication task MUST target a _different_ storage node and they MUST NOT target the original upload target.
+Each replication task MUST target a _different_ replica node and they MUST NOT target the primary node.
+``
 
 The upload service MUST select storage node(s) and allocate replication space when the `space/blob/replicate` invocation is received.
 
