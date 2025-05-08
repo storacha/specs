@@ -91,7 +91,7 @@ The receipt for `space/blob/replicate` includes effects (async tasks) for `blob/
 Each replication task MUST target a _different_ replica node and they MUST NOT target the primary node.
 ``
 
-The upload service MUST select storage node(s) and allocate replication space when the `space/blob/replicate` invocation is received.
+The upload service MUST select replica node(s) and allocate replication space when the `space/blob/replicate` invocation is received.
 
 The receipt also includes effects (async tasks) and receipts for each allocation task performed.
 
@@ -183,7 +183,7 @@ The number of effects received is dependent on the number of replicas requested.
 
 ### Blob Replica Allocate
 
-The upload service allocates replication space on storage nodes by issuing a `blob/replica/allocate` invocation:
+The upload service allocates replication space on replica nodes by issuing a `blob/replica/allocate` invocation:
 
 ```json5
 {
@@ -213,7 +213,7 @@ The upload service allocates replication space on storage nodes by issuing a `bl
 }
 ```
 
-The `blob/replica/allocate` task receipt includes an async task that will be performed by the storage node: `blob/replica/transfer`. The `blob/replica/transfer` task is completed when the storage node has transferred the blob from its location to the storage node.
+The `blob/replica/allocate` task receipt includes an async task that will be performed by the replica node: `blob/replica/transfer`. The `blob/replica/transfer` task is completed when the replica node has transferred the blob from its location on the primary node.
 
 #### Blob Replica Allocate Capability Schema
 
@@ -283,7 +283,7 @@ Invocation MUST succeed if non of the above is true.
 The `out.ok.size` MUST be set to the number of bytes that were allocated for the `Blob`. It MUST be equal to either:
 
 1. The `nb.blob.size` of the invocation.
-2. `0` if the storage node already has memory allocated for the `nb.blob`.
+2. `0` if the replica node already has memory allocated for the `nb.blob`.
 
 ##### Blob Replica Allocate Effects
 
@@ -325,7 +325,7 @@ A `blob/replica/transfer` task takes the following form:
 
 When the `blob/replica/transfer` task is complete a receipt is issued. The receipt is communicated back to the upload service via a [`ucan/conclude` invocation](./w3-ucan.md#conclusion).
 
-The receipt for `blob/replica/transfer` includes a new signed location commitment from the storage node the blob has been replicated to.
+The receipt for `blob/replica/transfer` includes a new signed location commitment from the replica node the blob has been replicated to.
 
 Client can poll the upload service for the `blob/replica/transfer` receipt.
 
