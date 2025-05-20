@@ -354,7 +354,7 @@ When the `blob/replica/transfer` task is complete a receipt is issued. The _Repl
 
 The receipt for `blob/replica/transfer` MUST include a new signed location commitment from the _Replica Node_ the blob has been replicated to.
 
-The _Client_ MAY poll the _Replication Service_ for the `blob/replica/transfer` receipt in order to discover the succsfull completion or failure of the task.
+The _Client_ MAY poll the _Replication Service_ for the `blob/replica/transfer` receipt in order to discover the successfull completion or failure of the task.
 
 #### Blob Replica Transfer Capability Schema
 
