@@ -27,9 +27,9 @@ The interactions can be summarized by the following diagram:
 ```mermaid
 sequenceDiagram
     participant Client
-    participant ReplicationService
-    participant ReplicaNode
-    participant PrimaryNode
+    participant ReplicationService as Replication Service
+    participant ReplicaNode as Replica Node
+    participant PrimaryNode as Primary Node
 
     Note over Client,ReplicationService: Step 1: Instruct replication
     Client->>ReplicationService: space/blob/replicate (with location to fetch data)
