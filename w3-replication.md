@@ -12,7 +12,9 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Introduction
 
-Replication ensures that if a storage node loses a blob, it remains available in the network. This specification is an extension to the blob protocol that allows nodes within the network to replicate data between each other _after_ a storage node has received an initial upload.
+The Replication Protocol enables distributed storage of blobs across multiple nodes in the network. This specification extends the blob protocol by defining how nodes replicate data after initial upload. The protocol establishes four roles: '**Client**' instructs replications, '**Replication Service**' receives replication instructions and orchestrates replications, '**Primary Nodes**' receive initial uploads, and '**Replica Nodes**' store additional copies.
+
+This allows the network to maintain multiple copies of each blob, distributed across different nodes.
 
 Out of scope: This specification does not propose any solution for repairing lost data from any node.
 
@@ -25,34 +27,36 @@ The interactions can be summarized by the following diagram:
 ```mermaid
 sequenceDiagram
     participant Client
-    participant UploadService
+    participant ReplicationService
     participant ReplicaNode
     participant PrimaryNode
 
-    Note over Client,UploadService: Step 1: Instruct replication
-    Client->>UploadService: space/blob/replicate (with location to fetch data)
+    Note over Client,ReplicationService: Step 1: Instruct replication
+    Client->>ReplicationService: space/blob/replicate (with location to fetch data)
 
-    Note over UploadService,ReplicaNode: Step 2: Allocate replication
-    UploadService->>ReplicaNode: blob/replica/allocate (with location to fetch data)
-    ReplicaNode->>UploadService: blob/replica/allocate receipt (indicates capacity reserved)
-    UploadService->>Client: space/blob/replicate receipt
+    Note over ReplicationService,ReplicaNode: Step 2: Allocate replication
+    ReplicationService->>ReplicaNode: blob/replica/allocate (with location to fetch data)
+    ReplicaNode->>ReplicationService: blob/replica/allocate receipt (indicates capacity reserved)
+    ReplicationService->>Client: space/blob/replicate receipt
 
     Note over ReplicaNode,PrimaryNode: Step 3: Replica node “pulls” data from original
     ReplicaNode->>PrimaryNode: Fetch content from "location" commitment
     PrimaryNode->>ReplicaNode: Returns blob data
 
     Note over Client,ReplicaNode: Step 4: Confirm transfer to replicate
-    ReplicaNode->>UploadService: blob/replica/transfer receipt (indicates success/failure)
-    UploadService->>Client: blob/replica/transfer receipt
+    ReplicaNode->>ReplicationService: blob/replica/transfer receipt (indicates success/failure)
+    ReplicationService->>Client: blob/replica/transfer receipt
 ```
 
 ### Blob Replicate
 
-A `space/blob/replicate` invocation instructs the upload service to replicate a blob to the specified number of storage nodes. A replication request is only valid to be issued _after_ the client has received a `blob/accept` receipt, indicating the target storage node has successfully received the blob.
+A `space/blob/replicate` invocation instructs the _Replication Service_ to replicate a blob to the specified number of _Replica Nodes_. A replication request is only valid to be issued _after_ the _Client_ has received a `blob/accept` receipt, indicating the _Primary Node_ has successfully received the blob.
 
-The caveats for `space/blob/replicate` MUST include a `replicas` parameter, an unsigned integer indicating the number of copies the network should ensure are stored _in addition_ to the original.
+Any agent with authority to issue `space/blob/replicate` may invoke the capability, but it is typically the _Client_ that performed the initial upload to the _Primary Node_.
 
-It is RECOMMENDED that the upload service mandate a minimum _and_ a maximum value. The minimum and maximum MAY be the same.
+The caveats for `space/blob/replicate` MUST include a `replicas` parameter, an unsigned integer indicating the total number of copies the network should ensure are stored _in addition_ to the original.
+
+It is RECOMMENDED that the _Replication Service_ receiving the instruction mandate a minimum _and_ a maximum value. The minimum and maximum MAY be the same.
 
 e.g. `replicas: 2` will ensure 3 copies of the data exist in the network.
 
@@ -61,7 +65,7 @@ The blob to be replicated and the location where the blob may be found are also 
 ```json5
 {
   "iss": "did:key:zAlice",
-  "aud": "did:web:upload.service.example.com",
+  "aud": "did:web:replication.service.example.com",
   "att": [
     {
       "with": "did:key:zAliceSpace",
@@ -72,7 +76,7 @@ The blob to be replicated and the location where the blob may be found are also 
           "digest": { "/": { "bytes": "..." } },
           "size": 1234
         },
-        /** Number of replicas to ensure. */
+        /** Total number of replicas to ensure. */
         "replicas": 2,
         /** A location commitment indicating where the blob MUST be fetched from. */
         "site": { "/": "bafy..locationCommitment" }
@@ -84,16 +88,15 @@ The blob to be replicated and the location where the blob may be found are also 
 }
 ```
 
-It is RECOMMENDED that the location commitment is included in the invocation.
+It is RECOMMENDED that the block(s) that comprise the location commitment are included in the invocation.
 
 The receipt for `space/blob/replicate` includes effects (async tasks) for `blob/replica/transfer`. Successful completion of the `blob/replica/transfer` task indicates the replication target has transferred and stored the blob. The number of `blob/replica/transfer` tasks corresponds directly to number of replicas requested.
 
-Each replication task MUST target a _different_ replica node and they MUST NOT target the primary node.
-``
+Each replication task MUST target a _different_ _Replica Node_ and they MUST NOT target the _Primary Node_. It is RECOMMENDED that the replication tasks do not target any _Replica Nodes_ that have previously failed to replicate the data.
 
-The upload service MUST select replica node(s) and allocate replication space when the `space/blob/replicate` invocation is received.
+The _Replication Service_ MUST select _Replica Node_(s) and allocate replication space when the `space/blob/replicate` invocation is received.
 
-The receipt also includes effects (async tasks) and receipts for each allocation task performed.
+The receipt MUST include effects (async tasks) and receipts for each allocation task performed.
 
 #### Blob Replicate Capability Schema
 
@@ -123,7 +126,7 @@ The `nb.blob` field MUST be set to the `Blob` that is to be replicated.
 
 ##### Replicas
 
-The `nb.replicas` field MUST be an unsigned integer indicating the number of copies the network should ensure are stored _in addition_ to the original. It MUST be greater than 0.
+The `nb.replicas` field MUST be an unsigned integer indicating the total number of copies the network should ensure are stored _in addition_ to the original. It MUST be greater than 0.
 
 ##### Site
 
@@ -160,15 +163,14 @@ type ReplicateBlobError = {
 
 Invocation MUST fail if any of the following is true:
 
-1. Provided subject space is not provisioned with a provider.
 1. Provided subject space does not currently store the blob.
 1. Provided `blob.size` is outside of supported range.
 1. Provided `blob.digest` is not a valid [multihash].
 1. Provided `blob.digest` [multihash] hashing algorithm is not supported.
-1. Provided `replicas` is not an unsigned integer greater than 0.
-1. Provided `site` is a valid, non-revoked [location commitment].
+1. Provided `replicas` is not an unsigned integer greater than 0 or is outside of any configured minimum or maximum value set by the _Replication Service_.
+1. Provided `site` is an invalid or revoked [location commitment].
 
-Invocation MUST succeed if non of the above is true. Success value MUST be an object with a `site` field set to an array of [ucan/await] of the task that produces a [location commitment], one for each replica requested.
+Invocation MUST succeed if none of the above are true. Success value MUST be an object with a `site` field set to an array of [ucan/await] of the task that produces a [location commitment], one for each replica requested.
 
 Task linked from the `site` of the success value MUST be present in the receipt effects _(`fx` field)_.
 
@@ -183,11 +185,11 @@ The number of effects received is dependent on the number of replicas requested.
 
 ### Blob Replica Allocate
 
-The upload service allocates replication space on replica nodes by issuing a `blob/replica/allocate` invocation:
+The _Replication Service_ allocates replication space on _Replica Nodes_ by issuing a `blob/replica/allocate` invocation:
 
 ```json5
 {
-  "iss": "did:web:upload.service.example.com",
+  "iss": "did:web:replication.service.example.com",
   "aud": "did:key:zStorageNode",
   "att": [
     {
@@ -213,7 +215,7 @@ The upload service allocates replication space on replica nodes by issuing a `bl
 }
 ```
 
-The `blob/replica/allocate` task receipt includes an async task that will be performed by the replica node: `blob/replica/transfer`. The `blob/replica/transfer` task is completed when the replica node has transferred the blob from its location on the primary node.
+The `blob/replica/allocate` task receipt MUST include an async task that will be performed by the _Replica Node_: `blob/replica/transfer`. The `blob/replica/transfer` task is completed when the _Replica Node_ has transferred the blob from its location on the _Primary Node_.
 
 #### Blob Replica Allocate Capability Schema
 
@@ -260,9 +262,34 @@ type AllocateReplicaBlobReceipt = {
 type AllocateReplicaBlobOk = {
   /** The number of bytes allocated for a Blob. */
   size: int
+  site: { "ucan/await": [".out.ok.site", Link<TransferReplicaBlob>] }
 }
 
-type AllocateReplicaBlobError = {
+type AllocateReplicaBlobError =
+  | ReplicationCountRangeError
+  | ReplicationSourceNotFound
+  | InvalidReplicationSite
+  | Failure
+
+/** Number of replicas exceeds minimum or maximum. */
+type ReplicationCountRangeError = {
+  name: 'ReplicationCountRangeError'
+  message: string
+}
+
+/** Blob is not stored in the space. */
+type ReplicationSourceNotFound = {
+  name: 'ReplicationSourceNotFound'
+  message: string
+}
+
+/** Location commitment is invalid or revoked. */
+type InvalidReplicationSite = {
+  name: 'InvalidReplicationSite'
+  message: string
+}
+
+type Failure = {
   message: string
 }
 ```
@@ -274,9 +301,9 @@ Invocation MUST fail if any of the following is true:
 1. Provided `blob.size` is outside of supported range.
 1. Provided `blob.digest` is not a valid [multihash].
 1. Provided `blob.digest` [multihash] hashing algorithm is not supported.
-1. Provided `site` is a valid, non-revoked [location commitment].
+1. Provided `site` is an invalid or revoked [location commitment].
 
-Invocation MUST succeed if non of the above is true.
+Invocation MUST succeed if none of the above are true.
 
 ###### Size
 
@@ -291,7 +318,7 @@ Successful invocation MUST start a workflow consisting of a [Transfer Replica Bl
 
 ### Blob Replica Transfer
 
-The `blob/replica/transfer` task is completed by each replication node. Replication data is fetched from the location specified in the location commitment referenced by the `blob/replica/allocate` invocation.
+The `blob/replica/transfer` task is completed by each _Replica Node_. Replication data is transferred from the location specified in the location commitment referenced by the `blob/replica/allocate` invocation.
 
 A `blob/replica/transfer` task takes the following form:
 
@@ -323,11 +350,11 @@ A `blob/replica/transfer` task takes the following form:
 }
 ```
 
-When the `blob/replica/transfer` task is complete a receipt is issued. The receipt is communicated back to the upload service via a [`ucan/conclude` invocation](./w3-ucan.md#conclusion).
+When the `blob/replica/transfer` task is complete a receipt is issued. The _Replica Node_ MUST communicate the receipt back to the _Replication Service_ via a [`ucan/conclude` invocation](./w3-ucan.md#conclusion).
 
-The receipt for `blob/replica/transfer` includes a new signed location commitment from the replica node the blob has been replicated to.
+The receipt for `blob/replica/transfer` MUST include a new signed location commitment from the _Replica Node_ the blob has been replicated to.
 
-Client can poll the upload service for the `blob/replica/transfer` receipt.
+The _Client_ MAY poll the _Replication Service_ for the `blob/replica/transfer` receipt in order to discover the succsfull completion or failure of the task.
 
 #### Blob Replica Transfer Capability Schema
 
@@ -384,9 +411,11 @@ Invocation MUST fail if any of the following is true:
 1. Provided `blob.size` is outside of supported range.
 1. Provided `blob.digest` is not a valid [multihash].
 1. Provided `blob.digest` [multihash] hashing algorithm is not supported.
-1. Provided `site` is a valid, non-revoked [location commitment].
+1. Provided `site` is an invalid or revoked [location commitment].
 
-Invocation MUST succeed if non of the above is true.
+Invocation MUST succeed if none of the above are true.
+
+The transfer MAY fail for other reasons. For example, the _Primary Node_ is unreachable. When a transfer fails, it is up to the _Client_ to re-instruct replication tasks by issuing another `space/blob/replicate` invocation with a new [nonce](https://github.com/ucan-wg/spec/tree/v0.9.2#323-nonce). The receipt for which MUST include effects for existing non-failed replications and new replication tasks.
 
 #### Blob Replica Transfer Effects
 
