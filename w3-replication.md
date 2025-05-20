@@ -12,7 +12,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Introduction
 
-The Replication Protocol enables distributed storage of blobs across multiple nodes in the network. This specification extends the blob protocol by defining how nodes replicate data after initial upload. The protocol establishes four roles: '**Client**' instructs replications, '**Replication Service**' receives replication instructions and orchestrates replications, '**Primary Nodes**' receive initial uploads, and '**Replica Nodes**' store additional copies.
+The Replication Protocol enables distributed storage of blobs across multiple nodes in the network. This specification extends the blob protocol by defining how nodes replicate data after initial upload. The protocol establishes four roles: **Client** instructs replications, **Replication Service** receives replication instructions and orchestrates replications, **Primary Nodes** receive initial uploads, and **Replica Nodes** store additional copies.
 
 This allows the network to maintain multiple copies of each blob, distributed across different nodes.
 
@@ -39,11 +39,11 @@ sequenceDiagram
     ReplicaNode->>ReplicationService: blob/replica/allocate receipt (indicates capacity reserved)
     ReplicationService->>Client: space/blob/replicate receipt
 
-    Note over ReplicaNode,PrimaryNode: Step 3: Replica node “pulls” data from original
-    ReplicaNode->>PrimaryNode: Fetch content from "location" commitment
+    Note over ReplicaNode,PrimaryNode: Step 3: Replica node "pulls" data from original
+    ReplicaNode->>PrimaryNode: Fetch content from "location commitment"
     PrimaryNode->>ReplicaNode: Returns blob data
 
-    Note over Client,ReplicaNode: Step 4: Confirm transfer to replicate
+    Note over Client,ReplicaNode: Step 4: Confirm transfer
     ReplicaNode->>ReplicationService: blob/replica/transfer receipt (indicates success/failure)
     ReplicationService->>Client: blob/replica/transfer receipt
 ```
