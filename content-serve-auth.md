@@ -8,7 +8,6 @@
 
 - [Felipe Forbeck](https://github.com/fforbeck), [Storacha Network](https://storacha.network/)
 
-
 ## Abstract
 
 Content Server Authorization ensures that access to content is governed by delegations using UCANs (User Controlled Authorization Networks) and served by explicitly authorized services.
@@ -52,8 +51,6 @@ sequenceDiagram
     Gateway-->>Client: Delegation Acknowledged
 ```
 
-
-
 ## Content Retrieval Flow
 
 When a client requests content
@@ -87,8 +84,6 @@ sequenceDiagram
         Gateway-->>Client: 403 Forbidden
     end
 ```
-
-
 
 ## Considerations
 
