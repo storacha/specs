@@ -10,14 +10,13 @@
 
 ## Abstract
 
-Content Server Authorization ensures that access to content is governed by delegations using UCANs (User Controlled Authorization Networks) and served by explicitly authorized services.
+Content Server Authorization ensures that access to content is governed by UCAN delegations (User Controlled Authorization Network) and served by explicitly authorized services.
 This mechanism allows content owners to delegate retrieval capabilities to specific services, ensuring that only authorized entities can access the content.
 
 ## Terminology
 
-- **UCAN**: User Controlled Authorization Network token/delegation, representing delegated capabilities.
-- **Space**: A logical namespace identified by a DID (Decentralized Identifier) utilized to store data (e.g: bucket).
-- **Delegation**: The act of granting specific capabilities to another entity via a UCAN.
+- **Space**: A logical container for data, identified by a DID (Decentralized Identifier). Authorization is granted for an entire space, and all data within a space shares the same permissions.
+- **Delegation**: The act of granting specific capabilities to another entity via UCAN, and the signed document proving the delegation (also called a "**proof**").
 - **Gateway**: A service (e.g., Freeway) that facilitates content retrieval and enforces authorization policies.
 - **Delegations KV Store**: A key-value store used by the gateway to manage and validate delegations.
 
@@ -28,7 +27,7 @@ The delegation process involves the following steps
 1. **Space Creation and Delegation**
 
    - A user creates a space using the Storacha client.
-   - The Storacha Client automatically delegates the `space/content/serve` capability to the Storacha Gateway (e.g., Freeway) by sending a `POST /access/delegate` request containing the UCAN delegation.
+   - During space creation, the Storacha Client delegates the `space/content/serve` capability to the Storacha Gateway (e.g., Freeway) by sending a `POST /access/delegate` request containing the UCAN delegation.
    - The Gateway validates the UCAN delegation and stores it in the Delegations KV store.
 
 2. **Delegation Storage**
