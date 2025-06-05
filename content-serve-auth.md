@@ -48,7 +48,7 @@ sequenceDiagram
       - For the Storacha IPFS Gateway, the Delegations are stored using a key composed of the space DID and the delegation CID, but the implementer can use any strategy to store the delegations.
       - Multiple delegations can exist for the same space, allowing flexibility in access control.
 
-### API Specification
+## API Specification
 
 The IPFS Gateway needs to provide an endpoint with the following interface to process the delegation requests.
 
@@ -98,6 +98,26 @@ interface ContentServeDelegation {
 
 ## Content Retrieval Flow
 
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Gateway
+    participant Delegations Store
+    participant ContentStore
+
+    Client->>Gateway: GET /ipfs/:cid (no UCAN signature)
+    Gateway->>Gateway: Resolve content to Space DID
+    Gateway->>Delegations Store: Retrieve space/content/serve delegations
+    Gateway->>Gateway: Create UCAN invocation (self-authorize)
+    Gateway->>Gateway: Validate invocation using stored proofs
+    alt Authorized
+        Gateway->>ContentStore: Fetch Content
+        Gateway-->>Client: Serve Content
+    else Not Authorized
+        Gateway-->>Client: 403 Forbidden
+    end
+```
+
 When a client requests content
 
 1. **Request Handling**
@@ -107,30 +127,20 @@ When a client requests content
 
 2. **Authorization Check**
 
-   - The Gateway validates the UCAN delegations to ensure the requester has the `space/content/serve` capability for the content's space.
-   - If authorized, the content is served; otherwise, the request is denied.
-
-### Content Retrieval Flow Diagram
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Gateway
-    participant Delegations Store
-    participant ContentStore
-
-    Client->>Gateway: GET /ipfs/:cid
-    Gateway->>Delegations Store: Retrieve Delegations (space DID)
-    Gateway->>Gateway: Validate UCAN Proofs
-    alt Authorized
-        Gateway->>ContentStore: Fetch Content
-        Gateway-->>Client: Serve Content
-    else Not Authorized
-        Gateway-->>Client: 403 Forbidden
-    end
-```
+   - The Gateway looks up stored delegations for the content's space from the Delegations Store.
+   - The Gateway creates a UCAN invocation authorizing itself to serve the content, using the stored `space/content/serve` delegations as proofs.
+   - The Gateway validates its own UCAN invocation against the stored delegation proofs.
+   - If the validation succeeds, the content is served; otherwise, the request is denied with 403 Forbidden.
+   
+   **Note**: The HTTP client making the GET request does not need a DID or UCAN signature. The authorization happens between the Gateway (as the delegated authority) and the Space owner (via pre-stored delegations).
 
 ## Considerations
+
+- **Gateway as Delegated Authority**
+
+  - The IPFS Gateway itself (with a DID like `did:web:storacha.link`) is the UCAN principal that has been delegated the `space/content/serve` capability.
+  - HTTP clients making content requests do not need DIDs or UCAN signatures - they are not UCAN principals in this system.
+  - Authorization happens between the Gateway and Space owners via pre-stored delegations, not between HTTP clients and the Gateway.
 
 - **Legacy Spaces**
 
