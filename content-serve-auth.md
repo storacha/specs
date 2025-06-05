@@ -3,6 +3,9 @@
 ## Editors
 
 - [Felipe Forbeck](https://github.com/fforbeck), [Storacha Network](https://storacha.network/)
+- [Petra Jaros](https://github.com/Peeja), [Storacha Network](https://storacha.network/)
+- [Alan Shaw](https://github.com/alanshaw), [Storacha Network](https://storacha.network/)
+- [Forrest Weston](https://github.com/frrist), [Storacha Network](https://storacha.network/)
 
 ## Authors
 
@@ -30,7 +33,7 @@ sequenceDiagram
     participant Delegations Store
 
     User->>Client: Create Space (DID)
-    Client->>Gateway: POST / (CAR-encoded UCAN)
+    Client->>Gateway: POST / (CAR-encoded access/delegate invocation)
     Gateway->>Gateway: Validate access/delegate UCAN Invocation
     Gateway->>Gateway: Extract and validate space/content/serve delegation
     Gateway->>Delegations Store: Store Delegation (Space DID + Delegation CID)
@@ -51,6 +54,8 @@ sequenceDiagram
 
    - For the Storacha IPFS Gateway, the Delegations are stored using a key composed of the space DID and the delegation CID, but the implementer can use any strategy to store the delegations.
    - Multiple delegations can exist for the same space, allowing flexibility in access control.
+
+Note: This is a standard Ucanto invocation flow.
 
 ## API Specification
 
