@@ -84,6 +84,7 @@ interface UCANInvocation {
 ```
 
 ### Space Content Serve Delegation Structure
+
 (contained in proofs):
 
 ```typescript
@@ -139,8 +140,7 @@ When a client requests content
    - The Gateway creates a UCAN invocation authorizing itself to serve the content, using the stored `space/content/serve` delegations as proofs.
    - The Gateway validates its own UCAN invocation against the stored delegation proofs.
    - If the validation succeeds, the content is served; otherwise, the request is denied with 403 Forbidden.
-   
-   **Note**: The HTTP client making the GET request does not need a DID or UCAN signature. The authorization happens between the Gateway (as the delegated authority) and the Space owner (via pre-stored delegations).
+   - **Note**: The HTTP client making the GET request does not need a DID or UCAN signature. The authorization happens between the Gateway (as the delegated authority) and the Space owner (via stored delegations).
 
 ## Considerations
 
@@ -148,7 +148,7 @@ When a client requests content
 
   - The IPFS Gateway itself (with a DID like `did:web:storacha.link`) is the UCAN principal that has been delegated the `space/content/serve` capability.
   - HTTP clients making content requests do not need DIDs or UCAN signatures - they are not UCAN principals in this system.
-  - Authorization happens between the Gateway and Space owners via pre-stored delegations, not between HTTP clients and the Gateway.
+  - Authorization happens between the Gateway and Space owners via stored delegations, not between HTTP clients and the Gateway.
 
 - **Legacy Spaces**
 
