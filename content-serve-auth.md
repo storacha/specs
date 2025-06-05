@@ -37,16 +37,20 @@ sequenceDiagram
     Gateway-->>Client: Delegation Acknowledged
 ```
 
-**Flow**
-   1. Client creates a UCAN delegation granting `space/content/serve` capability to the gateway
-      - During space creation, the Storacha Client delegates the `space/content/serve` capability to the services designed to serve content from the Storacha Network to clients (for example an IPFS Gateway), by sending a `POST /access/delegate` request containing the UCAN delegation.
-      - `space/content/serve`: delegation that authorizes the service to serve data stored in a given space to any client requesting it.
-      - In the future, IPFS Gateways may support different delegation strategies such as: restricting access to specific CIDs, use of access tokens, restrictions on transport modes (http/bitswap).
-   2. Client wraps this delegation in an `access/delegate` UCAN invocation
-   3. Client encodes the invocation as CAR format and sends to `POST /`
-   4. Gateway validates the delegation chain and stores the delegation
-      - For the Storacha IPFS Gateway, the Delegations are stored using a key composed of the space DID and the delegation CID, but the implementer can use any strategy to store the delegations.
-      - Multiple delegations can exist for the same space, allowing flexibility in access control.
+### Flow
+
+1. Client creates a UCAN delegation granting `space/content/serve` capability to the gateway
+
+   - During space creation, the Storacha Client delegates the `space/content/serve` capability to the services designed to serve content from the Storacha Network to clients (for example an IPFS Gateway), by sending a `POST /access/delegate` request containing the UCAN delegation.
+   - `space/content/serve`: delegation that authorizes the service to serve data stored in a given space to any client requesting it.
+   - In the future, IPFS Gateways may support different delegation strategies such as: restricting access to specific CIDs, use of access tokens, restrictions on transport modes (http/bitswap).
+
+2. Client wraps this delegation in an `access/delegate` UCAN invocation
+3. Client encodes the invocation as CAR format and sends to `POST /`
+4. Gateway validates the delegation chain and stores the delegation
+
+   - For the Storacha IPFS Gateway, the Delegations are stored using a key composed of the space DID and the delegation CID, but the implementer can use any strategy to store the delegations.
+   - Multiple delegations can exist for the same space, allowing flexibility in access control.
 
 ## API Specification
 
@@ -57,11 +61,12 @@ POST /
 Content-Type: application/car
 ```
 
-**Request Body**
+### Request Body
 
- - CAR-encoded UCAN invocation
+- CAR-encoded UCAN invocation
 
-**UCAN Invocation Structure**
+### UCAN Invocation Structure
+
 ```typescript
 interface UCANInvocation {
   /** The capability being invoked */
@@ -78,7 +83,9 @@ interface UCANInvocation {
 }
 ```
 
-**Space Content Serve Delegation Structure** (contained in proofs):
+### Space Content Serve Delegation Structure
+(contained in proofs):
+
 ```typescript
 interface ContentServeDelegation {
   /** The capability being delegated */
@@ -90,7 +97,8 @@ interface ContentServeDelegation {
 }
 ```
 
-**Response Codes**
+### Response Codes
+
 - `200 OK`: Delegation accepted and stored
 - `400 Bad Request`: Invalid UCAN or malformed request
 - `403 Forbidden`: Unauthorized to delegate for this space
