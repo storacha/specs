@@ -65,7 +65,7 @@ Content-Type: application/car
 
 - CAR-encoded UCAN invocation
 
-### UCAN Invocation Structure
+### `access/delegate` Invocation Structure
 
 ```typescript
 interface UCANInvocation {
@@ -78,12 +78,12 @@ interface UCANInvocation {
     /** Map of delegation CIDs to be stored */
     delegations: Record<string, CID>
   }
-  /** Array of UCAN delegations containing space/content/serve capability */
+  /** Array of UCAN delegations proving space/content/serve capability */
   proofs: Delegation[]
 }
 ```
 
-### Space Content Serve Delegation Structure
+### `space/content/serve` Delegation Structure
 
 (contained in proofs):
 
