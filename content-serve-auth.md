@@ -18,7 +18,7 @@ This mechanism allows content owners to delegate retrieval capabilities to speci
 
 ## Terminology
 
-- **Space**: A logical container for data, identified by a DID (Decentralized Identifier). Authorization is granted for an entire space, and all data within a space shares the same permissions.
+- **Space**: A logical container for data, identified by a DID (Decentralized Identifier).
 - **Delegation**: The act of granting specific capabilities to another entity via UCAN, and the signed document proving the delegation (also called a "**proof**").
 - **IPFS Gateway**: A service that implements the [IPFS HTTP Gateway spec](https://specs.ipfs.tech/http-gateways/) to facilitate content retrieval, that _also_ enforces authorization policies.
 - **Delegations Store**: A store used by a Gateway to store and manage delegations.
@@ -45,65 +45,69 @@ sequenceDiagram
 1. Client creates a UCAN delegation granting `space/content/serve` capability to the gateway
 
    - The `space/content/serve` capability is delegated to the service(s) designed to serve content stored by the Storacha Network (for example an IPFS Gateway).
-   - A `space/content/serve` delegation authorizes the service to serve data stored in a given space. Caveats MAY apply.
+   - A `space/content/serve` delegation authorizes the service to serve data stored in a given space. Caveats MAY apply. The authorization is granted for the entire space, and all data within a space shares the same permissions.
    - In the future, IPFS Gateways may support different delegation strategies such as: restricting access to specific CIDs, use of access tokens, restrictions on transport modes (http/bitswap).
 
 2. Client wraps this delegation in an `access/delegate` UCAN invocation
-3. Client encodes the invocation as CAR format and sends to `POST /`
-4. Gateway validates the delegation chain and stores the delegation
+3. Client encodes the invocation and sends it to the IPFS Gateway
+4. The IPFS Gateway validates the delegation chain and stores the delegation
 
    - Multiple delegations can exist for the same space, allowing flexibility in access control.
 
-Note: This is a standard Ucanto invocation flow.
+Note: The `access/delegate` is a standard Ucanto invocation flow, and additionally, the `space/content/serve` delegation needs to be validated because it is not automatically part of the invocation flow.
 
 ## API Specification
 
 The IPFS Gateway needs to provide an endpoint with the following interface to process the delegation requests.
 
-```http
-POST /
-Content-Type: application/car
+### `space/content/serve` Delegation Structure
+
+```jsonc
+{ // "/": "bafy...serveprf1",
+  // The Agent sending the request that authorizes the IPFS Gateway
+  "iss": "did:key:zAlice",
+  // The IPFS Gateway DID that is authorized to serve the content
+  "aud": "did:web:storacha.link",
+  "att": [
+    {
+      // The capability
+      "can": "space/content/serve",
+      // The Space DID Key
+      "with": "did:key:zSpace",
+    }
+  ],
+  "prf": [],
+}
 ```
-
-### Request Body
-
-- CAR-encoded UCAN invocation
 
 ### `access/delegate` Invocation Structure
 
-```typescript
-interface UCANInvocation {
-  /** The Agent sending the request */
-  iss: string; // e.g., "did:key:…"
-  /** The IPFS Gateway DID that will receive the delegation */
-  aud: string; // e.g., "did:web:storacha.link"
-  /**
-   * The space DID key where the content is stored and is allowed to be served from.
-   */
-  with: string; // e.g., "did:key:…"
-  nb: {
-    /** Map of delegation CIDs to be stored */
-    delegations: Record<string, CID>
-  }
-  /** Array of UCAN delegations proving space/content/serve capability */
-  proofs: Delegation[]
+```jsonc
+{ // "/": "bafy...delegate",
+  // The Agent sending the request
+  "iss": "did:key:zAlice",
+  // The IPFS Gateway DID that will receive the delegation
+  "aud": "did:web:storacha.link",
+  // The space DID key where the content is stored and is allowed to be served from
+  "with": "did:key:zAliceSpace",
+  "att": [
+    {
+      "with": "did:key:zAlice",
+      "can": "access/delegate",
+      "nb": {
+        // Map of delegation CIDs to be stored
+        "delegations": { "bafy...serveprf1": { "/": "bafy...serveprf1" } }
+      }
+    }
+  ],
+  // Array of UCAN delegations including the space/content/serve proof
+  "prf": [
+    // `space/content/serve` delegation proof (e.g: {"/": "bafy...serveprf1"})
+  ]
 }
 ```
 
-### `space/content/serve` Delegation Structure
 
-(contained in proofs):
-
-```typescript
-interface ContentServeDelegation {
-  /** The capability being delegated */
-  can: "space/content/serve"
-  /** Space DID being delegated */
-  with: string  // e.g., "did:key:z6Mk..."
-  /** Optional restrictions (currently unused) */
-  nb: {}
-}
-```
 
 ### Response Codes
 
