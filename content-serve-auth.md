@@ -107,8 +107,6 @@ The IPFS Gateway needs to provide an endpoint with the following interface to pr
 }
 ```
 
-
-
 ### Response Codes
 
 - `200 OK`: Delegation accepted and stored
