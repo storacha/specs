@@ -74,11 +74,14 @@ Content-Type: application/car
 
 ```typescript
 interface UCANInvocation {
-  /** The capability being invoked */
-  can: "access/delegate"
+  /** The Agent sending the request */
+  iss: string; // e.g., "did:key:…"
   /** The IPFS Gateway DID that will receive the delegation */
-  with: string  // e.g., "did:web:storacha.link"
-  /** Invocation parameters */
+  aud: string; // e.g., "did:web:storacha.link"
+  /**
+   * The space DID key where the content is stored and is allowed to be served from.
+   */
+  with: string; // e.g., "did:key:…"
   nb: {
     /** Map of delegation CIDs to be stored */
     delegations: Record<string, CID>
