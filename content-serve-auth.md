@@ -13,17 +13,18 @@
 
 ## Abstract
 
-Content Server Authorization ensures that access to content is governed by UCAN delegations (User Controlled Authorization Network) and served by explicitly authorized services.
+Content Server Authorization ensures that access to content is governed by UCAN (User Controlled Authorization Network) delegations and served by explicitly authorized services.
 This mechanism allows content owners to delegate retrieval capabilities to specific services, ensuring that only authorized entities can access the content.
 
 ## Terminology
 
 - **Space**: A logical container for data, identified by a DID (Decentralized Identifier).
 - **Delegation**: The act of granting specific capabilities to another entity via UCAN, and the signed document proving the delegation (also called a "**proof**").
-- **IPFS Gateway**: A service that implements the [IPFS HTTP Gateway spec](https://specs.ipfs.tech/http-gateways/) to facilitate content retrieval, that _also_ enforces authorization policies.
+- **IPFS Gateway**: A service that implements the [IPFS HTTP Gateway spec](https://specs.ipfs.tech/http-gateways/) to facilitate content retrieval.
+- **UCAN Authorized IPFS Gateway**: An IPFS gateway that _also_ enforces authorization policies. Referred to as simply "Gateway" herein.
 - **Delegations Store**: A store used by a Gateway to store and manage delegations.
 
-## Delegation Flow Diagram for an IPFS Gateway
+## Delegation Flow Diagram for a Gateway
 
 ```mermaid
 sequenceDiagram
@@ -42,14 +43,14 @@ sequenceDiagram
 
 ### Flow
 
-1. Client creates a UCAN delegation granting `space/content/serve` capability to the gateway
+1. Client creates a UCAN delegation granting `space/content/serve` capability to the Gateway
 
-   - The `space/content/serve` capability is delegated to the service(s) designed to serve content stored by the Storacha Network (for example an IPFS Gateway).
+   - The `space/content/serve` capability is delegated to the service(s) designed to serve content stored by the Storacha Network (in this case an IPFS Gateway).
    - A `space/content/serve` delegation authorizes the service to serve data stored in a given space. Caveats MAY apply. The authorization is granted for the entire space, and all data within a space shares the same permissions.
-   - In the future, IPFS Gateways may support different delegation strategies such as: restricting access to specific CIDs, use of access tokens, restrictions on transport modes (http/bitswap).
+   - In the future, Gateways may support different delegation strategies such as: restricting access to specific CIDs, use of access tokens, restrictions on transport modes (http/bitswap).
 
-2. Client wraps this delegation in an `access/delegate` UCAN invocation
-3. Client encodes the invocation and sends it to the IPFS Gateway
+2. Client wraps this delegation in an [`access/delegate` UCAN invocation](https://github.com/storacha/specs/blob/main/w3-access.md#access-delegate)
+3. Client encodes the invocation and sends it to the Gateway
 4. The IPFS Gateway validates the delegation chain and stores the delegation
 
    - Multiple delegations can exist for the same space, allowing flexibility in access control.
