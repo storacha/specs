@@ -24,10 +24,10 @@ Ucanto provides a HTTP Transport for Agent Messages and a codec that encodes the
 
 This poses some challenges when authorizing access to resources and returning them in the _same_ request. Returning resources in the same request implies adding them as a block in the existing Agent Message archive. Specifically, resources are problematic to place in a CAR file because:
 
-* The CAR format requires the content hash to preceed the data, so it has to be calculated by the service before the data can be sent. This is a preformance problem for large data.
-* Adding data to a CAR requires the recipient to be capable of decoding a CAR, interpreting which block contains the data and extracting that specific block.
-* Existing Ucanto implementations buffer the entire contents of the CAR in memory before calling invocation handlers or returning execution responses. This would be a significant refactor in multiple languages.
-* Bookkeeping becomes more difficult since protocol implementations can no longer store Agent Message archives verbatim since they may also contain resource data.
+- The CAR format requires the content hash to preceed the data, so it has to be calculated by the service before the data can be sent. This is a preformance problem for large data.
+- Adding data to a CAR requires the recipient to be capable of decoding a CAR, interpreting which block contains the data and extracting that specific block.
+- Existing Ucanto implementations buffer the entire contents of the CAR in memory before calling invocation handlers or returning execution responses. This would be a significant refactor in multiple languages.
+- Bookkeeping becomes more difficult since protocol implementations can no longer store Agent Message archives verbatim since they may also contain resource data.
 
 Moving invocation/receipt data into HTTP headers allows the response body to be used to serve resources. The primary use case it to enable UCAN authorized resource retrievals.
 
@@ -47,9 +47,9 @@ The _response_ headers MUST include an `X-Agent-Message` header, which is an age
 
 ## Oversize Headers
 
-When sending UCAN invocations via HTTP headers it is important to ensure the total header size does not exceed 8KB, in order to adhere to limits imposed by popular HTTP server software.
+When sending UCAN invocations via HTTP headers it is important to ensure the total header size does not exceed 8 KB, in order to adhere to limits imposed by popular HTTP server software.
 
-It is RECOMMENDED that the `X-Agent-Message` _value_ does not exceed 4KB in size.
+It is RECOMMENDED that the `X-Agent-Message` _value_ does not exceed 4 KB in size.
 
 To save space and bandwidth an agent MAY omit proofs from the invocation. Especially if making multiple requests to the service using the same proof(s).
 
