@@ -207,14 +207,14 @@ type EgressTrackReceipt = {
   out: Result<EgressTrackOk, EgressTrackError>
   fx: {
     fork: [
-      Link<EgressConslidate>
+      Link<EgressConsolidate>
     ]
   }
 }
 
 type Result<Ok, Err> = { ok: Ok } | { error: Err }
 
-type EgressTracktOk = {}
+type EgressTrackOk = {}
 
 type EgressTrackError = {
   name: string
