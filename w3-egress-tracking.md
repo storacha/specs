@@ -164,7 +164,7 @@ This is an example of the receipt returned by the Egress Record Consolidator.
 }
 ```
 
-### Capability schemas
+### Schemas
 
 #### `space/egress/track` capability
 
@@ -198,7 +198,7 @@ For example, given the following caveats:
 ```
 then the receipt can be fetched by sending a HTTP GET request to `https://storage.node/receipts/bafy...retrieveRcpt`.
 
-#### `space/egress/track` receipt schema
+#### `space/egress/track` receipt
 
 ```ts
 // Only operation specific fields are covered the rest are implied
@@ -235,8 +235,9 @@ type EgressConsolidate = {
 
 type ConsolidatorServiceDID = string
 ```
+`nb.cause` is a link to the `space/egress/track` invocation that originated this consolidate task.
 
-#### `space/egress/consolidate` receipt schema
+#### `space/egress/consolidate` receipt
 
 ```ts
 type EgressConsolidateReceipt = {
