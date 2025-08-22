@@ -39,7 +39,7 @@ The following HTTP header MUST be included when issuing a UCAN invocation via a 
 X-Agent-Message: <agent-message-archive>
 ```
 
-In the header, `<agent-message-archive>` is a CAR file containing an [Agent Message](https://github.com/storacha/go-ucanto/blob/06a2c2d09f708014bda62aba27bb1a146ebd29eb/core/message/datamodel/agentmessage.ipldsch#L1-L8) block, as well an invocation block, optional proof block(s) and optional receipt block(s). The CAR file bytes MUST be gzipped and multibase encoded (base64 is RECOMMENDED).
+In the header, `<agent-message-archive>` is a CAR file containing an [Agent Message](https://github.com/storacha/go-ucanto/blob/06a2c2d09f708014bda62aba27bb1a146ebd29eb/core/message/datamodel/agentmessage.ipldsch#L1-L8) block, as well as an invocation block, optional proof block(s) and optional receipt block(s). The CAR file bytes MUST be gzipped and multibase encoded (base64 is RECOMMENDED).
 
 The Agent Message in _requests_ MUST contain a single invocation. Agent Messages with multiple invocations MUST fail since the response body can only be used by one invocation at a time.
 
