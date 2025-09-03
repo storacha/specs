@@ -56,7 +56,7 @@ Returns a CAR (Content Addressable aRchive) file containing:
 
 ##### CAR File Structure
 
-The CAR file contains a root block with the following structure (shown in DAG-JSON for readability, but it is **RECOMMENDED** that the root block be encoded as [DAG-CBOR](https://ipld.io/docs/codecs/known/dag-cbor/) for efficiency):
+The CAR file contains a root block with the following structure (shown in DAG-JSON for readability, but it is RECOMMENDED that the root block be encoded as [DAG-CBOR](https://ipld.io/docs/codecs/known/dag-cbor/) for efficiency):
 
 ```json
 {
