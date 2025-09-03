@@ -74,7 +74,6 @@ The CAR file contains a root block with the following structure (shown in DAG-JS
 **Field Descriptions:**
 
 - **`delegation`**: CID of the delegation that has been revoked
-- **`scope`**: DID of the authority that issued the revocation (either the issuer or audience of the delegation under inspection, or one of its proofs). *Note: This field is derivable from the cause invocation but included for convenience*
 - **`cause`**: CID referencing a `ucan/revoke` invocation that caused this revocation. This must be a valid UCAN with `can: "ucan/revoke"` capability, containing:
   - `with`: DID of the principal that issued the UCAN being revoked (or some UCAN in its proof chain)
   - `nb.ucan`: Link to the UCAN being revoked
