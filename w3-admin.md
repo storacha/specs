@@ -33,6 +33,8 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 Get information about a consumer (i.e., a space).
 
+A consumer MAY be associated with a subscription. Customers receive data storage and egress charges for spaces that are consuming their subscriptions.
+
 #### inputs
 
 `consumer: SpaceDID`
@@ -80,6 +82,8 @@ export const get = capability({
 
 Get information about a customer.
 
+Customers MAY have 0 or more subscriptions. Subscriptions are consumable by spaces. Customers receive data storage and egress charges for spaces that are consuming their subscriptions.
+
 #### inputs
 
 `customer: DID<mailto>`
@@ -124,6 +128,8 @@ export const get = capability({
 ### `subscription/get`
 
 Get information about a subscription.
+
+Subscriptions are owned by customers and consumed by spaces. Customers receive data storage and egress charges for spaces that are consuming their subscriptions.
 
 #### inputs
 
