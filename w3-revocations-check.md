@@ -64,7 +64,6 @@ The CAR file contains a root block with the following structure (shown in DAG-JS
     "revocations": [
       {
         "delegation": { "/": "[delegationCID]" },
-        "scope": "[scopeDID]", 
         "cause": { "/": "[causeCID]" }
       }
     ]
