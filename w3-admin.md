@@ -33,7 +33,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 Get information about a consumer (i.e., a space).
 
-A consumer MAY be associated with a subscription. Customers receive data storage and egress charges for spaces that are consuming their subscriptions.
+A consumer MAY be associated with a subscription. Customers are charged data storage and egress fees for spaces that are consuming their subscriptions.
 
 #### inputs
 
