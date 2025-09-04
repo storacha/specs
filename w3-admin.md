@@ -82,7 +82,7 @@ export const get = capability({
 
 Get information about a customer.
 
-Customers MAY have 0 or more subscriptions. Subscriptions are consumable by spaces. Customers receive data storage and egress charges for spaces that are consuming their subscriptions.
+Customers MAY have 0 or more subscriptions. Subscriptions are consumable by spaces. Customers are charged data storage and egress fees for spaces that are consuming their subscriptions.
 
 #### inputs
 
