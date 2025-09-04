@@ -129,7 +129,7 @@ export const get = capability({
 
 Get information about a subscription.
 
-Subscriptions are owned by customers and consumed by spaces. Customers receive data storage and egress charges for spaces that are consuming their subscriptions.
+Subscriptions are owned by customers and consumed by spaces. Customers are charged data storage and egress fees for spaces that are consuming their subscriptions.
 
 #### inputs
 
