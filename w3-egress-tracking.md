@@ -166,7 +166,7 @@ This is an example of the receipt returned by the Egress Record Consolidator.
 
 The example shows that the consolidation process was successful, but a receipt failed to be processed. The `errors` array contains a list of errors that occurred during the processing of the receipts. If all receipts were processed successfully, the `errors` list will be empty.
 
-### Schemas
+### Schema
 
 #### `space/egress/track` capability
 
