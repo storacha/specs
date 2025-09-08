@@ -58,8 +58,8 @@ sequenceDiagram
     activate EgressService
     activate Consolidator
     EgressService->>Consolidator: space/egress/consolidate
-    Consolidator->>StorageNode: GET space/egress/track receipt
-    StorageNode--)Consolidator: space/egress/track receipt
+    Consolidator->>StorageNode: GET space/egress/track receipts batch
+    StorageNode--)Consolidator: space/egress/track receipts batch
     Consolidator->>Consolidator: process egress records
     Consolidator--)EgressService: space/egress/consolidate receipt
     deactivate Consolidator
@@ -72,11 +72,9 @@ sequenceDiagram
     EgressService--)StorageNode: space/egress/consolidate receipt
     deactivate EgressService
 ```
-> ℹ️ The diagram shows how the Storage Node batches several receipts into a single `space/egress/track` invocation. This is just a possible implementation and not a requirement of the protocol.
-
 Egress Tracking enables authorized Storage Nodes to be paid egress fees for the content they serve. To do so, they MAY issue `space/egress/track` invocations to an Egress Tracking Service. These invocations contain `space/content/retrieve` receipts as proof that content was served.
 
-Storage Nodes MAY invoke `space/egress/track` on the Egress Tracking Service right after they serve the content for a simpler implementation. However, batching several receipts into a single `space/egress/track` invocation is RECOMMENDED to enable a more efficient communication with the Egress Tracking Service.
+In order to make the most efficient use of resources and reduce overhead, Storage Nodes MUST batch receipts into a single `space/egress/track` invocation. As they serve content, Storage Nodes will store `space/content/retrieve` receipts. Once they have collected a batch of them, they will issue a `space/egress/track` invocation to the Egress Tracking Service.
 
 Periodically, the Egress Tracking Service will invoke `space/egress/consolidate` on the Egress Records Consolidator (which is a logical entity that can be implemented by the Egress Tracking Service itself). The result of this operation will be stored in the corresponding receipts to keep a paper trail of the process. Storage Nodes MAY fetch these receipts to confirm they match their own records.
 
@@ -94,20 +92,15 @@ The following example shows a `space/egress/track` invocation sent by a Storage 
       "can": "space/egress/track",
       "with": "did:web:ETrackerService",
       "nb": {
-        "receipts": [
-          "bafy...retrieveRcpt1",
-          "bafy...retrieveRcpt2",
-          ...
-          "bafy...retrieveRcptN"
-        ],
-        "endpoint": "https://storage.node/receipts"
+        "receipts": { "/": "bafy...receiptBatchCAR" },
+        "endpoint": "https://storage.node/receipts/{cid}"
       }
     }
   ]
 }
 ```
 
-The retrieval receipts the Storage Node wants to provide are included in the invocation caveats. Instead of attaching the receipts directly to the invocation, only their CIDs are included, along with a URL to fetch them from. The Egress Tracking Service will calculate egress fees based on these receipts, so it is in the best interest of the Storage Node that these receipts are available at the URL provided. Therefore, it is RECOMMENDED that this special receipts endpoint is managed by the Storage Node itself.
+The retrieval receipts the Storage Node wants to provide are included in the invocation caveats. To ensure an efficient communication, the receipts are not attached directly to the invocation. Instead, they will be batched into a single invocation. The CID referenced in the caveats is that of a CAR file containing the receipts. The caveats also include a URL where receipt batches can be fetched from.
 
 ### `space/egress/track` receipt example
 
@@ -127,7 +120,7 @@ After processing the invocation, the Egress Tracking Service returns a receipt.
   }
 }
 ```
-Periodically, the Egress Tracking Service (or some other service or component, for that matter) will process tracked egress records sand consolidate them into a view that can be used to calculate egress fees. The effects in the receipt contain a link to a `space/egress/consolidate`, which tells the Storage Node that the egress records will be processed asynchronously. Storage Nodes will be able to fetch receipts of the `space/egress/consolidate` async actions to check the result of the consolidation process.
+Periodically, the Egress Tracking Service (or some other service or component, for that matter) will process tracked egress records and consolidate them into a view that can be used to calculate egress fees. The effects in the receipt contain a link to a `space/egress/consolidate`, which tells the Storage Node that the egress records will be processed asynchronously. Storage Nodes will be able to fetch receipts of the `space/egress/consolidate` async actions to check the result of the consolidation process.
 
 ### `space/egress/consolidate` invocation example
 
@@ -159,10 +152,19 @@ This is an example of the receipt returned by the Egress Record Consolidator.
 {
   "ran": "bafy...consolidate",
   "out": {
-    "ok": {}
+    "ok": {
+      "errors": [
+        {
+          "receipt": { "/": "bafy...receipt" },
+          "error": "some error"
+        }
+      ]
+    }
   }
 }
 ```
+
+The example shows that the consolidation process was successful, but a receipt failed to be processed. The `errors` array contains a list of errors that occurred during the processing of the receipts. If all receipts were processed successfully, the `errors` list will be empty.
 
 ### Schemas
 
@@ -173,30 +175,30 @@ type EgressTrack = {
   can: "space/egress/track"
   with: ETrackerServiceDID
   nb: {
-    receipts: [CID]
-    endpoint: URL
+    receipts: Link
+    endpoint: String
   }
 }
 
-type ETrackerServiceDID = string
-type CID = string
-type URL = string
+type ETrackerServiceDID = String
 ```
 
 ##### Retrieval receipts
-The `nb.receipts` field MUST be an array of CIDs of retrieval receipts. Implementations are not required to batch receipts into a single invocation, but it is RECOMMENDED to do so to reduce the number of invocations.
+The `nb.receipts` field MUST be the CID of a CAR file. This CAR file contains a batch of receipts for `space/content/retrieve`, whose audience MUST be the issuer of the `space/egress/track` invocation (i.e. a Storage Node MUST only request tracking of retrievals it fulfilled).
 
-##### Receipt endpoint
-The `nb.endpoint` field MUST be a URL to a special endpoint in the Storage Node that can be used to fetch the receipts from. This special endpoint MUST support HTTP GET requests to `<endpoint>/{cid}`.
+##### Receipts endpoint
+The `nb.endpoint` field MUST be a URL to a special endpoint in the Storage Node that can be used to fetch the receipt batches from. This special endpoint MUST support HTTP GET requests and MUST contain a `{cid}` placeholder in the URL. During consolidation, the Egress Record Consolidator will fetch the receipts from the Storage Node using the URL provided, replacing the `{cid}` placeholder with the CID of the receipt batch.
 
 For example, given the following caveats:
 ```json
 "nb": {
-  "receipts": ["bafy...retrieveRcpt"],
-  "endpoint": "https://storage.node/receipts"
+  "receipts": "bafy...rcptBatch",
+  "endpoint": "https://storage.node/receipts/{cid}"
 }
 ```
-then the receipt can be fetched by sending a HTTP GET request to `https://storage.node/receipts/bafy...retrieveRcpt`.
+then the receipt batch will be fetched by sending a HTTP GET request to `https://storage.node/receipts/bafy...rcptBatch`.
+
+The receipts endpoint MAY support compression via HTTP `Accept-Encoding` header to reduce the amount of data transferred and minimize egress.
 
 #### `space/egress/track` receipt
 
@@ -235,7 +237,7 @@ type EgressConsolidate = {
 
 type ConsolidatorServiceDID = string
 ```
-`nb.cause` is a link to the `space/egress/track` invocation that originated this consolidate task.
+`nb.cause` is a link to the `space/egress/track` invocation that originated this consolidation task.
 
 #### `space/egress/consolidate` receipt
 
@@ -247,12 +249,23 @@ type EgressConsolidateReceipt = {
 
 type Result<Ok, Err> = { ok: Ok } | { error: Err }
 
-type EgressConsolidateOk = {}
+type EgressConsolidateOk = {
+  errors: ReceiptConsolidateError[]
+}
+
+type ReceiptConsolidateError = {
+  receipt: Link<Receipt>
+  error: string
+}
 
 type EgressConsolidateError = {
   name: string
   message: string
 }
 ```
+
+Note that the consolidation task processes a batch of receipts. It is possible that some receipts, but not all, fail to be processed. In this case, the task will return an `EgressConsolidateOk` result, but it will contain a list of errors that occurred during the processing of the receipts. If all receipts were processed successfully, the `errors` list will be empty.
+
+This is different from an `EgressConsolidateError`, which signals an issue that prevents the batch from being processed at all.
 
 [DID]:https://www.w3.org/TR/did-core/
