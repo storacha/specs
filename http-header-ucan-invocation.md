@@ -45,6 +45,8 @@ The Agent Message in _requests_ MUST contain a single invocation. Agent Messages
 
 The _response_ headers MUST include an `X-Agent-Message` header, which is an agent message archive that contains a receipt for the executed invocation task. They MUST also include the standard [HTTP `Vary` header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Vary) that includes `X-Agent-Message`.
 
+UCAN invocations in HTTP headers SHOULD be considered single use and SHOULD NOT be replayed without first altering the UCAN nonce field. If a service receives an invocation that has previously been executed it SHOULD return a HTTP 422 (Unprocessable Content) status code and if so, SHOULD NOT respond with any body content. However the response MUST still carry the `X-Agent-Message` header containing the execution receipt.
+
 ## Oversize Headers
 
 When sending UCAN invocations via HTTP headers it is important to ensure the total header size does not exceed 8 KB, in order to adhere to limits imposed by popular HTTP server software.
@@ -53,7 +55,7 @@ It is RECOMMENDED that the `X-Agent-Message` _value_ does not exceed 4 KB in siz
 
 To save space and bandwidth an agent MAY omit proofs from the invocation. Especially if making multiple requests to the service using the same proof(s).
 
-The response headers SHOULD include a `X-UCAN-Cache-Expiry` header, set to the cache expiry time in [Unix time](https://en.wikipedia.org/wiki/Unix_time) for proofs referenced by the invocation.
+The response headers SHOULD include a `X-UCAN-Cache-Expiry` header, set to the cache expiry time in [Unix time](https://en.wikipedia.org/wiki/Unix_time) for proofs referenced by the invocation. It SHOULD be the shortest expiry date of the proofs it has already received or a maximum time the service is willing to cache the proofs for.
 
 If proofs are omitted in a request and are not present in the server cache, the service MUST respond with a [HTTP 510 (Not Extended)](https://www.rfc-editor.org/rfc/rfc2774#section-7) response. The response body MUST be a [DAG-JSON](https://ipld.io/docs/codecs/known/dag-json/) encoded error object that lists the missing proofs required in order to execute the invocation. It MUST comply to the following schema:
 
@@ -79,6 +81,8 @@ e.g.
 }
 ```
 
+A client MUST NOT send unreachable proofs, even if they are part of the proof chain. The server MUST be able to walk the proof chain from an invocation to a missing delegation either via cached delegations or via delegations provided in the request.
+
 The HTTP `Content-Type` header SHOULD be set to `application/json`. Additionally a `X-UCAN-Cache-Expiry` header SHOULD be set to allow the request to be repeated with required proofs, whilst omitting proofs that were already sent.
 
-Note: A repeat invocation MAY omit the original invocation block since it SHOULD be cached by the server.
+Note: A subsequent invocation MAY omit the original invocation block since it SHOULD be cached by the server.

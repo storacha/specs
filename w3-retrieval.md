@@ -28,7 +28,7 @@ An authorized agent MAY invoke the `space/content/retrieve` capability on the sp
 
 ### Invocation Example
 
-Shown Invocation example illustrates Alice requesting to retrieve 1,636 bytes from a blob stored in her space.
+The following invocation example illustrates Alice requesting to retrieve 1,636 bytes from a blob stored in her space.
 
 > ℹ️ Note: we use `// "/": "bafy..` comments to denote CID of the parent object.
 
@@ -47,7 +47,9 @@ Shown Invocation example illustrates Alice requesting to retrieve 1,636 bytes fr
       // byte range to extract from the blob - start and end byte (both inclusive)
       "range": [2097152, 2098788]
     }
-  }]
+  }],
+  "exp": 123,
+  "nnc": "123"
 }
 ```
 
@@ -59,14 +61,7 @@ Shows an example receipt for the above `space/content/retrieve` capability invoc
 {
   "ran": "bafy..retrieve",
   "out": {
-    "ok": {
-      "blob": {
-        // multihash of the blob from which data was retrieved
-        "digest": { "/": { "bytes": "mEi...sfKg" } }
-      },
-      // the byte range that was extracted - start and end byte (both inclusive)
-      "range": [2097152, 2098788]
-    }
+    "ok": {}
   }
 }
 ```
@@ -97,7 +92,9 @@ The `nb.blob.digest` field MUST be a [multihash] digest of the blob payload byte
 
 #### Range
 
-The `nb.range` field MUST be a tuple of two unsigned integers. The first integer is the start offset from which to extract bytes. The second integer is the offset at which extraction should end. Both offsets are _inclusive_. The end offset MUST be greater than or equal to the start offset. The start offset and end offset SHOULD be less than the total bytes that comprise the blob.
+The `nb.range` field MUST be a tuple of two unsigned integers. The first integer is the start offset from which to extract bytes. The second integer is the offset at which extraction should end. Both offsets are _inclusive_. The end offset MUST be greater than or equal to the start offset. The start offset and end offset MUST be greater than or equal to 0 and MUST be less than the total byte size of the blob.
+
+If the range is not satisfiable, i.e. the offsets fall outside of the total size of the blob or are otherwise invalid, then the service MUST respond with a `RangeNotSatisfiable` error (see below).
 
 ### Receipt
 
@@ -113,7 +110,16 @@ type Result<Ok, Err> = { ok: Ok } | { error: Err }
 
 type ContentRetrieveOk = {}
 
-type ContentRetrieveError = {
+type ContentRetrieveError =
+  | RangeNotSatisfiable
+  | Failure
+
+type RangeNotSatisfiable = {
+  name: 'RangeNotSatisfiable'
+  message: string
+}
+
+type Failure = {
   name: string
   message: string
 }
@@ -129,3 +135,5 @@ The invocation MUST fail if any of the following is true:
 1. Provided `range` references bytes outside of the total size of the blob.
 
 Invocation MUST succeed if none of the above is true.
+
+Successful execution of a `space/content/retrieve` invocation MUST result in the requested data being sent to the agent that issued the request. Replayed invocations MAY send the requested data, but it is not required. It is RECOMMENDED that `space/content/retrieve` invocations specify a [nonce](https://github.com/ucan-wg/spec/tree/v0.9.2#323-nonce) or a non-static [expiry](https://github.com/ucan-wg/spec/tree/v0.9.2#322-time-bounds) to ensure that data is always sent.
