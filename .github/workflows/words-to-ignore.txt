@@ -176,3 +176,5 @@ queryable
 bafy
 0-rc
 async
+MiB
+GiB
