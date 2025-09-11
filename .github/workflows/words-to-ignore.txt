@@ -182,3 +182,5 @@ multibase
 base64
 Unprocessable
 satisfiable
+CORS
+cURL
