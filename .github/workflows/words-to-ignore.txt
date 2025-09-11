@@ -180,3 +180,5 @@ Storacha
 gzipped
 multibase
 base64
+CORS
+cURL
