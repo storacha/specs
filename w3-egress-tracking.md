@@ -74,7 +74,7 @@ sequenceDiagram
 ```
 Egress Tracking enables authorized Storage Nodes to be paid egress fees for the content they serve. To do so, they MAY issue `space/egress/track` invocations to an Egress Tracking Service. These invocations contain `space/content/retrieve` receipts as proof that content was served.
 
-In order to make the most efficient use of resources and reduce overhead, Storage Nodes MUST batch receipts into a single `space/egress/track` invocation. As they serve content, Storage Nodes will store `space/content/retrieve` receipts. Once they have collected a batch of them, they will issue a `space/egress/track` invocation to the Egress Tracking Service. Receipt batches MUST have a minimum size of at least 10MiB and a maximum size of 1GiB. These limits ensure that egress can be recorded and processed efficiently and that the Storage Node can issue invocations at a reasonable rate.
+In order to make the most efficient use of resources and reduce overhead, Storage Nodes MUST batch receipts into a single `space/egress/track` invocation. As they serve content, Storage Nodes will store `space/content/retrieve` receipts. Once they have collected a batch of them, they will issue a `space/egress/track` invocation to the Egress Tracking Service. Receipt batches MUST have a minimum size of at least 10 MiB and a maximum size of 1 GiB. These limits ensure that egress can be recorded and processed efficiently and that the Storage Node can issue invocations at a reasonable rate.
 
 Periodically, the Egress Tracking Service will invoke `space/egress/consolidate` on the Egress Records Consolidator (which is a logical entity that can be implemented by the Egress Tracking Service itself). The result of this operation will be stored in the corresponding receipts to keep a paper trail of the process. Storage Nodes MAY fetch these receipts to confirm they match their own records.
 
@@ -276,6 +276,6 @@ Note that the consolidation task processes a batch of receipts. It is possible t
 
 This is different from an `EgressConsolidateError`, which signals an issue that prevents the batch from being processed at all.
 
-Storage Nodes MUST produce receipt batches that are between 10MiB and 1GiB in size. Batches that are too small or too large will be rejected at consolidation time with an `EgressConsolidateError` receipt. If that's the case, the Storage Node will need to issue a new `space/egress/track` invocation with a new, valid batch of receipts.
+Storage Nodes MUST produce receipt batches that are between 10 MiB and 1 GiB in size. Batches that are too small or too large will be rejected at consolidation time with an `EgressConsolidateError` receipt. If that's the case, the Storage Node will need to issue a new `space/egress/track` invocation with a new, valid batch of receipts.
 
 [DID]:https://www.w3.org/TR/did-core/
