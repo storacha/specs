@@ -178,3 +178,11 @@ bafy
 async
 MiB
 GiB
+Storacha
+gzipped
+multibase
+base64
+Unprocessable
+satisfiable
+CORS
+cURL
