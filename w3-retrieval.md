@@ -111,8 +111,14 @@ type Result<Ok, Err> = { ok: Ok } | { error: Err }
 type ContentRetrieveOk = {}
 
 type ContentRetrieveError =
+  | NotFound
   | RangeNotSatisfiable
   | Failure
+
+type NotFound = {
+  name: 'NotFound'
+  message: string
+}
 
 type RangeNotSatisfiable = {
   name: 'RangeNotSatisfiable'
@@ -129,10 +135,10 @@ type Failure = {
 
 The invocation MUST fail if any of the following is true:
 
-1. Provided subject space does not contain the blob.
+1. Provided subject space does not contain the blob (service MUST respond with a `NotFound` error).
 1. Provided `blob.digest` is not a valid [multihash].
 1. Provided `blob.digest` [multihash] hashing algorithm is not supported.
-1. Provided `range` references bytes outside of the total size of the blob.
+1. Provided `range` references bytes outside of the total size of the blob (service MUST respond with `RangeNotSatisfiable` error).
 
 Invocation MUST succeed if none of the above is true.
 
