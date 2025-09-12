@@ -257,13 +257,9 @@ type EgressConsolidateOk = {
 }
 
 type ReceiptError = {
-  receipt: Link<Receipt>
-  error: Error
-}
-
-type Error = {
   name: string
   message: string
+  receipt: Link<Receipt>
 }
 
 type EgressConsolidateError = {
