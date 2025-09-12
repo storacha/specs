@@ -72,6 +72,7 @@ sequenceDiagram
     EgressService--)StorageNode: space/egress/consolidate receipt
     deactivate EgressService
 ```
+
 Egress Tracking enables authorized Storage Nodes to be paid egress fees for the content they serve. To do so, they MAY issue `space/egress/track` invocations to an Egress Tracking Service. These invocations contain `space/content/retrieve` receipts as proof that content was served.
 
 In order to make the most efficient use of resources and reduce overhead, Storage Nodes MUST batch receipts into a single `space/egress/track` invocation. As they serve content, Storage Nodes will store `space/content/retrieve` receipts. Once they have collected a batch of them, they will issue a `space/egress/track` invocation to the Egress Tracking Service. Receipt batches MUST have a minimum size of at least 10 MiB and a maximum size of 1 GiB. These limits ensure that egress can be recorded and processed efficiently and that the Storage Node can issue invocations at a reasonable rate.
@@ -120,6 +121,7 @@ After processing the invocation, the Egress Tracking Service returns a receipt.
   }
 }
 ```
+
 Periodically, the Egress Tracking Service (or some other service or component, for that matter) will process tracked egress records and consolidate them into a view that can be used to calculate egress fees. The effects in the receipt contain a link to a `space/egress/consolidate`, which tells the Storage Node that the egress records will be processed asynchronously. Storage Nodes will be able to fetch receipts of the `space/egress/consolidate` async actions to check the result of the consolidation process.
 
 ### `space/egress/consolidate` invocation example
@@ -187,18 +189,22 @@ type ETrackerServiceDID = String
 ```
 
 ##### Retrieval receipts
+
 The `nb.receipts` field MUST be the CID of a CAR file. This CAR file contains a batch of receipts for `space/content/retrieve`, whose audience MUST be the issuer of the `space/egress/track` invocation (i.e. a Storage Node MUST only request tracking of retrievals it fulfilled).
 
 ##### Receipts endpoint
+
 The `nb.endpoint` field MUST be a URL to a special endpoint in the Storage Node that can be used to fetch the receipt batches from. This special endpoint MUST support HTTP GET requests and MUST contain a `{cid}` placeholder in the URL. During consolidation, the Egress Record Consolidator will fetch the receipts from the Storage Node using the URL provided, replacing the `{cid}` placeholder with the CID of the receipt batch.
 
 For example, given the following caveats:
+
 ```json
 "nb": {
   "receipts": "bafy...rcptBatch",
   "endpoint": "https://storage.node/receipts/{cid}"
 }
 ```
+
 then the receipt batch will be fetched by sending a HTTP GET request to `https://storage.node/receipts/bafy...rcptBatch`.
 
 The receipts endpoint MAY support compression via HTTP `Accept-Encoding` header to reduce the amount of data transferred and minimize egress.
@@ -240,6 +246,7 @@ type EgressConsolidate = {
 
 type ConsolidatorServiceDID = string
 ```
+
 `nb.cause` is a link to the `space/egress/track` invocation that originated this consolidation task.
 
 #### `space/egress/consolidate` receipt
