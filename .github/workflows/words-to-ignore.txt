@@ -176,5 +176,11 @@ queryable
 bafy
 0-rc
 async
+Storacha
+gzipped
+multibase
+base64
+Unprocessable
+satisfiable
 CORS
 cURL
