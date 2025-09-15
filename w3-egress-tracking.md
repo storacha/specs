@@ -157,11 +157,9 @@ This is an example of the receipt returned by the Egress Record Consolidator.
     "ok": {
       "errors": [
         {
-          "receipt": { "/": "bafy...receipt" },
-          "error": {
-            "name": "SomeError",
-            "message": "something bad happened!"
-          }
+          "name": "SomeError",
+          "message": "something bad happened!",
+          "receipt": { "/": "bafy...receipt" }
         }
       ]
     }
