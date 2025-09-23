@@ -185,6 +185,190 @@ The attestation signature is denoted by a [Nonstandard `VarSig` signature] with 
 { "/": { "bytes": "gKADAA" } }
 ```
 
+## Capabilities
+
+### `account/usage/*`
+
+Capability can only be delegated (not invoked) to allow an audience to derive any `account/usage/*` prefixed capability for the account identified in the `with` field.
+
+```ts
+type AccountUsage = {
+  can: 'account/usage/*'
+  with: AccountDID
+}
+```
+
+### `account/usage/get`
+
+Capability can be invoked by an agent to retrieve usage data for all, or a specified set, of spaces within an account for a given period.
+
+
+#### Capability schema
+
+```ipldsch
+type AccountUsageGet struct {
+  with AccountDID
+  nb optional AccountUsageGetNB
+}
+
+type AccountUsageGetNB struct {
+  # Optional list of spaces to filter. If omitted, provider SHOULD aggregate all spaces the account is authorized to include.
+  spaces optional [SpaceDID]
+
+  # Optional time period (Unix timestamps in seconds).
+  # If omitted, provider MUST return a current snapshot.
+  # Semantics: from is inclusive; to is exclusive.
+  period optional Period
+}
+
+type Period struct {
+  from Int # inclusive
+  to Int   # exclusive
+}
+```
+
+#### Invocation examples
+
+> Example: getting the current total usage
+
+```json
+{
+  "iss": "did:key:z6MktfnQz8Kcz5nsC65oyXWFXhbbAZQavjg6LYuHOOOagent",
+  "aud": "did:web:storacha.network",
+  "att": [
+    {
+      "with": "did:mailto:web.mail:alice",
+      "can": "account/usage/get"
+    }
+  ],
+  "prf": [
+    { "/": "bafyAccountDelegationCid" },
+    { "/": "bafySessionAttestationCid" }
+  ],
+  "sig": "..."
+}
+```
+
+> Example: filtering a single space and period
+
+```json
+{
+  "iss": "did:key:z6MktfnQz8Kcz5nsC65oyXWFXhbbAZQavjg6LYuHOOOagent",
+  "aud": "did:web:storacha.network",
+  "att": [
+    {
+      "with": "did:mailto:web.mail:alice",
+      "can": "account/usage/get",
+      "nb": {
+        "spaces": [
+          "did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe"
+        ],
+        "period": {
+          "from": 1754006400,
+          "to": 1758111728
+        }
+      }
+    }
+  ],
+  "prf": [
+    { "/": "bafyAccountDelegationCid" },
+    { "/": "bafySessionAttestationCid" }
+  ],
+  "sig": "..."
+}
+```
+
+#### Authorization requirements
+
+The service MUST verify that the Account DID is authorized to access usage data for all requested spaces. If any requested space is not authorized, the entire invocation SHOULD fail with an error message indicating which spaces lack authorization.
+
+#### Receipt
+
+```ipldsch
+type AccountUsageGetReceipt = {
+  ran: Link<AccountUsageGet>
+  out: Result<AccountUsageGetSuccess, AccountUsageGetFailure>
+}
+
+type AccountUsageGetFailure {
+  message: string
+}
+
+type AccountUsageGetSuccess {
+  total  Int
+  spaces Record<SpaceDID, SpaceUsage>   # keys MUST be sorted
+}
+
+type SpaceUsage {
+  total     Int
+  providers Record<ProviderDID, UsageData>  # keys MUST be sorted
+}
+
+# UsageData is shared with `usage/report`
+type UsageData {
+  provider ProviderDID
+  space    SpaceDID
+  period   PeriodISO
+  size     SizeDelta
+  events   optional [UsageEvent]
+}
+
+type SizeDelta {
+  initial Int
+  final   Int
+}
+
+type UsageEvent {
+  cause     Link
+  delta     Int
+  receiptAt ISO8601Date
+}
+
+type PeriodISO {
+  from ISO8601Date
+  to   ISO8601Date
+}
+
+type ISO8601Date = string
+type ProviderDID = string
+```
+
+In all responses, the keys of the `spaces` field in `AccountUsageGetSuccess` and the `providers` field in `SpaceUsage` MUST be sorted lexicographically by their respective key (SpaceDID, ProviderDID). This ensures that the same query produces the same output each time.
+
+##### Receipt example (success)
+
+```json
+{
+  "total": 5356848797,
+  "spaces": {
+    "did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe": {
+      "total": 5356848797,
+      "providers": {
+        "did:web:web3.storage": {
+          "provider": "did:web:web3.storage",
+          "space": "did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe",
+          "period": {
+            "from": "2025-07-01T00:00:00.000Z",
+            "to": "2025-08-12T15:55:11.000Z"
+          },
+          "size": {
+            "initial": 1035217049,
+            "final": 5356848797
+          },
+          "events": [
+            {
+              "cause": { "/": "bafyreiafouslzry3vunc4okazrqpwpuanrq4d3ehb2oatn4vmrhnmj6rzy" },
+              "delta": 54394,
+              "receiptAt": "2025-07-01T14:34:50.947Z"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+```
+
 ## Implementations
 
 ### [`w3 login <email>` in w3cli](https://github.com/web3-storage/w3cli#w3-login-email)
