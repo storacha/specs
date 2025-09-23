@@ -333,7 +333,7 @@ type ISO8601Date = string
 type ProviderDID = string
 ```
 
-In all responses, the keys of the `spaces` field in `AccountUsageGetSuccess` and the `providers` field in `SpaceUsage` MUST be sorted lexicographically by their respective key (SpaceDID, ProviderDID). This ensures that the same query produces the same output each time.
+In all responses, the keys of the `spaces` field in `AccountUsageGetSuccess` and the `providers` field in `SpaceUsage` MUST be sorted lexicographically by their respective key (`SpaceDID`, `ProviderDID`). This ensures that the same query produces the same output each time.
 
 ##### Receipt example (success)
 
@@ -371,37 +371,37 @@ In all responses, the keys of the `spaces` field in `AccountUsageGetSuccess` and
 
 ## Implementations
 
-### [`w3 login <email>` in w3cli](https://github.com/web3-storage/w3cli#w3-login-email)
+### [`storacha login <email>` in CLI](https://github.com/web3-storage/w3cli#w3-login-email)
 
-- invokes [Account.login](https://github.com/web3-storage/w3cli/blob/fc97ee1b76551bced861f08a4d1e7a31440a6a14/bin.js#L56) which calls `login` on a `@web3-storage/w3up-client`
+- invokes [Account.login](https://github.com/storacha/upload-service/blob/440554db155fde9498358ecc0ae0065e647757d1/packages/cli/bin.js#L75) which calls `login` on a `@storacha/client`
 
-### [@web3-storage/w3up-client][]
+### [@storacha/client][]
 
-- login method [returns](https://github.com/web3-storage/w3up/blob/main/packages/w3up-client/src/account.js#L82) an `Account` instance
-  - [used](https://github.com/web3-storage/w3cli/blob/fc97ee1b76551bced861f08a4d1e7a31440a6a14/account.js#L1) by w3cli
+- login method [returns](https://github.com/storacha/w3up/blob/d02da30f51dfb79cfc9ce63f0b3a28aa9ea2345e/packages/w3up-client/src/account.js#L83) an `Account` instance
+  - [used](https://github.com/storacha/upload-service/blob/main/packages/cli/account.js) by CLI
 
 [@web3-storage/w3up-client]: https://github.com/web3-storage/w3up/tree/main/packages/w3up-client
 
-### [@ucanto/*](https://github.com/web3-storage/ucanto/tree/main)
+### [@ucanto/*](https://github.com/storacha/ucanto/tree/main)
 
 ucanto contains all kinds of tools for building application layer services aligned with the w3-account model.
 
 Examples
 
-- [@web3-storage/upload-api](https://github.com/web3-storage/w3up/tree/main/packages/upload-api) - application logic for up.web3.storage
-  - `createServer` [uses `@ucanto/server`](https://github.com/web3-storage/w3up/blob/main/packages/upload-api/src/lib.js#L29)
-  - example [invocation handler for `access/delegate`](https://github.com/web3-storage/w3up/blob/main/packages/upload-api/src/access/delegate.js#L17) using `@ucanto/types`
-- [@web3-storage/access-client](https://github.com/web3-storage/w3up/tree/main/packages/access-client) - uses `@ucanto/client` to invoke `@web3-storage/upload/api`
+- [@storacha/upload-api](https://github.com/storacha/upload-service/tree/main/packages/upload-api) - application logic for up.storacha.network
+  - `createServer` [uses `@ucanto/server`](https://github.com/storacha/upload-service/blob/440554db155fde9498358ecc0ae0065e647757d1/packages/upload-api/src/lib.js#L36)
+  - example [invocation handler for `access/delegate`](https://github.com/storacha/upload-service/blob/440554db155fde9498358ecc0ae0065e647757d1/packages/upload-api/src/access/delegate.js#L17) using `@ucanto/types`
+- [@storacha/access-client](https://github.com/storacha/upload-service/tree/main/packages/access-client) - uses `@ucanto/client` to invoke `@storacha/upload-api`
 
-### [@web3-storage/did-mailto](https://github.com/web3-storage/w3up/tree/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/did-mailto)
+### [@storacha/did-mailto](https://github.com/storacha/upload-service/tree/main/packages/did-mailto)
 
 - `fromEmail` and `toEmail` functions to encoded/decode `did:mailto` from email addresses.
-- has `import("@web3-storage/did-mailto/types").DidMailto` typescript type
+- has `import("@storacha/did-mailto/types").DidMailto` typescript type
 
 Examples
 
-- [@web3-storage/w3cli for account management cli](https://github.com/web3-storage/w3cli/blob/fc97ee1b76551bced861f08a4d1e7a31440a6a14/account.js#L3)
-- [@w3up-client](https://github.com/web3-storage/w3up/blob/e34eed1fa3d6ef24ce2c01982764f2012dbf30d8/packages/w3up-client/src/types.ts#L18)
+- [@storacha/cli for account management cli](https://github.com/storacha/upload-service/blob/440554db155fde9498358ecc0ae0065e647757d1/packages/cli/account.js#L5)
+- [@storacha/client](https://github.com/storacha/upload-service/blob/440554db155fde9498358ecc0ae0065e647757d1/packages/w3up-client/src/types.ts#L22)
 
 [Protocol Labs]:https://protocol.ai/
 [Irakli Gozalishvili]:https://github.com/Gozala
