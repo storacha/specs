@@ -202,7 +202,6 @@ type AccountUsage = {
 
 Capability can be invoked by an agent to retrieve usage data for all, or a specified set, of spaces within an account for a given period.
 
-
 #### Capability schema
 
 ```ipldsch
@@ -368,40 +367,6 @@ In all responses, the keys of the `spaces` field in `AccountUsageGetSuccess` and
   }
 }
 ```
-
-## Implementations
-
-### [`storacha login <email>` in CLI](https://github.com/web3-storage/w3cli#w3-login-email)
-
-- invokes [Account.login](https://github.com/storacha/upload-service/blob/440554db155fde9498358ecc0ae0065e647757d1/packages/cli/bin.js#L75) which calls `login` on a `@storacha/client`
-
-### [@storacha/client][]
-
-- login method [returns](https://github.com/storacha/w3up/blob/d02da30f51dfb79cfc9ce63f0b3a28aa9ea2345e/packages/w3up-client/src/account.js#L83) an `Account` instance
-  - [used](https://github.com/storacha/upload-service/blob/main/packages/cli/account.js) by CLI
-
-[@web3-storage/w3up-client]: https://github.com/web3-storage/w3up/tree/main/packages/w3up-client
-
-### [@ucanto/*](https://github.com/storacha/ucanto/tree/main)
-
-ucanto contains all kinds of tools for building application layer services aligned with the w3-account model.
-
-Examples
-
-- [@storacha/upload-api](https://github.com/storacha/upload-service/tree/main/packages/upload-api) - application logic for up.storacha.network
-  - `createServer` [uses `@ucanto/server`](https://github.com/storacha/upload-service/blob/440554db155fde9498358ecc0ae0065e647757d1/packages/upload-api/src/lib.js#L36)
-  - example [invocation handler for `access/delegate`](https://github.com/storacha/upload-service/blob/440554db155fde9498358ecc0ae0065e647757d1/packages/upload-api/src/access/delegate.js#L17) using `@ucanto/types`
-- [@storacha/access-client](https://github.com/storacha/upload-service/tree/main/packages/access-client) - uses `@ucanto/client` to invoke `@storacha/upload-api`
-
-### [@storacha/did-mailto](https://github.com/storacha/upload-service/tree/main/packages/did-mailto)
-
-- `fromEmail` and `toEmail` functions to encoded/decode `did:mailto` from email addresses.
-- has `import("@storacha/did-mailto/types").DidMailto` typescript type
-
-Examples
-
-- [@storacha/cli for account management cli](https://github.com/storacha/upload-service/blob/440554db155fde9498358ecc0ae0065e647757d1/packages/cli/account.js#L5)
-- [@storacha/client](https://github.com/storacha/upload-service/blob/440554db155fde9498358ecc0ae0065e647757d1/packages/w3up-client/src/types.ts#L22)
 
 [Protocol Labs]:https://protocol.ai/
 [Irakli Gozalishvili]:https://github.com/Gozala
