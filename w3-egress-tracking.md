@@ -155,6 +155,7 @@ This is an example of the receipt returned by the Egress Record Consolidator.
   "ran": "bafy...consolidate",
   "out": {
     "ok": {
+      "totalEgress": 123456789,
       "errors": [
         {
           "name": "SomeError",
@@ -167,7 +168,7 @@ This is an example of the receipt returned by the Egress Record Consolidator.
 }
 ```
 
-The example shows that the consolidation process was successful, but a receipt failed to be processed. The `errors` array contains a list of errors that occurred during the processing of the receipts. If all receipts were processed successfully, the `errors` list will be empty.
+The example shows that the consolidation process was successful and receipts processed successfully account for a total of 123456789 bytes of egress. However, a receipt in the batch failed to be processed. The `errors` array contains a list of errors that occurred during the processing of the receipts. If all receipts were processed successfully, the `errors` list will be empty.
 
 ### Schema
 
@@ -258,6 +259,7 @@ type EgressConsolidateReceipt = {
 type Result<Ok, Err> = { ok: Ok } | { error: Err }
 
 type EgressConsolidateOk = {
+  totalEgress: int
   errors: ReceiptError[]
 }
 
