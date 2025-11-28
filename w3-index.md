@@ -58,6 +58,8 @@ type ContentArchive<T> = ByteView<{
 }>
 ```
 
+An invocation of the capability SHOULD include a temporary delegation to the service allowing the index in the space to be retrieved from the network so that it may be indexed and cached. See the [w3-retrieval](w3-retrieval.md) specification for details.
+
 ### Index
 
 #### Index Schema
