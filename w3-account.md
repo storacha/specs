@@ -309,7 +309,7 @@ type UsageData {
   space    SpaceDID
   period   PeriodISO
   size     SizeDelta
-  events   optional [UsageEvent]
+  events   [UsageEvent]
 }
 
 type SizeDelta {
