@@ -479,7 +479,7 @@ type DailyStat {
 }
 ```
 
-In all responses, the keys of the `spaces` field in `AccountEgressGetSuccess` MUST be sorted lexicographically. DailyStats within each SpaceEgress MUST be sorted by date ascending. This ensures that the same query produces the same output each time.
+In all responses, the keys of the `spaces` field in `AccountEgressGetSuccess` MUST be sorted lexicographically. `DailyStats` within each `SpaceEgress` MUST be sorted by date ascending. This ensures that the same query produces the same output each time.
 
 ##### Receipt example (success)
 
