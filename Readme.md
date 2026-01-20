@@ -2,7 +2,7 @@
 
 This repository contains the specs for the `w3up` protocol and associated subsystems.
 
-The implementations of these specs can be found in <https://github.com/web3-storage/w3up>
+The implementations of these specs can be found in [storacha/upload-service/packages/capabilities](https://github.com/storacha/upload-service/tree/main/packages/capabilities)
 
 ## Overview
 
