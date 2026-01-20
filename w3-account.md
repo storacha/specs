@@ -9,6 +9,8 @@
 ## Authors
 
 - [Irakli Gozalishvili], [Protocol Labs]
+- [Natalie Bravo], [Storacha Network]
+- [Vicente Olmedo], [Storacha Network]
 
 # Abstract
 
@@ -50,13 +52,13 @@ Agent authorization can use familiar email-based authorization flows providing a
 
 There are several distinct roles that [principals] may assume in described specification:
 
-| Name        | Description                                                                                                                                    |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Principal | The general class of entities that interact with a UCAN. Listed in the `iss` or `aud` field |
-| Account    | [Principal] identified by memorable identifier like [`did:mailto`]. |
-| Agent       | [Principal] identified by [`did:key`] identifier, representing a user in some application installation |
-| Issuer | Principal sharing access. It is the signer of the [UCAN]. Listed in the `iss` field |
-| Audience | Principal access is shared with. Listed in the `aud` field |
+| Name      | Description                                                                                            |
+| --------- | ------------------------------------------------------------------------------------------------------ |
+| Principal | The general class of entities that interact with a UCAN. Listed in the `iss` or `aud` field            |
+| Account   | [Principal] identified by memorable identifier like [`did:mailto`].                                    |
+| Agent     | [Principal] identified by [`did:key`] identifier, representing a user in some application installation |
+| Issuer    | Principal sharing access. It is the signer of the [UCAN]. Listed in the `iss` field                    |
+| Audience  | Principal access is shared with. Listed in the `aud` field                                             |
 
 ### Space
 
@@ -285,12 +287,12 @@ The service MUST verify that the Account DID is authorized to access usage data 
 
 ```ipldsch
 type AccountUsageGetReceipt = {
-  ran: Link<AccountUsageGet>
-  out: Result<AccountUsageGetSuccess, AccountUsageGetFailure>
+  ran Link<AccountUsageGet>
+  out Result<AccountUsageGetSuccess, AccountUsageGetFailure>
 }
 
 type AccountUsageGetFailure {
-  message: string
+  message String
 }
 
 type AccountUsageGetSuccess {
@@ -328,8 +330,8 @@ type PeriodISO {
   to   ISO8601Date
 }
 
-type ISO8601Date = string
-type ProviderDID = string
+type ISO8601Date string
+type ProviderDID string
 ```
 
 In all responses, the keys of the `spaces` field in `AccountUsageGetSuccess` and the `providers` field in `SpaceUsage` MUST be sorted lexicographically by their respective key (`SpaceDID`, `ProviderDID`). This ensures that the same query produces the same output each time.
@@ -368,33 +370,174 @@ In all responses, the keys of the `spaces` field in `AccountUsageGetSuccess` and
 }
 ```
 
-[Protocol Labs]:https://protocol.ai/
-[Irakli Gozalishvili]:https://github.com/Gozala
-[PKI]:https://en.wikipedia.org/wiki/Public_key_infrastructure
-[UCAN]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
-[`did:mailto`]:./did-mailto.md
-[`did:key`]:https://w3c-ccg.github.io/did-key-spec/
-[principal]:https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#321-principals
+### `account/egress/get`
+
+Capability can be invoked by an agent to retrieve egress data for all, or a specified set, of spaces within an account for a given period.
+
+#### Capability schema
+
+```ipldsch
+type AccountEgressGet struct {
+  with AccountDID
+  nb optional AccountEgressGetNB
+}
+
+type AccountEgressGetNB struct {
+  # Optional list of spaces to filter. If omitted, provider SHOULD aggregate all spaces the account is authorized to include.
+  spaces optional [SpaceDID]
+
+  # Optional time period
+  # If omitted, provider MUST return egress data from the first day of the last full month to the day the request is made.
+  period optional Period
+}
+
+# From and to are both inclusive and expressed as ISO-8601 date-only strings (e.g. 2026-01-20).
+type Period struct {
+  from ISO8601Date
+  to ISO8601Date
+}
+
+type ISO8601Date string
+```
+
+#### Invocation examples
+
+> Example: getting the current total egress
+
+```json
+{
+  "iss": "did:key:z6MktfnQz8Kcz5nsC65oyXWFXhbbAZQavjg6LYuHOOOagent",
+  "aud": "did:web:etracker.storacha.network",
+  "att": [
+    {
+      "with": "did:mailto:web.mail:alice",
+      "can": "account/egress/get"
+    }
+  ],
+  "prf": [
+    { "/": "bafyAccountDelegationCid" },
+    { "/": "bafySessionAttestationCid" },
+  ],
+  "sig": "..."
+}
+```
+
+> Example: filtering a single space and period
+
+```json
+{
+  "iss": "did:key:z6MktfnQz8Kcz5nsC65oyXWFXhbbAZQavjg6LYuHOOOagent",
+  "aud": "did:web:etracker.storacha.network",
+  "att": [
+    {
+      "with": "did:mailto:web.mail:alice",
+      "can": "account/egress/get",
+      "nb": {
+        "spaces": ["did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe"],
+        "period": {
+          "from": "2025-07-01",
+          "to": "2025-07-02"
+        }
+      }
+    }
+  ],
+  "prf": [{ "/": "bafyAccountDelegationCid" }, { "/": "bafySessionAttestationCid" }],
+  "sig": "..."
+}
+```
+
+#### Authorization requirements
+
+The service MUST verify that the Account DID is authorized to access egress data for all requested spaces. If any of the requested spaces is not authorized, the entire invocation SHOULD fail with an error message indicating which spaces lack authorization.
+
+#### Receipt
+
+```ipldsch
+type AccountEgressGetReceipt = {
+  ran Link<AccountEgressGet>
+  out Result<AccountEgressGetSuccess, AccountEgressGetFailure>
+}
+
+type AccountEgressGetFailure {
+  name    String
+  message String
+}
+
+type AccountEgressGetSuccess {
+  total  Int # total egress for the account in the requested period. Unit: bytes.
+  spaces Record<SpaceDID, SpaceEgress> # breakout per-space. Keys MUST be sorted.
+}
+
+type SpaceEgress {
+  total      Int # total egress for the space in the requested period. Unit: bytes.
+  dailyStats [DailyStat] # sorted by date ascending
+}
+
+type DailyStat {
+  date   ISO8601Date
+  egress Int # egress for that date. Unit: bytes.
+}
+```
+
+In all responses, the keys of the `spaces` field in `AccountEgressGetSuccess` MUST be sorted lexicographically. DailyStats within each SpaceEgress MUST be sorted by date ascending. This ensures that the same query produces the same output each time.
+
+##### Receipt example (success)
+
+```json
+{
+  "total": 1111111110,
+  "spaces": {
+    "did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe": {
+      "total": 1111111110,
+      "dailyStats": [
+        {
+          "date": "2025-07-01",
+          "egress": 123456789
+        },
+        {
+          "date": "2025-07-02",
+          "egress": 987654321
+        }
+      ]
+    }
+  }
+}
+```
+
+[Protocol Labs]: https://protocol.ai/
+[Irakli Gozalishvili]: https://github.com/Gozala
+[Natalie Bravo]: https://github.com/bravonatalie
+[Vicente Olmedo]: https://github.com/volmedo
+[Storacha Network]: https://storacha.network/
+[PKI]: https://en.wikipedia.org/wiki/Public_key_infrastructure
+[UCAN]: https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md
+[`did:mailto`]: ./did-mailto.md
+[`did:key`]: https://w3c-ccg.github.io/did-key-spec/
+[principal]: https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#321-principals
+
 <!-- markdown-link-check-disable -->
 <!-- stackexchange 403s this, presumably to prevent bot scraping -->
-[non-extractable keys]:https://crypto.stackexchange.com/questions/85587/what-do-people-use-non-extractable-webcrypto-keys-for/102695#102695
+
+[non-extractable keys]: https://crypto.stackexchange.com/questions/85587/what-do-people-use-non-extractable-webcrypto-keys-for/102695#102695
+
 <!-- markdown-link-check-enable-->
-[agent]:#agent
-[account]:#account
-[UCAN-IPLD Schema]:https://github.com/ucan-wg/ucan-ipld/#2-ipld-schema
-[link]:https://ipld.io/docs/schemas/features/links/
-[authorization payload]:#authorization-payload
-[RFC6376]:https://www.rfc-editor.org/rfc/rfc6376#section-3.4
-[Nonstandard `VarSig` signature]:https://github.com/ucan-wg/ucan-ipld/#251-nonstandard-signatures
-[ABNF]:https://en.wikipedia.org/wiki/Augmented_Backus%E2%80%93Naur_form
-[DAG-JSON]:https://ipld.io/specs/codecs/dag-json/spec/
-[ucan attestation]:./w3-ucan.md#attestation
+
+[agent]: #agent
+[account]: #account
+[UCAN-IPLD Schema]: https://github.com/ucan-wg/ucan-ipld/#2-ipld-schema
+[link]: https://ipld.io/docs/schemas/features/links/
+[authorization payload]: #authorization-payload
+[RFC6376]: https://www.rfc-editor.org/rfc/rfc6376#section-3.4
+[Nonstandard `VarSig` signature]: https://github.com/ucan-wg/ucan-ipld/#251-nonstandard-signatures
+[ABNF]: https://en.wikipedia.org/wiki/Augmented_Backus%E2%80%93Naur_form
+[DAG-JSON]: https://ipld.io/specs/codecs/dag-json/spec/
+[ucan attestation]: ./w3-ucan.md#attestation
 [IPLD]: https://ipld.io/
 [DAG-CBOR]: https://ipld.io/specs/codecs/dag-cbor/spec/
-[DID methods]:https://www.w3.org/TR/did-core/#methods
-[w3up]:https://github.com/web3-storage/w3up
-[owner]:#owner
-[space]:#space
-[DKIM]:https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail
-[attestation]:./w3-ucan.md#attestation
-[authority]:#authority
+[DID methods]: https://www.w3.org/TR/did-core/#methods
+[w3up]: https://github.com/web3-storage/w3up
+[owner]: #owner
+[space]: #space
+[DKIM]: https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail
+[attestation]: ./w3-ucan.md#attestation
+[authority]: #authority
