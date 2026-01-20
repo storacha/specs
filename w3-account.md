@@ -391,7 +391,8 @@ type AccountEgressGetNB struct {
   period optional Period
 }
 
-# From and to are both inclusive and expressed as ISO-8601 date-only strings (e.g. 2026-01-20).
+# From and to are both expressed as ISO-8601 date-only strings (e.g. 2026-01-20).
+# From is inclusive; to is exclusive.
 type Period struct {
   from ISO8601Date
   to ISO8601Date
@@ -436,7 +437,7 @@ type ISO8601Date string
         "spaces": ["did:key:z6MkuxVKbEvYzXw89c9ESd3xoZ988MFrCgqT5JF5wtBvuYWe"],
         "period": {
           "from": "2025-07-01",
-          "to": "2025-07-02"
+          "to": "2025-07-03"
         }
       }
     }
