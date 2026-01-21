@@ -224,7 +224,7 @@ type AccountUsageGetNB struct {
 
 type Period struct {
   from Int # inclusive
-  to Int   # exclusive
+  to   Int # exclusive
 }
 ```
 
@@ -286,27 +286,27 @@ The service MUST verify that the Account DID is authorized to access usage data 
 #### Receipt
 
 ```ipldsch
-type AccountUsageGetReceipt = {
+type AccountUsageGetReceipt struct {
   ran Link<AccountUsageGet>
   out Result<AccountUsageGetSuccess, AccountUsageGetFailure>
 }
 
-type AccountUsageGetFailure {
+type AccountUsageGetFailure struct {
   message String
 }
 
-type AccountUsageGetSuccess {
+type AccountUsageGetSuccess struct {
   total  Int
-  spaces Record<SpaceDID, SpaceUsage>   # keys MUST be sorted
+  spaces {SpaceDID: SpaceUsage} # keys MUST be sorted
 }
 
-type SpaceUsage {
+type SpaceUsage struct {
   total     Int
-  providers Record<ProviderDID, UsageData>  # keys MUST be sorted
+  providers {ProviderDID: UsageData} # keys MUST be sorted
 }
 
 # UsageData is shared with `usage/report`
-type UsageData {
+type UsageData struct {
   provider ProviderDID
   space    SpaceDID
   period   PeriodISO
@@ -314,18 +314,18 @@ type UsageData {
   events   [UsageEvent]
 }
 
-type SizeDelta {
+type SizeDelta struct {
   initial Int
   final   Int
 }
 
-type UsageEvent {
+type UsageEvent struct {
   cause     Link
   delta     Int
   receiptAt ISO8601Date
 }
 
-type PeriodISO {
+type PeriodISO struct {
   from ISO8601Date
   to   ISO8601Date
 }
@@ -454,27 +454,27 @@ The service MUST verify that the Account DID is authorized to access egress data
 #### Receipt
 
 ```ipldsch
-type AccountEgressGetReceipt = {
+type AccountEgressGetReceipt struct {
   ran Link<AccountEgressGet>
   out Result<AccountEgressGetSuccess, AccountEgressGetFailure>
 }
 
-type AccountEgressGetFailure {
+type AccountEgressGetFailure struct {
   name    String
   message String
 }
 
-type AccountEgressGetSuccess {
+type AccountEgressGetSuccess struct {
   total  Int # total egress for the account in the requested period. Unit: bytes.
-  spaces Record<SpaceDID, SpaceEgress> # breakout per-space. Keys MUST be sorted.
+  spaces {SpaceDID: SpaceEgress} # breakout per-space. Keys MUST be sorted.
 }
 
-type SpaceEgress {
+type SpaceEgress struct {
   total      Int # total egress for the space in the requested period. Unit: bytes.
   dailyStats [DailyStat] # sorted by date ascending
 }
 
-type DailyStat {
+type DailyStat struct {
   date   ISO8601Date
   egress Int # egress for that date. Unit: bytes.
 }
