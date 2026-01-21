@@ -311,7 +311,7 @@ type UsageData {
   space    SpaceDID
   period   PeriodISO
   size     SizeDelta
-  events   optional [UsageEvent]
+  events   [UsageEvent]
 }
 
 type SizeDelta {
@@ -515,14 +515,10 @@ In all responses, the keys of the `spaces` field in `AccountEgressGetSuccess` MU
 [`did:mailto`]: ./did-mailto.md
 [`did:key`]: https://w3c-ccg.github.io/did-key-spec/
 [principal]: https://github.com/ucan-wg/spec/blob/692e8aab59b763a783fe1484131c3f40d997b69a/README.md#321-principals
-
 <!-- markdown-link-check-disable -->
 <!-- stackexchange 403s this, presumably to prevent bot scraping -->
-
 [non-extractable keys]: https://crypto.stackexchange.com/questions/85587/what-do-people-use-non-extractable-webcrypto-keys-for/102695#102695
-
 <!-- markdown-link-check-enable-->
-
 [agent]: #agent
 [account]: #account
 [UCAN-IPLD Schema]: https://github.com/ucan-wg/ucan-ipld/#2-ipld-schema
