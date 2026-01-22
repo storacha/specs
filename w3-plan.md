@@ -26,7 +26,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ### `plan/get`
 
-Capability can be invoked to get information about the plan that the account is currently signed up for.
+Capability can be invoked to get information about the plan that the account is currently signed up for. The plan name and the storage limit are returned. The plan limit is expressed in bytes. Not to be confused with the storage **included** in the plan. A `0` limit indicates that uploads will not be rejected due to hitting a limit (the plan is effectively "unlimited"), which doesn't mean the customer won't be charged for the extra storage.
 
 > `did:mailto:web.mail:alice` invokes `plan/get` capability provided by `did:web:web3.storage`
 
@@ -66,6 +66,7 @@ Capability can be invoked to get information about the plan that the account is 
   "out": {
     "ok": {
       "product": "did:web:starter.web3.storage",
+      "limit": "5368709120",
       "updatedAt": "2024-01-05T06:56:26.074Z"
     }
   }
